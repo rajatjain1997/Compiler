@@ -90,9 +90,9 @@ Token* tokenize(TokenType type, char* buf, int lineno) {
 	};
 }
 
-void main() {
-	char* str = (char*) malloc(50);
-	scanf("%s", str);
-	Token* t = tokenize(STR, str, 1);
-	printf("%s", t->value.string->value);
-}
+// void main() {
+// 	char* str = (char*) malloc(50);
+// 	scanf("%s", str);
+// 	Token* t = tokenize(STR, str, 1);
+// 	printf("%s", t->value.string->value);
+// }

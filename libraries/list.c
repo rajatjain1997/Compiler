@@ -1,0 +1,297 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include"list.h"
+
+
+//Linked List Methods Start
+
+Head* createList() {
+	Head* h = (Head*) malloc(sizeof(Head));
+	h->first = NULL;
+	h->size = 0;
+	return h;
+}
+
+
+Node* traverse(Head* h, int index) {
+	if(index>h->size||index<0) {
+		return NULL;
+	}
+	Node* temp = h->first;
+	int count=0;
+	while(count<index) {
+		temp=temp->next;
+		count++;
+	}
+	return temp;
+}
+
+Data get(Head* h, int index) {
+	return traverse(h,index)->data;
+}
+
+void insertInFront(Head* h, Data data) {
+	Node* temp = (Node*) malloc(sizeof(Node));
+	temp -> data = data;
+	if(h->size==0) {
+		temp->next = NULL;
+		h->first = temp;
+		h->size++;
+		return;
+	}
+	temp -> next = h->first;
+	h->first = temp;
+	h->size++;
+	return;
+}
+
+void insertAtEnd(Head* h, Data data) {
+	Node* temp = (Node*) malloc(sizeof(Node));
+	temp -> data = data;
+	temp->next = NULL;
+	if(h->size==0) {
+		h->size++;
+		h->first = temp;
+		return;
+	}
+	Node* traverser = h->first;
+	while(traverser->next!=NULL) {
+		traverser= traverser->next;
+	}
+	h->size++;
+	traverser->next = temp;
+	return;
+}
+
+void insertAtIndex(Head* h, Data data, int index) {
+	Node* temp = (Node*) malloc(sizeof(Node));
+	temp -> data = data;
+	temp -> next = NULL;
+	if(index>h->size) {
+		return;
+	} else if(index==0) {
+		insertInFront(h,data);
+		return;
+	} else if(index==h->size) {
+		insertAtEnd(h,data);
+		return;
+	}
+	int count = 0;
+	Node* traverser = h->first;
+	while(++count<index) {
+		traverser = traverser -> next;
+	}
+	h->size++;
+	temp->next = traverser->next;
+	traverser->next = temp;
+}
+
+void printList(Head* h) {
+	Node* temp = h->first;
+	while(temp!=NULL) {
+		printf("%s\t",temp->data.value);
+		temp=temp->next;
+	}
+	printf("\n");
+}
+
+
+Data deleteAtEnd(Head* h) {
+	if(h->size==0) {
+		printf("-2\n");
+		return;
+	} else if(h->size==1) {
+		h->size--;
+		Data deletion = h->first->data;
+		free(h->first);
+		h->first=NULL;
+		return deletion;
+	}
+	Node* temp = h->first;
+	while(temp->next->next!=NULL) {
+		temp=temp->next;
+	}
+	Data deletion = temp->next->data;
+	Node* delete = temp->next;
+	temp->next=NULL;
+	h->size--;
+	free(delete);
+	return deletion;
+}
+
+Data deleteFromFront(Head* h) {
+	if(h->size==0) {
+		printf("-2\n");
+		return;
+	} else if(h->size==1) {
+		Data deletion = h->first->data;
+		Node* delete = h->first;
+		h->first = NULL;
+		h->size--;
+		free(delete);
+		return deletion;
+	}
+	Data deletion = h->first->data;
+	Node* delete = h->first;
+	h->first = h->first->next;
+	h->size--;
+	free(delete);
+	return deletion;
+}
+
+Data deleteAtIndex(Head* h, int index) {
+	if(index>h->size) {
+		return;
+	} else if(h->size==1) {
+		deleteFromFront(h);
+		return;
+	}
+	int count = 0;
+	Node* temp = h->first;
+	while(count!=index-1) {
+		temp=temp->next;
+	}
+	Data deletion = temp->next->data;
+	Node* delete = temp->next;
+	temp->next = delete->next;
+	free(delete);
+	return deletion;
+}
+
+int contains(Head* h, Data query) {
+	Node* temp = h->first;
+	while(temp!=NULL) {
+		if(temp->data.value==query.value) {
+			return 1;
+		}
+		temp=temp->next;
+	}
+	return 0;
+}
+
+
+int checkCircular(Head* h) {
+	if(h->size==0) {
+		return 0;
+	}
+	Node* hare = h->first;
+	Node* tort = h->first;
+	int circular = 0;
+	while(hare->next!=NULL&&hare->next->next!=NULL) {
+		hare= hare->next->next;
+		tort= tort->next;
+		if(hare==tort||hare->next==tort) {
+			circular = 1;
+			hare=tort;
+			break;
+		}
+	}
+	if(circular) {
+		hare = hare->next;
+		while(hare!=tort) {
+			circular++;
+			hare=hare->next;
+		}
+		circular++;
+		return circular;
+	}
+	return 0;
+}
+
+//Linked List Methods End
+//Queue Methods Start
+
+Queue createQueue() {
+	Queue q = (Queue) malloc(sizeof(queue));
+	q->first = NULL;
+	q->last = NULL;
+	q->size = 0;
+	return q;
+}
+
+void enqueue(Queue q, Data d) {
+	Element ele = (Element) malloc(sizeof(Node));
+	ele->data = d;
+	ele->next = NULL;
+	if(q->size==0) {
+		q->size++;
+		q->first = ele;
+		q->last = ele;
+		return;
+	}
+	q->size++;
+	q->last->next = ele;
+	q->last = ele;
+	return;
+}
+
+Data dequeue(Queue q) {
+	if(q->size==0) {
+		return;
+	}
+	Data d = q->first->data;
+	q->size--;
+	if(q->size==0) {
+		free(q->last);
+		q->first = NULL;
+		q->last = NULL;
+	} else {
+		Element temp = q->first->next;
+		free(q->first);
+		q->first = temp;
+	}
+	return d;
+}
+
+Data getFirst(Queue q) {
+	if(q->size==0) {
+		return;
+	}
+	return q->first->data;
+}
+
+//Queue Methods End
+//Stack Methods Start
+
+Stack createStack() {
+	Stack stack = (Stack) malloc(sizeof(StackHead));
+	stack->size = 0;
+	stack->top = NULL;
+	return stack;
+}
+
+void push(Stack stack, Data d) {
+	Element ele = (Element) malloc(sizeof(Node));
+	ele->data = d;
+	if(stack->size==0) {
+		ele->next = NULL;
+		stack->top = ele;
+		stack->size++;
+		return;
+	}
+	ele->next = stack->top;
+	stack->top = ele;
+	stack->size++;
+	return;
+}
+
+Data pop(Stack stack) {
+	if(stack->size==0) {
+		return;
+	}
+	Data deletion = stack->top->data;
+	Element delete = stack->top;
+	stack->top = stack->top->next;
+	stack->size--;
+	free(delete);
+	return deletion;
+}
+
+Data top(Stack stack) {
+	if(stack->size==0) {
+		return;
+	}
+	return stack->top->data;
+}
+
+//Stack Methods End

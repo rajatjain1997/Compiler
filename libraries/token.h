@@ -52,7 +52,7 @@ typedef union {
 	char* lexeme;
 } Value;
 
-typedef struct {
+typedef struct Token {
 	TokenType type;
 	Value value;
 	int lineno;

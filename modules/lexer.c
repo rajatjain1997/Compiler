@@ -1,13 +1,14 @@
+#include"../libraries/list.h"
 #include"../libraries/token.h"
 #include"../libraries/error.h"
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 
-void raiseFileCorruptException(char* filename) {
+void raiseFileCorruptException() {
 	char msg[100];
 	ErrorType e = ERROR;
-	strcpy(msg, "Cannot open file with name ");
-	strcat(msg, filename);
+	strcpy(msg, "Cannot open file");;
 	error(msg, e, -1);
 }
 
@@ -17,6 +18,10 @@ void raiseSymbolNotRecognizedException(char lookahead, int lineno) {
 	strcpy(msg, "Symbol not expected here ");
 	msg[25] = lookahead;
 	msg[26] = '\0';
+	strcat(msg, " ASCII (");
+	int ascii = lookahead;
+	itoa(ascii, msg+34, 10);
+	strcat(msg, ")");
 	error(msg, e, lineno);
 }
 
@@ -29,23 +34,30 @@ void raiseBufferOverflowException() {
 
 int incrementptr(char* buf, int ptr, int start, FILE* fp) {
 	if(ptr<49) {
-		return ptr++;
+		return ++ptr;
 	} else {
-		if(start=0) {
+		int size = 0;
+		if(start==0) {
 			raiseBufferOverflowException();
 		}
-		buf[50] = '\0';
 		strcpy(buf, buf+start);
-		if(!fgets(buf+50-start, start, fp))
-			return -1;
+		size=fread(buf+50-start, 1, start, fp);
+		buf[50-start+size] = '\0';
 		return 50-start;
 	}
 }
 
-void traverse(char* buf, int ptr, FILE* fp) {
+void lex(Queue tokenStream, FILE* fp) {
+	char* buf = (char*) malloc(51);
+	buf[50]='\0';
+	if(!fread(buf, 1, 50, fp)) {
+		return;
+	}
 	int state = 0;
 	int lineno = 0;
 	int start = 0;
+	int ptr = 0;
+	Data tokenData;
 	while(1) {
 		char lookahead = buf[ptr];
 		switch(state) {
@@ -74,8 +86,10 @@ void traverse(char* buf, int ptr, FILE* fp) {
 						case ')': state=18; break;
 						case ';': state=19; break;
 						case '#': state=20; break;
-						case '\n': lineno++; break;
-						case ' ': break;
+						case '\n': lineno++; start++; break;
+						case '\0': return;
+						case ' ': start++; break;
+						case '\t': start++; break;
 						default: raiseSymbolNotRecognizedException(lookahead, lineno);
 						state=0;
 					};
@@ -87,8 +101,13 @@ void traverse(char* buf, int ptr, FILE* fp) {
 				else if(lookahead>='0' && lookahead<='9')
 					state=21;
 				else {
+					buf[ptr] = '\0';
+					tokenData.value = tokenize(ID, buf+start, lineno);
+					enqueue(tokenStream, tokenData);
+					buf[ptr]=lookahead;
+					start = ptr;
+					state=0;
 					ptr--;
-					// tokenize(); Remember to add to token stream and update start to ptr and set the state back to 0
 				}
 				break;
 			case 2:
@@ -97,8 +116,13 @@ void traverse(char* buf, int ptr, FILE* fp) {
 				else if(lookahead=='.')
 					state=22;
 				else {
+					buf[ptr] = '\0';
+					tokenData.value = tokenize(NUM, buf+start, lineno);
+					enqueue(tokenStream, tokenData);
+					buf[ptr]=lookahead;
+					start = ptr;
+					state=0;
 					ptr--;
-					// tokenize();
 				}
 				break;
 			case 3:
@@ -118,35 +142,65 @@ void traverse(char* buf, int ptr, FILE* fp) {
 				}
 				break;
 			case 5:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(PLUS, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize();+
 				break;
 			case 6:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(MINUS, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize-
 				break;
 			case 7:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(MUL, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize*
 				break;
 			case 8:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(DIV, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize/
 				break;
 			case 9:
 				if(lookahead=='=')
 					state=25;
 				else {
+					buf[ptr] = '\0';
+					tokenData.value = tokenize(LT, buf+start, lineno);
+					enqueue(tokenStream, tokenData);
+					buf[ptr]=lookahead;
+					start = ptr;
+					state=0;
 					ptr--;
-					// tokenize<
 				}
 				break;
 			case 10:
 				if(lookahead=='=')
 					state=33;
 				else {
+					buf[ptr] = '\0';
+					tokenData.value = tokenize(GT, buf+start, lineno);
+					enqueue(tokenStream, tokenData);
+					buf[ptr]=lookahead;
+					start = ptr;
+					state=0;
 					ptr--;
-					// tokenize>
 				}
 				break;
 			case 11:
@@ -154,8 +208,13 @@ void traverse(char* buf, int ptr, FILE* fp) {
 					case '/': state=26; break;
 					case '=': state=27; break;
 					default:
+						buf[ptr] = '\0';
+						tokenData.value = tokenize(ASSIGNOP, buf+start, lineno);
+						enqueue(tokenStream, tokenData);
+						buf[ptr]=lookahead;
+						start = ptr;
+						state=0;
 						ptr--;
-						// tokenize=
 				}
 				break;
 			case 12:
@@ -169,32 +228,67 @@ void traverse(char* buf, int ptr, FILE* fp) {
 				}
 				break;
 			case 13:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(SIZE, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize@
 				break;
 			case 14:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(COMMA, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize,
 				break;
 			case 15:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(SQO, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize[
 				break;
 			case 16:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(SQC, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize]
 				break;
 			case 17:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(OP, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize(
 				break;
 			case 18:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(CL, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize)
 				break;
 			case 19:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(SEMICOLON, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize;
 				break;
 			case 20:
 				if(lookahead=='\n')
@@ -203,8 +297,13 @@ void traverse(char* buf, int ptr, FILE* fp) {
 					state=20;
 				break;
 			case 21:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(ID, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenizeID
 				break;
 			case 22:
 				if(lookahead>='0' && lookahead<='9')
@@ -218,8 +317,13 @@ void traverse(char* buf, int ptr, FILE* fp) {
 				if((lookahead>='a' && lookahead<='z')||(lookahead>='A' && lookahead<='Z')||(lookahead>='0' && lookahead<='9'))
 					state=23;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					buf[ptr] = '\0';
+					tokenData.value = tokenize(FUNID, buf+start, lineno);
+					enqueue(tokenStream, tokenData);
+					buf[ptr]=lookahead;
+					start = ptr;
 					state=0;
+					ptr--;
 				}
 				break;
 			case 24:
@@ -233,8 +337,13 @@ void traverse(char* buf, int ptr, FILE* fp) {
 				}
 				break;
 			case 25:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(LE, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize<=
 				break;
 			case 26:
 				if(lookahead=='=')
@@ -245,8 +354,13 @@ void traverse(char* buf, int ptr, FILE* fp) {
 				}
 				break;
 			case 27:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(EQ, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize==;
 				break;
 			case 28:
 				if(lookahead=='n')
@@ -281,16 +395,31 @@ void traverse(char* buf, int ptr, FILE* fp) {
 				}
 				break;
 			case 32:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(STR, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenizestr
 				break;
 			case 33:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(GE, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenize>=
 				break;
 			case 34:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(NE, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenizenoteq
 				break;
 			case 35:
 				if(lookahead=='d')
@@ -317,8 +446,13 @@ void traverse(char* buf, int ptr, FILE* fp) {
 				}
 				break;
 			case 38:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(RNUM, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenizereal
 				break;
 			case 39:
 				if(lookahead=='.')
@@ -329,8 +463,13 @@ void traverse(char* buf, int ptr, FILE* fp) {
 				}
 				break;
 			case 40:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(OR, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenizeor
 				break;
 			case 41:
 				if(lookahead=='.')
@@ -341,31 +480,47 @@ void traverse(char* buf, int ptr, FILE* fp) {
 				}
 				break;
 			case 42:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(AND, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenizeand
 				break;
 			case 43:
+				buf[ptr] = '\0';
+				tokenData.value = tokenize(NOT, buf+start, lineno);
+				enqueue(tokenStream, tokenData);
+				buf[ptr]=lookahead;
+				start = ptr;
+				state=0;
 				ptr--;
-				// tokenizenot
 				break;
 		};
 		ptr = incrementptr(buf, ptr, start, fp);
-		if(ptr==-1) {
-			break;
-		} else if(ptr<start) {
+		if(ptr<start) {
 			start=0;
 		}
 	}
 }
 
-Token* read(char* filename) {
-	int lineno = 0;
-	char* buf = (char*) malloc(51);
+Queue read(char* filename) {
+	Queue tokenStream = createQueue();
 	FILE* fp = fopen(filename, "r");
 	if(fp==NULL) {
-		raiseFileCorruptException(filename);
+		raiseFileCorruptException();
 		return NULL;
 	}
-	fgets(buf, 50, fp)
-	traverse(buf, 0, fp);
+	lex(tokenStream, fp);
+	return tokenStream;
+}
+
+void main() {
+	Queue q = read("test");
+	int i;
+	while(q->size!=0) {
+		Data d = dequeue(q);
+		printf("%d\n", d.value->type);
+	}
 }

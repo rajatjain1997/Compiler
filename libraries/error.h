@@ -5,4 +5,4 @@ typedef enum {
 	ERROR
 } ErrorType;
 
-void error(char* message, ErrorType type,int lineno);
+void error(char* message, ErrorType type, int lineno);
