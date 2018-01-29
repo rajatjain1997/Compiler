@@ -21,10 +21,14 @@ void raiseStringSizeExceededException(Token* token) {
 }
 
 Token* tokenizeId(char* buf, int lineno) {
-	//Add keyword check here
 	int bufsize = strlen(buf);
 	Token* token = (Token*) malloc(sizeof(Token));
-	token->type = ID;
+	TokenType t = (TokenType) findInTrie(keywords, buf);
+	if(t!=-1) {
+		token->type = t;
+	} else {
+		token->type = ID;
+	}
 	token->value.lexeme = (char*) malloc(bufsize + 1);
 	strcpy(token->value.lexeme, buf);
 	token->lineno = lineno;
@@ -35,10 +39,14 @@ Token* tokenizeId(char* buf, int lineno) {
 
 Token* tokenizeFunId(char* buf,int lineno) {
 	Token* token = (Token*) malloc(sizeof(Token));
-	token->type = FUNID;
 	token->value.lexeme = (char*) malloc(strlen(buf) + 1);
 	strcpy(token->value.lexeme, buf);
 	token->lineno = lineno;
+	if(strcmp(buf, "_main")==0) {
+		token->type = MAIN;
+	} else {
+		token->type = FUNID;
+	}
 	return token;
 }
 
@@ -88,6 +96,33 @@ Token* tokenize(TokenType type, char* buf, int lineno) {
 			token->lineno = lineno;
 			return token;
 	};
+}
+
+void initializeTokenizer() {
+	keywords = makeTrie();
+	TokenType t;
+	t = END;
+	insertInTrie(keywords, "end", t);
+	t = INT;
+	insertInTrie(keywords, "int", t);
+	t = REAL;
+	insertInTrie(keywords, "real", t);
+	t = STRING;
+	insertInTrie(keywords, "string", t);
+	t = MATRIX;
+	insertInTrie(keywords, "matrix", t);
+	t = IF;
+	insertInTrie(keywords, "if", t);
+	t = ELSE;
+	insertInTrie(keywords, "else", t);
+	t = ENDIF;
+	insertInTrie(keywords, "endif", t);
+	t = READ;
+	insertInTrie(keywords, "read", t);
+	t = PRINT;
+	insertInTrie(keywords, "print", t);
+	t = FUNCTION;
+	insertInTrie(keywords, "function", t);
 }
 
 // void main() {
