@@ -10,5 +10,6 @@ struct tree {
 typedef struct tree* Tree;
 
 Tree createTree(struct symbol* root);
-void add_child(Tree tree, struct symbol* symbol);
+Tree add_child(Tree tree, struct symbol* symbol);
+struct symbol* extractSymbol(Tree tree);
 void DFT(Tree tree);

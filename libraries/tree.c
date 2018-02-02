@@ -11,11 +11,16 @@ Tree createTree(struct symbol* root) {
 	return tree;
 }
 
-void add_child(Tree tree, struct symbol* symbol) {
+Tree add_child(Tree tree, struct symbol* symbol) {
 	Tree child = createTree(symbol);
 	Data d;
 	d.value = child;
-	insertAtEnd(tree->children, d);
+	insertInFront(tree->children, d);
+	return child;
+}
+
+struct symbol* extractSymbol(Tree tree) {
+	return tree->symbol;
 }
 
 void visitDFT(Tree tree) {

@@ -50,7 +50,7 @@ typedef queue* Queue;
 //Stack Data Definition Start
 
 typedef struct {
-	struct Symbol* symbol;
+	struct symbol* symbol;
 	struct tree* symbolTree;
 } StackSymbol;
 
