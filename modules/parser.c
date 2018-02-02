@@ -36,3 +36,51 @@ StackSymbol PDAPop(Stack PDAStack, Token* currentToken) {
 	}
 	return popped;
 }
+
+Stack createPDAStack() {
+	Stack stack = createStack();
+	StackData data;
+	Symbol* symbol = generateSymbol(NT_MainFxn);
+	Tree symbolTree = createTree(symbol);
+	StackSymbol toPush;
+	toPush.symbol = symbol;
+	toPush.symbolTree = symbolTree;
+	data.value.stackSymbol = toPush;
+	push(stack, data);
+	return stack;
+}
+
+Tree parse(Queue tokenStream) {
+	Stack stack = createPDAStack();
+	Token* currentToken;
+	QueueData data;
+	StackSymbol stackSymbol;
+	while(tokenStream->size>0) {
+		data = dequeue(tokenStream);
+		currentToken = data.value;
+		switch(currentToken->type) {
+			case ASSIGNOP: 
+				stackSymbol = PDAPop(stack, currentToken);
+				if(!isTerminal(stackSymbol.symbol)) {
+					raiseUnexpectedSymbolException(stackSymbol.symbol, currentToken);
+				}
+				break;
+			case FUNID:
+				while(1) {
+					stackSymbol = PDAPop(stack, currentToken);
+					if(isTerminal(stackSymbol.symbol)) {
+						break;
+					}
+					switch(stackSymbol.symbol->symbolType) {
+						case NT_Prog:
+							PDAPush(stack, stackSymbol, NT_StmtsAndFxnDefs);
+							PDAPush(stack, stackSymbol, NT_StmtOrFxnDef);
+							break;
+						default:
+							raiseUnexpectedSymbolException(stackSymbol.symbol, currentToken);
+					}
+				}
+				break;
+		}
+	}
+}
