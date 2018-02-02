@@ -209,8 +209,8 @@ Queue createQueue() {
 	return q;
 }
 
-void enqueue(Queue q, Data d) {
-	Element ele = (Element) malloc(sizeof(Node));
+void enqueue(Queue q, QueueData d) {
+	QueueElement ele = (QueueElement) malloc(sizeof(QueueNode));
 	ele->data = d;
 	ele->next = NULL;
 	if(q->size==0) {
@@ -225,25 +225,25 @@ void enqueue(Queue q, Data d) {
 	return;
 }
 
-Data dequeue(Queue q) {
+QueueData dequeue(Queue q) {
 	if(q->size==0) {
 		return;
 	}
-	Data d = q->first->data;
+	QueueData d = q->first->data;
 	q->size--;
 	if(q->size==0) {
 		free(q->last);
 		q->first = NULL;
 		q->last = NULL;
 	} else {
-		Element temp = q->first->next;
+		QueueElement temp = q->first->next;
 		free(q->first);
 		q->first = temp;
 	}
 	return d;
 }
 
-Data getFirst(Queue q) {
+QueueData getFirst(Queue q) {
 	if(q->size==0) {
 		return;
 	}
@@ -260,8 +260,8 @@ Stack createStack() {
 	return stack;
 }
 
-void push(Stack stack, Data d) {
-	Element ele = (Element) malloc(sizeof(Node));
+void push(Stack stack, StackData d) {
+	StackElement ele = (StackElement) malloc(sizeof(Node));
 	ele->data = d;
 	if(stack->size==0) {
 		ele->next = NULL;
@@ -275,19 +275,19 @@ void push(Stack stack, Data d) {
 	return;
 }
 
-Data pop(Stack stack) {
+StackData pop(Stack stack) {
 	if(stack->size==0) {
 		return;
 	}
-	Data deletion = stack->top->data;
-	Element delete = stack->top;
+	StackData deletion = stack->top->data;
+	StackElement delete = stack->top;
 	stack->top = stack->top->next;
 	stack->size--;
 	free(delete);
 	return deletion;
 }
 
-Data top(Stack stack) {
+StackData top(Stack stack) {
 	if(stack->size==0) {
 		return;
 	}

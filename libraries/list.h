@@ -1,7 +1,9 @@
-struct Token;
+struct symbol;
+
+struct tree;
 
 typedef struct {
-	struct Token* value;
+	struct tree* value;
 } Data;
 
 struct node{
@@ -23,9 +25,23 @@ typedef Head* List;
 //Linked List Data Definition Ends
 //Queue Data Definition Start
 
-typedef struct 
+struct Token;
+
+typedef struct {
+	struct Token* value;
+} QueueData;
+
+struct Queuenode{
+	QueueData data;
+	struct Queuenode* next;
+};
+
+typedef struct Queuenode QueueNode;
+typedef QueueNode* QueueElement;
+
+typedef struct queue
 {
-	Element first, last;
+	QueueElement first, last;
 	int size;
 } queue;
 typedef queue* Queue;
@@ -34,7 +50,29 @@ typedef queue* Queue;
 //Stack Data Definition Start
 
 typedef struct {
-	Element top;
+	struct Symbol* symbol;
+	struct tree* symbolTree;
+} StackSymbol;
+
+typedef union {
+	StackSymbol stackSymbol;
+	Element element;
+} StackDataItems;
+
+typedef struct {
+	StackDataItems value;
+} StackData;
+
+struct Stacknode{
+	StackData data;
+	struct Stacknode* next;
+};
+
+typedef struct Stacknode StackNode;
+typedef StackNode* StackElement;
+
+typedef struct {
+	StackElement top;
 	int size;
 } StackHead;
 typedef StackHead* Stack;
@@ -70,21 +108,21 @@ int checkCircular(Head*);
 
 Queue createQueue();
 
-void enqueue(Queue,Data);
+void enqueue(Queue, QueueData);
 
-Data dequeue(Queue);
+QueueData dequeue(Queue);
 
-Data getFirst(Queue);
+QueueData getFirst(Queue);
 
 //Queue Methods End
 //Stack Methods Start
 
 Stack createStack();
 
-void push(Stack,Data);
+void push(Stack,StackData);
 
-Data pop(Stack);
+StackData pop(Stack);
 
-Data top(Stack);
+StackData top(Stack);
 
 //Stack Methods End

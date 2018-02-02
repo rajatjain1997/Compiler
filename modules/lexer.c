@@ -1,4 +1,5 @@
-#include"../libraries/list.h"
+#include "lexer.h"
+#include "../libraries/list.h"
 #include"../libraries/token.h"
 #include"../libraries/error.h"
 #include<stdio.h>
@@ -58,7 +59,7 @@ void lex(Queue tokenStream, FILE* fp) {
 	int lineno = 0;
 	int start = 0;
 	int ptr = 0;
-	Data tokenData;
+	QueueData tokenData;
 	while(1) {
 		char lookahead = buf[ptr];
 		switch(state) {
@@ -515,13 +516,4 @@ Queue read(char* filename) {
 	}
 	lex(tokenStream, fp);
 	return tokenStream;
-}
-
-void main() {
-	Queue q = read("test");
-	int i;
-	while(q->size!=0) {
-		Data d = dequeue(q);
-		printf("%d\n", d.value->type);
-	}
 }

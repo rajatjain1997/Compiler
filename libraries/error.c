@@ -1,7 +1,7 @@
 #include"error.h"
 #include<stdio.h>
 
-char filename[20] = "abc.r";
+char* filename;
 
 void error(char* message, ErrorType type,int lineno) {
 	if(type==ERROR) {
@@ -11,4 +11,8 @@ void error(char* message, ErrorType type,int lineno) {
 	}
 	printf("%s: %d: warning: %s", filename, lineno, message);
 	printf("\n");
+}
+
+void initializeError(char* file) {
+	filename = file;
 }
