@@ -51,8 +51,10 @@ int incrementptr(char* buf, int ptr, int start, FILE* fp) {
 void lex(Queue tokenStream, FILE* fp) {
 	initializeTokenizer();
 	char* buf = (char*) malloc(51);
-	buf[50]='\0';
-	if(!fread(buf, 1, 50, fp)) {
+	int size = fread(buf, 1, 50, fp);
+	buf[size]='\0';
+	buf[50] = '\0';
+	if(!size) {
 		return;
 	}
 	int state = 0;

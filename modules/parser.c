@@ -294,8 +294,7 @@ void rule37(Stack stack, StackSymbol stackSymbol) {
 }
 
 void rule38(Stack stack, StackSymbol stackSymbol) {
-	//<var> -> ID
-	PDAPush(stack, stackSymbol, T_ID);
+	//<matrixElem> -> e
 }
 
 void rule39(Stack stack, StackSymbol stackSymbol) {
@@ -309,8 +308,9 @@ void rule40(Stack stack, StackSymbol stackSymbol) {
 }
 
 void rule41(Stack stack, StackSymbol stackSymbol) {
-	//<var> -> <matrixElem>
+	//<var> -> ID <matrixElem>
 	PDAPush(stack, stackSymbol, NT_MatrixElem);
+	PDAPush(stack, stackSymbol, T_ID);
 }
 
 void rule42(Stack stack, StackSymbol stackSymbol) {
@@ -491,6 +491,46 @@ Tree parse(Queue tokenStream) {
 						case NT_FxnCall: rule61(); break;
 						case NT_RightHandSide: rule25(); break;
 						case NT_StmtProg: rule33(); break;
+						default: raiseUnexpectedSymbolException(stackSymbol.symbol, currentToken);
+					}
+				}
+				break;
+			case ID:
+				while(1) {
+					stackSymbol = PDAPop(stack, currentToken);
+					if(isTerminal(stackSymbol.symbol)) {
+						break;
+					}
+					switch(stackSymbol.symbol->symbolType) {
+						case NT_Prog: rule2(); break;
+						case NT_StmtsAndFxnDefs: rule3(); break;
+						case NT_StmtOrFxnDef: rule5(); break;
+						case NT_Stmt: rule8(); break;
+						case NT_AssignStmt: rule21(); break;
+						case NT_LeftHandSide: rule22(); break;
+						case NT_RightHandSide: rule24(); break;
+						case NT_StmtProg: rule33(); break;
+						case NT_ArithmeticExpr: break; //Need to handle
+						case NT_Var: rule41(); break;
+						case NT_MatrixElem: rule38(); break;
+						case NT_VarList: rule52(); break;
+						case NT_ArgList: rule62(); break;
+						default: raiseUnexpectedSymbolException(stackSymbol.symbol, currentToken);
+					}
+				}
+				break;
+			case NUM:
+				while(1) {
+					stackSymbol = PDAPop(stack, currentToken);
+					if(isTerminal(stackSymbol.symbol)) {
+						break;
+					}
+					switch(stackSymbol.symbol->symbolType) {
+						case NT_RightHandSide: rule24(); break;
+						case NT_ArithmeticExpr: break; //Need to Handle
+						case NT_Var: rule39(); break;
+						case NT_IntegerList: rule56(); break;
+						case NT_ArgList: rule62(); break;
 						default: raiseUnexpectedSymbolException(stackSymbol.symbol, currentToken);
 					}
 				}
