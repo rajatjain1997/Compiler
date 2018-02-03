@@ -57,15 +57,23 @@ typedef enum {
 	NT_VarList,
 	NT_LeftHandSide,
 	NT_RightHandSide,
+	NT_Matrix,
 	NT_ArithmeticExpr,
 	NT_FxnCall,
 	NT_BooleanExpr,
+	NT_StmtProg,
+	NT_ElseStmt,
+	NT_Term,
 	NT_Var,
 	NT_Operator,
 	NT_MatrixElem,
 	NT_LogicalOp,
 	NT_RelationalOp,
-	NT_MoreIDs
+	NT_MoreIDs,
+	NT_IntegerList,
+	NT_RemainingIntegerList,
+	NT_ArgList,
+	NT_MoreArgs
 } SymbolType;
 
 typedef struct symbol {
