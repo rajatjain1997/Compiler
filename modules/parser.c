@@ -14,6 +14,13 @@ void raiseUnexpectedSymbolException(Symbol* expected, Token* received) {
 	error(msg, e, received->lineno);
 }
 
+void raiseUnexpectedTerminationException() {
+	char msg[100];
+	ErrorType e = ERROR;
+	strcpy(msg, "Unexpected token stream termination. You have skipped some symbols.");
+	error(msg, e, -1);
+}
+
 void PDAPush(Stack PDAStack, StackSymbol lastPopped, SymbolType symbolType) {
 	Symbol* symbol = generateSymbol(symbolType);
 	Tree symbolTree = add_child(lastPopped.symbolTree, symbol);
@@ -455,6 +462,7 @@ void rule64(Stack stack, StackSymbol stackSymbol) {
 
 Tree parse(Queue tokenStream) {
 	Stack stack = createPDAStack();
+	Tree parseTree = top(stack).value.stackSymbol.symbolTree;
 	Token* currentToken;
 	QueueData data;
 	StackSymbol stackSymbol;
@@ -479,10 +487,18 @@ Tree parse(Queue tokenStream) {
 						case NT_StmtsAndFxnDefs: rule3(); break;
 						case NT_StmtOrFxnDef: rule5(); break;
 						case NT_Stmt: rule11(); break;
+						case NT_FxnCallStmt: rule60(); break;
+						case NT_FxnCall: rule61(); break;
+						case NT_RightHandSide: rule25(); break;
+						case NT_StmtProg: rule33(); break;
 						default: raiseUnexpectedSymbolException(stackSymbol.symbol, currentToken);
 					}
 				}
 				break;
 		}
 	}
+	if(stack->size!=0) {
+		raiseUnexpectedTerminationException();
+	}
+	return parseTree;
 }
