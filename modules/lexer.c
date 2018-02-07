@@ -313,8 +313,14 @@ void lex(Queue tokenStream, FILE* fp) {
 				if(lookahead>='0' && lookahead<='9')
 					state=31;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
-					state=0;
+					switch(lookahead) {
+						case 'a': state=28; break;
+						case 'o': state=29; break;
+						case 'n': state=30; break;
+						default: 
+							raiseSymbolNotRecognizedException(lookahead, lineno);
+							state=0;
+					}
 				}
 				break;
 			case 23:
