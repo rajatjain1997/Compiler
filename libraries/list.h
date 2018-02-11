@@ -20,6 +20,7 @@ typedef struct {
 struct node{
 	Data data;
 	struct node* next;
+	struct node* prev;
 };
 typedef struct node Node;
 typedef Node* Element;
@@ -27,6 +28,7 @@ typedef Node* Element;
 struct head{
 	int size;
 	Node* first;
+	Node* last;
 };
 typedef struct head Head;
 typedef Head* List;

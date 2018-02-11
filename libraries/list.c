@@ -8,6 +8,7 @@
 Head* createList() {
 	Head* h = (Head*) malloc(sizeof(Head));
 	h->first = NULL;
+	h->last = NULL;
 	h->size = 0;
 	return h;
 }
@@ -35,11 +36,15 @@ void insertInFront(Head* h, Data data) {
 	temp -> data = data;
 	if(h->size==0) {
 		temp->next = NULL;
+		temp->prev = NULL;
 		h->first = temp;
+		h->last = temp;
 		h->size++;
 		return;
 	}
 	temp -> next = h->first;
+	temp -> prev = NULL;
+	h->first->prev = temp;
 	h->first = temp;
 	h->size++;
 	return;
@@ -48,18 +53,19 @@ void insertInFront(Head* h, Data data) {
 void insertAtEnd(Head* h, Data data) {
 	Node* temp = (Node*) malloc(sizeof(Node));
 	temp -> data = data;
-	temp->next = NULL;
 	if(h->size==0) {
 		h->size++;
+		temp -> next = NULL;
+		temp -> prev = NULL;
 		h->first = temp;
+		h->last = temp;
 		return;
 	}
-	Node* traverser = h->first;
-	while(traverser->next!=NULL) {
-		traverser= traverser->next;
-	}
+	temp -> next = NULL;
+	temp -> prev = h->last;
+	h->last->next = temp;
+	h->last = temp;
 	h->size++;
-	traverser->next = temp;
 	return;
 }
 
@@ -67,6 +73,7 @@ void insertAtIndex(Head* h, Data data, int index) {
 	Node* temp = (Node*) malloc(sizeof(Node));
 	temp -> data = data;
 	temp -> next = NULL;
+	temp -> prev = NULL;
 	if(index>h->size) {
 		return;
 	} else if(index==0) {
@@ -83,7 +90,9 @@ void insertAtIndex(Head* h, Data data, int index) {
 	}
 	h->size++;
 	temp->next = traverser->next;
+	temp->prev = traverser;
 	traverser->next = temp;
+	temp->next->prev = temp;
 }
 
 void printList(Head* h) {
@@ -105,15 +114,13 @@ Data deleteAtEnd(Head* h) {
 		Data deletion = h->first->data;
 		free(h->first);
 		h->first=NULL;
+		h->last=NULL;
 		return deletion;
 	}
-	Node* temp = h->first;
-	while(temp->next->next!=NULL) {
-		temp=temp->next;
-	}
-	Data deletion = temp->next->data;
-	Node* delete = temp->next;
-	temp->next=NULL;
+	Data deletion = h->last->data;
+	Node* delete = h->last;
+	h->last->prev->next = NULL;
+	h->last = h->last->prev;
 	h->size--;
 	free(delete);
 	return deletion;
@@ -133,6 +140,7 @@ Data deleteFromFront(Head* h) {
 	}
 	Data deletion = h->first->data;
 	Node* delete = h->first;
+	h->first->next->prev = NULL;
 	h->first = h->first->next;
 	h->size--;
 	free(delete);
@@ -142,9 +150,10 @@ Data deleteFromFront(Head* h) {
 Data deleteAtIndex(Head* h, int index) {
 	if(index>h->size) {
 		return;
-	} else if(h->size==1) {
-		deleteFromFront(h);
-		return;
+	} else if(index==0) {
+		return deleteFromFront(h);
+	} else if(index==h->size-1) {
+		return deleteAtEnd(h);
 	}
 	int count = 0;
 	Node* temp = h->first;
@@ -154,6 +163,7 @@ Data deleteAtIndex(Head* h, int index) {
 	Data deletion = temp->next->data;
 	Node* delete = temp->next;
 	temp->next = delete->next;
+	delete->next->prev = temp;
 	free(delete);
 	return deletion;
 }

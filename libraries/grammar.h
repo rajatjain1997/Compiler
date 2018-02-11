@@ -1,9 +1,12 @@
 struct head;
+struct set;
 
 typedef struct nonTerminal {
 	int symbolType;
 	struct head* rules;
 	struct head* occurances;
+	struct set* first;
+	struct set* follow;
 } NonTerminal;
 
 struct grammar {
@@ -12,3 +15,5 @@ struct grammar {
 };
 
 typedef struct grammar* Grammar;
+
+Grammar readGrammar(char* filename);

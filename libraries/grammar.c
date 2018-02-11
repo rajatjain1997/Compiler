@@ -34,7 +34,7 @@ List createRule(Grammar g, int nonterminalindex) {
 	Data d;
 	List rule = createList();
 	d.value.list = rule;
-	insertInFront(g->NonTerminals[nonterminalindex].rules, d);
+	insertAtEnd(g->NonTerminals[nonterminalindex].rules, d);
 	return rule;
 }
 
@@ -58,20 +58,20 @@ int addRule(Grammar g, FILE* fp, Trie terminalmapping, Trie nonterminalmapping) 
 		mapping = findInTrie(terminalmapping, symbol);
 		if(mapping != -1) {
 			d.value.symbol = generateSymbol(mapping, 1);
-			insertInFront(rule, d);
+			insertAtEnd(rule, d);
 		} else {
 			mapping = findInTrie(nonterminalmapping, symbol);
 			if(mapping != -1) { 
 				d.value.symbol = generateSymbol(mapping, 0);
-				insertInFront(rule, d);
+				insertAtEnd(rule, d);
 				d.value.node = rule->first;
-				insertInFront(g->NonTerminals[mapping].occurances, d);
+				insertAtEnd(g->NonTerminals[mapping].occurances, d);
 			} else {
 				mapping = addNonTerminal(g, symbol, nonterminalmapping);
 				d.value.symbol = generateSymbol(mapping, 0);
-				insertInFront(rule, d);
+				insertAtEnd(rule, d);
 				d.value.node = rule->first;
-				insertInFront(g->NonTerminals[mapping].occurances, d);
+				insertAtEnd(g->NonTerminals[mapping].occurances, d);
 			}
 		}
 	};
