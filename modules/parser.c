@@ -21,8 +21,7 @@ void raiseUnexpectedTerminationException() {
 	error(msg, e, -1);
 }
 
-void PDAPush(Stack PDAStack, StackSymbol lastPopped, SymbolType symbolType) {
-	Symbol* symbol = generateSymbol(symbolType);
+void PDAPush(Stack PDAStack, StackSymbol lastPopped, Symbol* symbol) {
 	Tree symbolTree = add_child(lastPopped.symbolTree, symbol);
 	StackSymbol toPush;
 	toPush.symbol = symbol;
