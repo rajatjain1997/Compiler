@@ -1,9 +1,20 @@
-struct symbol;
 
+//Linked List Data Definition Start
+
+struct symbol;
+struct head;
+struct node;
 struct tree;
 
+typedef union {
+	struct tree* tree;
+	struct node* node;
+	struct head* list;
+	struct symbol* symbol;
+} LinkedDataItems;
+
 typedef struct {
-	struct tree* value;
+	LinkedDataItems value;
 } Data;
 
 struct node{
@@ -12,8 +23,6 @@ struct node{
 };
 typedef struct node Node;
 typedef Node* Element;
-
-//Linked List Data Definition Start
 
 struct head{
 	int size;
@@ -98,8 +107,6 @@ Data deleteFromFront(Head*);
 Data deleteAtEnd(Head*);
 
 Data deleteAtIndex(Head*, int);
-
-int contains(Head*, Data);
 
 int checkCircular(Head*);
 

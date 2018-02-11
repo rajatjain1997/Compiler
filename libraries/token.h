@@ -1,5 +1,3 @@
-#include "trie.h"
-
 typedef enum {
 	ASSIGNOP,
 	COMMENT,
@@ -60,7 +58,10 @@ typedef struct Token {
 	int lineno;
 } Token;
 
-Trie keywords;
+struct trie;
+
+struct trie* keywords;
 
 Token* tokenize(TokenType type, char* buf,int lineno);
 void initializeTokenizer();
+struct trie* getTokenMapping();

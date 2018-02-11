@@ -1,5 +1,6 @@
 #include"token.h"
 #include"error.h"
+#include"trie.h"
 #include<stdlib.h>
 #include<stdio.h>
 #include<string.h>
@@ -123,6 +124,50 @@ void initializeTokenizer() {
 	insertInTrie(keywords, "print", t);
 	t = FUNCTION;
 	insertInTrie(keywords, "function", t);
+}
+
+Trie getTokenMapping() {
+	Trie mapping = makeTrie();
+	insertInTrie(mapping, "ASSIGNOP", ASSIGNOP);
+	insertInTrie(mapping, "COMMENT", COMMENT);
+	insertInTrie(mapping, "FUNID", FUNID);
+	insertInTrie(mapping, "ID", ID);
+	insertInTrie(mapping, "NUM", NUM);
+	insertInTrie(mapping, "RNUM", RNUM);
+	insertInTrie(mapping, "STR", STR);
+	insertInTrie(mapping, "END", END);
+	insertInTrie(mapping, "INT", INT);
+	insertInTrie(mapping, "REAL", REAL);
+	insertInTrie(mapping, "STRING", STRING);
+	insertInTrie(mapping, "MATRIX", MATRIX);
+	insertInTrie(mapping, "MAIN", MAIN);
+	insertInTrie(mapping, "SQO", SQO);
+	insertInTrie(mapping, "SQC", SQC);
+	insertInTrie(mapping, "OP", OP);
+	insertInTrie(mapping, "CL", CL);
+	insertInTrie(mapping, "SEMICOLON", SEMICOLON);
+	insertInTrie(mapping, "COMMA", COMMA);
+	insertInTrie(mapping, "IF", IF);
+	insertInTrie(mapping, "ELSE", ELSE);
+	insertInTrie(mapping, "ENDIF", ENDIF);
+	insertInTrie(mapping, "READ", READ);
+	insertInTrie(mapping, "PRINT", PRINT);
+	insertInTrie(mapping, "FUNCTION", FUNCTION);
+	insertInTrie(mapping, "PLUS", PLUS);
+	insertInTrie(mapping, "MINUS", MINUS);
+	insertInTrie(mapping, "MUL", MUL);
+	insertInTrie(mapping, "DIV", DIV);
+	insertInTrie(mapping, "SIZE", SIZE);
+	insertInTrie(mapping, "AND", AND);
+	insertInTrie(mapping, "OR", OR);
+	insertInTrie(mapping, "NOT", NOT);
+	insertInTrie(mapping, "LT", LT);
+	insertInTrie(mapping, "LE", LE);
+	insertInTrie(mapping, "EQ", EQ);
+	insertInTrie(mapping, "GT", GT);
+	insertInTrie(mapping, "GE", GE);
+	insertInTrie(mapping, "NE", NE);
+	return mapping;
 }
 
 // void main() {

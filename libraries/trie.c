@@ -16,6 +16,8 @@ Trie makeTrie() {
 int getIndex(char ch) {
 	if(ch>='a'&&ch<='z') {
 		return ch-97;
+	} else if (ch>='A'&&ch<='Z') {
+		return ch-'A';
 	} else {
 		return 26;
 	}

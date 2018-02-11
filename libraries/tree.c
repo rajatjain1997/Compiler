@@ -14,7 +14,7 @@ Tree createTree(struct symbol* root) {
 Tree add_child(Tree tree, struct symbol* symbol) {
 	Tree child = createTree(symbol);
 	Data d;
-	d.value = child;
+	d.value.tree = child;
 	insertInFront(tree->children, d);
 	return child;
 }
@@ -41,8 +41,8 @@ void DFT(Tree tree) {
 	while(st->size!=0) {
 		temp = pop(st).value.element;
 		if(temp!=NULL) {
-			visitDFT(temp->data.value);
-			x = temp->data.value->children->first;
+			visitDFT(temp->data.value.tree);
+			x = temp->data.value.tree->children->first;
 			temp = temp->next;
 			d.value.element = temp;
 			push(st, d);

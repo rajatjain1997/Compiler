@@ -2,15 +2,16 @@
 #include "symbol.h"
 #include "token.h"
 
-Symbol* generateSymbol(SymbolType symbolType) {
+Symbol* generateSymbol(SymbolType symbolType, int isTerminal) {
 	Symbol* symbol = (Symbol*) malloc(sizeof(Symbol));
 	symbol->symbolType = symbolType;
+	symbol->isTerminal = isTerminal;
 	symbol->token = NULL;
 	return symbol;
 }
 
 int attachTokenToSymbol(Symbol* symbol, Token* token) {
-	if(symbol->token->type==symbol->symbolType) {
+	if(token->type==symbol->symbolType && symbol->isTerminal) {
 		symbol->token = token;
 		return 0;
 	}
@@ -18,5 +19,5 @@ int attachTokenToSymbol(Symbol* symbol, Token* token) {
 }
 
 int isTerminal(Symbol* symbol) {
-	return symbol->symbolType <= S_NE;
+	return symbol->isTerminal;
 }

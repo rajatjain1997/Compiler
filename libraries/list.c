@@ -158,17 +158,6 @@ Data deleteAtIndex(Head* h, int index) {
 	return deletion;
 }
 
-int contains(Head* h, Data query) {
-	Node* temp = h->first;
-	while(temp!=NULL) {
-		if(temp->data.value==query.value) {
-			return 1;
-		}
-		temp=temp->next;
-	}
-	return 0;
-}
-
 
 int checkCircular(Head* h) {
 	if(h->size==0) {
