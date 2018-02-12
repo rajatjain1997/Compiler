@@ -30,6 +30,13 @@ int addNonTerminal(Grammar g, char* symbol, Trie nonterminalmapping) {
 	return g->size-1;
 }
 
+Occurance createOccurance(Element node, int owner) {
+	Occurance occ = malloc(sizeof(struct occurance));
+	occ->node = node;
+	occ->owner = owner;
+	return occ;
+}
+
 List createRule(Grammar g, int nonterminalindex) {
 	Data d;
 	List rule = createList();
@@ -64,13 +71,13 @@ int addRule(Grammar g, FILE* fp, Trie terminalmapping, Trie nonterminalmapping) 
 			if(mapping != -1) { 
 				d.value.symbol = generateSymbol(mapping, 0);
 				insertAtEnd(rule, d);
-				d.value.node = rule->first;
+				d.value.occurance = createOccurance(rule->last, grammarindex);
 				insertAtEnd(g->NonTerminals[mapping].occurances, d);
 			} else {
 				mapping = addNonTerminal(g, symbol, nonterminalmapping);
 				d.value.symbol = generateSymbol(mapping, 0);
 				insertAtEnd(rule, d);
-				d.value.node = rule->first;
+				d.value.occurance = createOccurance(rule->last, grammarindex);
 				insertAtEnd(g->NonTerminals[mapping].occurances, d);
 			}
 		}
@@ -92,7 +99,7 @@ Grammar readGrammar(char* filename) {
 }
 
 // void main() {
-// 	Grammar g = readGrammar("abc");
+// 	Grammar g = readGrammar("Test Grammar");
 // 	Node* temp = g->NonTerminals[0].rules->first;
 // 	Node* temp2;
 // 	while(temp!=NULL) {
@@ -102,6 +109,17 @@ Grammar readGrammar(char* filename) {
 // 			temp2=temp2->next;
 // 		}
 // 		printf("Rule Ends\n");
+// 		temp=temp->next;
+// 	}
+// 	printf("\n");
+// 	printf("%d", g->size);
+// }
+
+// void main() {
+// 	Grammar g = readGrammar("Test Grammar");
+// 	Node* temp = g->NonTerminals[0].occurances->first;
+// 	while(temp!=NULL) {
+// 		printf("%d\t",temp->data.value.occurance->owner);
 // 		temp=temp->next;
 // 	}
 // 	printf("\n");

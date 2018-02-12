@@ -3,14 +3,14 @@
 
 struct symbol;
 struct head;
-struct node;
 struct tree;
+struct occurance;
 
 typedef union {
 	struct tree* tree;
-	struct node* node;
 	struct head* list;
 	struct symbol* symbol;
+	struct occurance* occurance;
 } LinkedDataItems;
 
 typedef struct {

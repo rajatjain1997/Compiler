@@ -1,4 +1,5 @@
 struct head;
+struct node;
 struct set;
 
 typedef struct nonTerminal {
@@ -8,6 +9,13 @@ typedef struct nonTerminal {
 	struct set* first;
 	struct set* follow;
 } NonTerminal;
+
+struct occurance {
+	struct node* node;
+	int owner;
+};
+
+typedef struct occurance* Occurance;
 
 struct grammar {
 	NonTerminal NonTerminals[50];
