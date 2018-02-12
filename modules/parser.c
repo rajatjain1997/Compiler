@@ -167,6 +167,37 @@ Set first(Grammar g, Symbol* symbol) {
 		rule = rule->next;
 	}
 	g->NonTerminals[symbol->symbolType].first = set;
+	free(empty);
+	return set;
+}
+
+Set follow(Grammar g, SymbolType symboltype) {
+	if(g->NonTerminals[i].follow!=NULL) {
+		return g->NonTerminals[i].follow;
+	}
+	Set set = createSet();
+	Set empty = createSet();
+	putInSet(empty, 63);
+	Element occurance = g->NonTerminals[i].occrances->first; 
+	Element s; Set temp; int owner;
+	while(occurance!=NULL) {
+		s = occurance->data.value.occurance->node->next;
+		owner = occurance->data.value.occurance->owner;
+		do {
+			ruleset = g->NonTerminals[s->data.value.symbol->symbolType].first;
+			temp = set;
+			union(set, difference(ruleset, empty));
+			free(temp);
+		} while(getFromSet(ruleset, 63) && (s=s->next)!=NULL);
+		if(getFromSet(ruleset, 63) && s==NULL) {
+			temp = set;
+			set = union(set, follow(g, owner));
+			free(temp);
+		}
+		occurance = occurance->next;
+	}
+	g->NonTerminals[i].follow = set;
+	free(empty);
 	return set;
 }
 
@@ -181,7 +212,17 @@ void createFirstSets(Grammar g) {
 	} 
 }
 
+void createFollowSets(Grammar g) {
+	int i = 0;
+	for(;i<g->size;i++) {
+		if(getFromSet(g->NonTerminals[i].first, 63) && g->NonTerminals[i].follow==NULL) {
+			follow(g, i);
+		}
+	}
+}
+
 void initializeParser(char* grammarfile) {
 	Grammar g = readGrammar(grammarfile);
 	createFirstSets(g);
+	createFollowSets(g);
 }

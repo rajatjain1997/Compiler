@@ -40,3 +40,7 @@ Set compliment(Set s) {
 Set difference(Set s1, Set s2) {
 	return intersection(s1, compliment(s2));
 }
+
+int isEmpty(Set s) {
+	return s->vector == 0;
+}

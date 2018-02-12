@@ -26,6 +26,8 @@ int addNonTerminal(Grammar g, char* symbol, Trie nonterminalmapping) {
 	g->NonTerminals[g->size].symbolType = g->size;
 	g->NonTerminals[g->size].rules = createList();	
 	g->NonTerminals[g->size].occurances = createList();
+	g->NonTerminals[g->size].follow = NULL;
+	g->NonTerminals[g->size].first = NULL;
 	g->size++;
 	return g->size-1;
 }
