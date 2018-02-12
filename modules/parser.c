@@ -3,6 +3,8 @@
 #include "../libraries/error.h"
 #include "../libraries/tree.h"
 #include "../libraries/symbol.h"
+#include "../libraries/grammar.h"
+#include "../libraries/set.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -137,4 +139,49 @@ Tree parse(Queue tokenStream) {
 	// 	raiseUnexpectedTerminationException();
 	// }
 	return parseTree;
+}
+
+Set first(Grammar g, Symbol* symbol) {
+	Set set = createSet();
+	if(isTerminal(symbol)) {
+		putInSet(set, symbol->symbolType);
+		return set;
+	}
+	Set empty = createSet();
+	putInSet(empty, 63);
+	Element rule = g->NonTerminals[symbol->symbolType].rules->first;
+	Element s; Set ruleset, temp;
+	while(rule!=NULL) {
+		s = rule->first;
+		do {
+			ruleset = first(g, s->data.value.symbol);
+			temp = set;
+			set = union(set, difference(ruleset, empty));
+			free(temp);
+		} while(getFromSet(ruleset, 63) && (s=s->next)!=NULL);
+		if(getFromSet(ruleset, 63) && s==NULL) {
+			temp = set;
+			set = union(set, 63);
+			free(temp);
+		}
+		rule = rule->next;
+	}
+	g->NonTerminals[symbol->symbolType].first = set;
+	return set;
+}
+
+void createFirstSets(Grammar g) {
+	int i = 0; Symbol temp;
+	for(;i<g->size;i++) {
+		if(g->NonTerminals[i].first==NULL) {
+			temp = generateSymbol(g->NonTerminals[i].symbolType, 0);
+			first(g, temp);
+			free(temp);
+		}
+	} 
+}
+
+void initializeParser(char* grammarfile) {
+	Grammar g = readGrammar(grammarfile);
+	createFirstSets(g);
 }
