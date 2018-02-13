@@ -100,32 +100,41 @@ Set first(Grammar g, Symbol* symbol) {
 	return set;
 }
 
-Set follow(Grammar g, SymbolType symbolType) {
-	if(g->NonTerminals[symbolType].follow!=NULL) {
+Set follow(Grammar g, SymbolType symbolType, int recursive) {
+	Set set;
+	if(g->NonTerminals[symbolType].follow!=NULL && recursive) {
 		return g->NonTerminals[symbolType].follow;
+	} else if(g->NonTerminals[symbolType].follow==NULL) {
+		set = createSet();
 	}
-	Set set = createSet();
+	g->NonTerminals[symbolType].follow = set;
 	Set empty = createSet();
 	putInSet(empty, EPSILON);
 	Element occurance = g->NonTerminals[symbolType].occurances->first; 
 	Element s; Set temp, ruleset; int owner;
 	while(occurance!=NULL) {
+		ruleset = empty;
 		s = occurance->data.value.occurance->node->next;
 		owner = occurance->data.value.occurance->owner;
-		do {
-			ruleset = g->NonTerminals[s->data.value.symbol->symbolType].first;
+		while(getFromSet(ruleset, EPSILON) && s!=NULL) {
+			if(isTerminal(s->data.value.symbol)) {
+				ruleset = createSet();
+				putInSet(ruleset, s->data.value.symbol->symbolType);	//Try freeing it
+			} else {
+				ruleset = g->NonTerminals[s->data.value.symbol->symbolType].first;
+			}
 			temp = set;
 			set = setUnion(set, difference(ruleset, empty));
+			s=s->next;
 			//free(temp);
-		} while(getFromSet(ruleset, EPSILON) && (s=s->next)!=NULL);
+		}
 		if(getFromSet(ruleset, EPSILON) && s==NULL) {
 			temp = set;
-			set = setUnion(set, follow(g, owner));
+			set = setUnion(set, follow(g, owner, 1));
 			//free(temp);
 		}
 		occurance = occurance->next;
 	}
-	g->NonTerminals[symbolType].follow = set;
 	//free(empty);
 	return set;
 }
@@ -144,8 +153,8 @@ void createFirstSets(Grammar g) {
 void createFollowSets(Grammar g) {
 	int i = 0;
 	for(;i<g->size;i++) {
-		if(getFromSet(g->NonTerminals[i].first, EPSILON) && g->NonTerminals[i].follow==NULL) {
-			follow(g, i);
+		if(getFromSet(g->NonTerminals[i].first, EPSILON)) {
+			follow(g, i, 0);
 		}
 	}
 }
@@ -256,14 +265,14 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 	return parseTree;
 }
 
-// void main() {
-// 	List** parsetable = initializeParser("Test Grammar");
-// 	int i, j;
-// 	for(i = 0; i<3; i++) {
-// 		for(j = 0; j<NE; j++) {
-// 			if(parsetable[i][j]!=NULL) {
-// 				printf("%d %d\n", i, j);
-// 			}
-// 		}
-// 	}
-// }
+void main() {
+	List** parsetable = initializeParser("grammar.txt");
+	int i, j;
+	for(i = 0; i<40; i++) {
+		for(j = 0; j<NE; j++) {
+			if(parsetable[i][j]!=NULL) {
+				printf("%d %d\n", i, j);
+			}
+		}
+	}
+}
