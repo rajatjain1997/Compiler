@@ -1,4 +1,5 @@
 #include "./modules/lexer.h"
+#include "./modules/parser.h"
 #include "./libraries/token.h"
 #include "./libraries/error.h"
 #include "./libraries/list.h"

@@ -5,11 +5,10 @@
 #include "../libraries/symbol.h"
 #include "../libraries/grammar.h"
 #include "../libraries/set.h"
+#include "parser.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-#define EPSILON 63
 
 void raiseUnexpectedSymbolException(Symbol* expected, Token* received) {
 	char msg[100];
