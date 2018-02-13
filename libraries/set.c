@@ -19,7 +19,7 @@ int getFromSet(Set bv, int j) {
 	return 0;
 }
 
-Set union(Set s1, Set s2) {
+Set setUnion(Set s1, Set s2) {
 	Set result = createSet();
 	result->vector = s1->vector | s2->vector;
 	return result;
@@ -33,8 +33,8 @@ Set intersection(Set s1, Set s2) {
 
 Set compliment(Set s) {
 	Set result = createSet();
-	result->vector = ~s->vector;
-	return s;
+	result->vector = ~(s->vector);
+	return result;
 }
 
 Set difference(Set s1, Set s2) {

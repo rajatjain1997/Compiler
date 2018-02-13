@@ -2,14 +2,12 @@
 #include "./libraries/token.h"
 #include "./libraries/error.h"
 #include "./libraries/list.h"
+#include "./libraries/tree.h"
 #include <stdio.h>
 
 int main(int argc, char* argv[]) {
 	initializeError(argv[1]);
-	Queue q = read(argv[1]);
-	while(q->size!=0) {
-		QueueData d = dequeue(q);
-		printf("%d\n", d.value->type);
-	}
+	Queue tokenstream = read(argv[1]);
+	Tree parsetree = parse(tokenstream, "grammar.txt");
 	return 0;
 }
