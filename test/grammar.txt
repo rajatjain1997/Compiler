@@ -46,7 +46,7 @@
 <divMulOperators> DIV
 <var> NUM
 <var> RNUM
-<var> ID <matrixElement>
+<var> ID <matrixElem>
 <var> STR
 <var> <matrix>
 <var> <funCall>

@@ -66,11 +66,16 @@ Stack createPDAStack() {
 }
 
 Set first(Grammar g, Symbol* symbol) {
-	Set set = createSet();
+	Set set;
 	if(isTerminal(symbol)) {
+		set = createSet();
 		putInSet(set, symbol->symbolType);
 		return set;
 	}
+	if(g->NonTerminals[symbol->symbolType].first!=NULL) {
+		return g->NonTerminals[symbol->symbolType].first;
+	}
+	set = createSet();
 	Set empty = createSet();
 	putInSet(empty, EPSILON);
 	Element rule = g->NonTerminals[symbol->symbolType].rules->first;
@@ -155,6 +160,11 @@ void createFollowSets(Grammar g) {
 	for(;i<g->size;i++) {
 		if(getFromSet(g->NonTerminals[i].first, EPSILON)) {
 			follow(g, i, 0);
+		}
+	}
+	for(;i<g->size;i++) {
+		if(!getFromSet(g->NonTerminals[i].first, EPSILON)) {
+			g->NonTerminals[i].follow=NULL; //try to dealloc
 		}
 	}
 }
@@ -268,7 +278,7 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 void main() {
 	List** parsetable = initializeParser("grammar.txt");
 	int i, j;
-	for(i = 0; i<40; i++) {
+	for(i = 0; i<39; i++) {
 		for(j = 0; j<NE; j++) {
 			if(parsetable[i][j]!=NULL) {
 				printf("%d %d\n", i, j);
