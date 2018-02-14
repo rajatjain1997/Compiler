@@ -254,11 +254,16 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 	Token* currentToken;
 	QueueData data;
 	StackSymbol stackSymbol;
-	while(tokenStream->size>0 && stack->size>0) {
-		data = dequeue(tokenStream);
-		currentToken = data.value;
+	data = dequeue(tokenStream);
+	currentToken = data.value;
+	while(stack->size>0) {		
 		stackSymbol = PDAPop(stack, currentToken);
 		if(isTerminal(stackSymbol.symbol)) {
+			if(tokenStream->size<=0) {
+				break;
+			}
+			data = dequeue(tokenStream);
+			currentToken = data.value;
 			continue;
 		}
 		if(parsetable[stackSymbol.symbol->symbolType][currentToken->type]!=NULL) {
@@ -273,14 +278,31 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 	return parseTree;
 }
 
-void main() {
-	List** parsetable = initializeParser("grammar.txt");
-	int i, j;
-	for(i = 0; i<39; i++) {
-		for(j = 0; j<NE; j++) {
-			if(parsetable[i][j]!=NULL) {
-				printf("%d %d\n", i, j);
-			}
+//Functions for GDB
+
+void printStack(Stack s) {
+	StackElement temp = s->top;
+	TokenType t;
+	while(temp!=NULL) {
+		if(temp->data.value.stackSymbol.symbol->isTerminal) {
+			t = temp->data.value.stackSymbol.symbol->symbolType;
+			printf("%d -> ", t);
+		} else {
+			printf("%d -> ", temp->data.value.stackSymbol.symbol->symbolType);
 		}
+		temp = temp->next;
 	}
+	printf("\n");
 }
+
+// void main() {
+// 	List** parsetable = initializeParser("grammar.txt");
+// 	int i, j;
+// 	for(i = 0; i<39; i++) {
+// 		for(j = 0; j<NE; j++) {
+// 			if(parsetable[i][j]!=NULL) {
+// 				printf("%d %d\n", i, j);
+// 			}
+// 		}
+// 	}
+// }
