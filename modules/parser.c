@@ -106,13 +106,11 @@ Set first(Grammar g, Symbol* symbol) {
 }
 
 Set follow(Grammar g, SymbolType symbolType, int recursive) {
-	Set set;
 	if(g->NonTerminals[symbolType].follow!=NULL && recursive) {
 		return g->NonTerminals[symbolType].follow;
 	} else if(g->NonTerminals[symbolType].follow==NULL) {
-		set = createSet();
+		g->NonTerminals[symbolType].follow = createSet();
 	}
-	g->NonTerminals[symbolType].follow = set;
 	Set empty = createSet();
 	putInSet(empty, EPSILON);
 	Element occurance = g->NonTerminals[symbolType].occurances->first; 
@@ -128,20 +126,20 @@ Set follow(Grammar g, SymbolType symbolType, int recursive) {
 			} else {
 				ruleset = g->NonTerminals[s->data.value.symbol->symbolType].first;
 			}
-			temp = set;
-			set = setUnion(set, difference(ruleset, empty));
+			temp = g->NonTerminals[symbolType].follow;
+			g->NonTerminals[symbolType].follow = setUnion(g->NonTerminals[symbolType].follow, difference(ruleset, empty));
 			s=s->next;
 			//free(temp);
 		}
 		if(getFromSet(ruleset, EPSILON) && s==NULL) {
-			temp = set;
-			set = setUnion(set, follow(g, owner, 1));
+			temp = g->NonTerminals[symbolType].follow;
+			g->NonTerminals[symbolType].follow = setUnion(g->NonTerminals[symbolType].follow, follow(g, owner, 1));
 			//free(temp);
 		}
 		occurance = occurance->next;
 	}
 	//free(empty);
-	return set;
+	return g->NonTerminals[symbolType].follow;
 }
 
 void createFirstSets(Grammar g) {
@@ -162,7 +160,7 @@ void createFollowSets(Grammar g) {
 			follow(g, i, 0);
 		}
 	}
-	for(;i<g->size;i++) {
+	for(i=0;i<g->size;i++) {
 		if(!getFromSet(g->NonTerminals[i].first, EPSILON)) {
 			g->NonTerminals[i].follow=NULL; //try to dealloc
 		}

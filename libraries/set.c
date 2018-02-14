@@ -9,11 +9,11 @@ Set createSet() {
 }
 
 void putInSet(Set bv, int j) {
-	 bv->vector = bv->vector|(1<<j);
+	 bv->vector = bv->vector|(((uint64_t)1)<<j);
 }
 
 int getFromSet(Set bv, int j) {
-	if(bv->vector&(1<<j)) {
+	if(bv->vector&(((uint64_t)1)<<j)) {
 		return 1;
 	}
 	return 0;
