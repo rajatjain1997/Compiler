@@ -295,6 +295,14 @@ void printStack(Stack s) {
 	printf("\n");
 }
 
+void visitDFT(Tree tree) {
+	if(isTerminal(tree->symbol)) {
+		printf(" %s ->", tree->symbol->token->value);
+	} else {
+		printf(" %d ->", tree->symbol->symbolType);
+	}
+}
+
 // void main() {
 // 	List** parsetable = initializeParser("grammar.txt");
 // 	int i, j;

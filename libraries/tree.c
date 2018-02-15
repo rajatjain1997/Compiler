@@ -23,10 +23,6 @@ struct symbol* extractSymbol(Tree tree) {
 	return tree->symbol;
 }
 
-void visitDFT(Tree tree) {
-	// printf("%s\n", tree->dir_name);
-}
-
 // void visitBFT(Tree tree) {
 // 	// printf("%s\n", tree->dir_name);
 // }
