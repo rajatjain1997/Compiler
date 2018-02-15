@@ -22,6 +22,9 @@ Grammar createGrammar() {
 }
 
 int addNonTerminal(Grammar g, char* symbol, Trie nonterminalmapping) {
+	if(error_testing) {
+		printf("Found %s as %d\n", symbol, g->size);
+	}
 	insertInTrie(nonterminalmapping, symbol, g->size);
 	g->NonTerminals[g->size].symbolType = g->size;
 	g->NonTerminals[g->size].rules = createList();	

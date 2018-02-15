@@ -10,11 +10,51 @@
 #include <stdio.h>
 #include <string.h>
 
-void raiseUnexpectedSymbolException(Symbol* expected, Token* received) {
-	char msg[100];
+int panic(Queue tokenStream, Stack stack, List** parsetable,Token* currentToken, StackSymbol currentSymbol) {
+	Token* temp = currentToken; StackData d;
+	d.value.stackSymbol = currentSymbol;
+	while(tokenStream->size>0) {
+		if(isTerminal(currentSymbol.symbol)) {
+			return 0;
+		} else if(parsetable[currentSymbol.symbol->symbolType][temp->type]!=NULL) {
+			push(stack, d);
+			return 0;
+		} else if(isTerminal(top(stack).value.stackSymbol.symbol)) {
+			if(top(stack).value.stackSymbol.symbol->symbolType==temp->type) {
+				return 0;
+			} else {
+				temp = dequeue(tokenStream).value;
+				*currentToken = *temp;
+			}
+		} else if(!isTerminal(top(stack).value.stackSymbol.symbol) &&
+			parsetable[top(stack).value.stackSymbol.symbol->symbolType][temp->type]!=NULL
+		) {
+			return 0;
+		} else if(temp->type==SEMICOLON) {
+			temp = dequeue(tokenStream).value;
+			*currentToken = *temp;
+			return 0;
+		} else {
+			temp = dequeue(tokenStream).value;
+			*currentToken = *temp;
+		}
+	}
+	return -1;
+}
+
+int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, List** parsetable, StackSymbol expected, Token* received) {
+	char msg[100]; int i = 0;
 	ErrorType e = ERROR;
-	strcpy(msg, "Expected A recieved B");
+	strcpy(msg, "Unexpected token - \"");
+	strcat(msg, received->value.lexeme);
+	strcat(msg, "\". The expected token is of type: ");
+	for(;i<NE+1;i++) {
+		if(parsetable[expected.symbol->symbolType][i]!=NULL) {
+			sprintf(msg, "%s %d, ", msg, i);
+		}
+	}
 	error(msg, e, received->lineno);
+	return panic(tokenStream, stack, parsetable, received, expected);
 }
 
 void raiseUnexpectedTerminationException() {
@@ -40,14 +80,18 @@ void PDAPush(Stack PDAStack, StackSymbol lastPopped, List rule) {
 	}
 }
 
-StackSymbol PDAPop(Stack PDAStack, Token* currentToken) {
+StackSymbol PDAPop(Queue tokenStream, Stack PDAStack, List** parsetable, Token* currentToken) {
 	StackData data;
 	data = pop(PDAStack);
 	StackSymbol popped = data.value.stackSymbol;
-	if(isTerminal(popped.symbol)) {
+	while(isTerminal(popped.symbol)) {
 		if(attachTokenToSymbol(extractSymbol(popped.symbolTree), currentToken)==-1) {
-			raiseUnexpectedSymbolException(popped.symbol, currentToken);
+			if(raiseUnexpectedSymbolException(tokenStream, PDAStack, parsetable, popped, currentToken)==-1 && PDAStack->size>0) {
+				popped = pop(PDAStack).value.stackSymbol;
+				continue;
+			}
 		}
+		break;
 	}
 	return popped;
 }
@@ -240,15 +284,23 @@ List** createParseTable(Grammar g) {
 	return parsetable;
 }
 
-List** initializeParser(char* grammarfile) {
-	Grammar g = readGrammar(grammarfile);
+List** initializeParser(Grammar g) {
 	createFirstSets(g);
 	createFollowSets(g);
 	return createParseTable(g);
 }
 
+void visitDFT(Tree tree) {
+	if(isTerminal(tree->symbol) && tree->symbol->token!=NULL) {
+		printf(" %s ->", tree->symbol->token->value);
+	} else {
+		printf(" %d ->", tree->symbol->symbolType);
+	}
+}
+
 Tree parse(Queue tokenStream, char* grammarfile) {
-	List** parsetable = initializeParser(grammarfile);
+	Grammar g = readGrammar(grammarfile);
+	List** parsetable = initializeParser(g);
 	Stack stack = createPDAStack();
 	Tree parseTree = top(stack).value.stackSymbol.symbolTree;
 	Token* currentToken;
@@ -257,7 +309,7 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 	data = dequeue(tokenStream);
 	currentToken = data.value;
 	while(stack->size>0) {		
-		stackSymbol = PDAPop(stack, currentToken);
+		stackSymbol = PDAPop(tokenStream, stack, parsetable, currentToken);
 		if(isTerminal(stackSymbol.symbol)) {
 			if(tokenStream->size<=0) {
 				break;
@@ -269,11 +321,14 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 		if(parsetable[stackSymbol.symbol->symbolType][currentToken->type]!=NULL) {
 			PDAPush(stack, stackSymbol, parsetable[stackSymbol.symbol->symbolType][currentToken->type]);
 		} else {
-			raiseUnexpectedSymbolException(stackSymbol.symbol, currentToken);
+			raiseUnexpectedSymbolException(tokenStream, stack, parsetable, stackSymbol, currentToken);
 		}
 	}
 	if(stack->size!=0) {
 		raiseUnexpectedTerminationException();
+	}
+	if(error_testing) {
+		DFT(parseTree);
 	}
 	return parseTree;
 }
@@ -293,14 +348,6 @@ void printStack(Stack s) {
 		temp = temp->next;
 	}
 	printf("\n");
-}
-
-void visitDFT(Tree tree) {
-	if(isTerminal(tree->symbol)) {
-		printf(" %s ->", tree->symbol->token->value);
-	} else {
-		printf(" %d ->", tree->symbol->symbolType);
-	}
 }
 
 // void main() {
