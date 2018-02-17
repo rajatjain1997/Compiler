@@ -560,10 +560,12 @@ Queue read(char* filename) {
 	lex(tokenStream, fp);
 	close(fp);
 	if(error_testing) {
+		char buf[20];
 		printf("Printing captured tokenstream: \n");
 		QueueElement temp = tokenStream->first;
 		while(temp!=NULL) {
-			printf("%d -> ", temp->data.value->type);
+			getLexeme(temp->data.value, buf);
+			printf("%d (%s)-> ", temp->data.value->type, buf);
 			temp=temp->next;
 		}
 		printf("\n");

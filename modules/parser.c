@@ -19,14 +19,14 @@ int panic(Queue tokenStream, Stack stack, List** parsetable,Token* currentToken,
 		} else if(parsetable[currentSymbol.symbol->symbolType][temp->type]!=NULL) {
 			push(stack, d);
 			return 0;
-		} else if(isTerminal(top(stack).value.stackSymbol.symbol)) {
+		} else if(stack->size!=0 && isTerminal(top(stack).value.stackSymbol.symbol)) {
 			if(top(stack).value.stackSymbol.symbol->symbolType==temp->type) {
 				return 0;
 			} else {
 				temp = dequeue(tokenStream).value;
 				*currentToken = *temp;
 			}
-		} else if(!isTerminal(top(stack).value.stackSymbol.symbol) &&
+		} else if(stack->size!=0 && !isTerminal(top(stack).value.stackSymbol.symbol) &&
 			parsetable[top(stack).value.stackSymbol.symbol->symbolType][temp->type]!=NULL
 		) {
 			return 0;
@@ -226,7 +226,7 @@ List** createParseTable(Grammar g) {
 	}
 	TokenType terminal; int nonTerminal; Element temp, temp2; List rule; int firstSymbol;
 	for(nonTerminal = 0; nonTerminal < g->size; nonTerminal++) {
-		for(terminal = 0; terminal < NE+1; terminal++) {
+		for(terminal = 0; terminal < NE; terminal++) {
 			parsetable[nonTerminal][terminal] = NULL;
 
 			//Checking if the non-terminal has a valid rule

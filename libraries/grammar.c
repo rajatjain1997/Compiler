@@ -97,7 +97,7 @@ Grammar readGrammar(char* filename) {
 		return NULL;
 	}
 	Trie terminalmapping = getTokenMapping();
-	Trie nonterminalmapping = makeTrie();
+	Trie nonterminalmapping = makeTrie(TRIE_CASE_INSENSITIVE);
 	Grammar g = createGrammar();
 	while(addRule(g, fp, terminalmapping, nonterminalmapping));
 	return g;
