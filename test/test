@@ -1,21 +1,20 @@
 _main[]
-	string g, h;
-	g = "compiler";
-	if a>b
-		g = "lol";
-	else
-		g = "troll";
-	endif
-	#LOL
-	function [string x] = _visibiltyDemo[int a, int b]
-		real c;
-		string m1, m2;
-		m1= "computer";
-		m2 = "programming";
-		function [string s] = _concat[]
-			s=m1+m2;
-		end
-		x=_concat();
-		c=a/b;
-	end
+string g, h;
+g = "compiler";
+if a>b g = "lol";
+else
+g = "troll";
+endif
+#LOL
+function [string x] = _visibiltyDemo[int a, int b]
+real c;
+string m1, m2;
+m1= "computer";
+m2 = "programming";
+function [string s] = _concat[]
+	s=m1+m2;
+end
+x=_concat();
+c=a/b;
+end
 end
