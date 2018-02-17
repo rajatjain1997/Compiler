@@ -81,6 +81,16 @@ Token* tokenizeStr(char* buf, int lineno) {
 	return token;
 }
 
+void getLexeme(Token* token, char* lexeme) {
+	switch(token->type) {
+		case NUM: sprintf(lexeme, "%d", token->value.integer); break;
+		case RNUM: sprintf(lexeme, "%f", token->value.real); break;
+		case STR:  sprintf(lexeme, "\"%s\"", token->value.string->value); break;
+		default: strcpy(lexeme, token->value.lexeme);
+	}
+	return;
+}
+
 Token* tokenize(TokenType type, char* buf, int lineno) {
 	Token* token;
 	switch(type) {

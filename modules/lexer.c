@@ -9,7 +9,7 @@
 void raiseFileCorruptException() {
 	char msg[100];
 	ErrorType e = ERROR;
-	strcpy(msg, "Cannot open file");;
+	strcpy(msg, "Cannot open file");
 	error(msg, e, -1);
 }
 
@@ -95,6 +95,8 @@ void lex(Queue tokenStream, FILE* fp) {
 						case ' ': start++; break;
 						case '\t': start++; break;
 						default: raiseSymbolNotRecognizedException(lookahead, lineno);
+						ptr = incrementptr(buf, ptr, start, fp);
+						start = ptr;
 						state=0;
 					};
 				}
@@ -134,6 +136,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=23;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr+1;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -142,6 +146,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=24;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr+1;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -228,6 +234,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					case 'n': state=30; break;
 					default: 
 						raiseSymbolNotRecognizedException(lookahead, lineno);
+						start = ptr;
+						ptr--;
 						state=0;
 				}
 				break;
@@ -295,8 +303,11 @@ void lex(Queue tokenStream, FILE* fp) {
 				ptr--;
 				break;
 			case 20:
-				if(lookahead=='\n')
+				if(lookahead=='\n') {
 					state=0;
+					start=ptr;
+					ptr--;
+				}
 				else
 					state=20;
 				break;
@@ -319,6 +330,8 @@ void lex(Queue tokenStream, FILE* fp) {
 						case 'n': state=30; break;
 						default: 
 							raiseSymbolNotRecognizedException(lookahead, lineno);
+							start = ptr;
+							ptr--;
 							state=0;
 					}
 				}
@@ -343,6 +356,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=32;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -360,6 +375,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=34;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -377,6 +394,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=35;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -385,6 +404,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=36;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -393,6 +414,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=37;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -401,6 +424,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=38;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -436,6 +461,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=39;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -444,6 +471,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=40;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -452,6 +481,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=41;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -469,6 +500,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=42;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -486,6 +519,8 @@ void lex(Queue tokenStream, FILE* fp) {
 					state=43;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
+					start = ptr;
+					ptr--;
 					state=0;
 				}
 				break;
@@ -523,5 +558,52 @@ Queue read(char* filename) {
 		return NULL;
 	}
 	lex(tokenStream, fp);
+	close(fp);
+	if(error_testing) {
+		printf("Printing captured tokenstream: \n");
+		QueueElement temp = tokenStream->first;
+		while(temp!=NULL) {
+			printf("%d -> ", temp->data.value->type);
+			temp=temp->next;
+		}
+		printf("\n");
+	}
 	return tokenStream;
+}
+
+void clean(Queue tokenStream, char* filename) {
+	QueueElement temp = tokenStream->first; 
+	char lexeme[20]; 
+	Token* token;
+	int indent = 0; int prevLineNo = 0; int i; int prevTokenType = -1;
+	FILE* fp = fopen(filename, "w");
+	while(temp!=NULL) {
+		token = temp->data.value;
+		getLexeme(token, lexeme);
+		switch(token->type) {
+			case ELSE: case END: case ENDIF: indent-=1; break;
+		}
+		if(token->lineno>prevLineNo) {
+			prevLineNo = token->lineno;
+			fprintf(fp, "\n");
+			for(i=0; i<indent; i++) {
+				fprintf(fp, "\t");
+			}
+		}
+		fprintf(fp,"%s", lexeme);
+		switch(token->type) {
+			case MAIN: case FUNCTION: case IF: case ELSE: indent+=1; break;
+		}
+		switch(token->type) {
+			case ID: case FUNID: case END: case INT: case REAL: case STRING: 
+			case MATRIX: case MAIN: case IF: case ELSE: case ENDIF: case READ:
+			case PRINT: case FUNCTION: fprintf(fp, " ");
+		}
+		if(prevTokenType==token->type) {
+			fprintf(fp, " ");
+		}
+		prevTokenType = token->type;
+		temp=temp->next;
+	}
+	close(fp);
 }

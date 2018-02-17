@@ -291,8 +291,10 @@ List** initializeParser(Grammar g) {
 }
 
 void visitDFT(Tree tree) {
+	char buf[20];
 	if(isTerminal(tree->symbol) && tree->symbol->token!=NULL) {
-		printf(" %s ->", tree->symbol->token->value);
+		getLexeme(tree->symbol->token, buf);
+		printf(" %s ->", buf);
 	} else {
 		printf(" %d ->", tree->symbol->symbolType);
 	}

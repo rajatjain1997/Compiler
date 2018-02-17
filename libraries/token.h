@@ -62,6 +62,7 @@ struct trie;
 
 struct trie* keywords;
 
+void getLexeme(Token* token, char* buf);
 Token* tokenize(TokenType type, char* buf,int lineno);
 void initializeTokenizer();
 struct trie* getTokenMapping();
