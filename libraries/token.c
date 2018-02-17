@@ -5,6 +5,10 @@
 #include<stdio.h>
 #include<string.h>
 
+const char tokenStrings[][20] = {"=", "#", "Function Identifier", "Identifier", "Integer Number", "Real Number", "a String", "end", "int", "real", 
+							"string", "matrix", "main", "[", "]", "(", ")", ";", ",", "if", "else", "endif", "read", "print", "function",
+							"+", "-", "*", "/", "@", ".and.", ".or.", ".not.", "<", "<=", "==", ">", ">=", "=/="};
+
 void raiseIdentifierSizeExceededException(Token* token) {
 	char msg[100];
 	ErrorType e = ERROR;
@@ -179,10 +183,3 @@ Trie getTokenMapping() {
 	insertInTrie(mapping, "NE", NE);
 	return mapping;
 }
-
-// void main() {
-// 	char* str = (char*) malloc(50);
-// 	scanf("%s", str);
-// 	Token* t = tokenize(STR, str, 1);
-// 	printf("%s", t->value.string->value);
-// }

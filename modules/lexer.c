@@ -58,7 +58,7 @@ void lex(Queue tokenStream, FILE* fp) {
 		return;
 	}
 	int state = 0;
-	int lineno = 0;
+	int lineno = 1;
 	int start = 0;
 	int ptr = 0;
 	QueueData tokenData;
@@ -575,7 +575,7 @@ void clean(Queue tokenStream, char* filename) {
 	QueueElement temp = tokenStream->first; 
 	char lexeme[20]; 
 	Token* token;
-	int indent = 0; int prevLineNo = 0; int i; int prevTokenType = -1; int firstword=1;
+	int indent = 0; int prevLineNo = 1; int i; int prevTokenType = -1; int firstword=1;
 	FILE* fp = fopen(filename, "w");
 	while(temp!=NULL) {
 		token = temp->data.value;

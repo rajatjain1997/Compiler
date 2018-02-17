@@ -43,15 +43,21 @@ int panic(Queue tokenStream, Stack stack, List** parsetable,Token* currentToken,
 }
 
 int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, List** parsetable, StackSymbol expected, Token* received) {
-	char msg[100]; int i = 0;
+	char msg[256]; int i = 0; int j = 0;
 	ErrorType e = ERROR;
 	strcpy(msg, "Unexpected token - \"");
 	strcat(msg, received->value.lexeme);
-	strcat(msg, "\". The expected token is of type: ");
-	for(;i<NE+1;i++) {
-		if(parsetable[expected.symbol->symbolType][i]!=NULL) {
-			sprintf(msg, "%s %d, ", msg, i);
+	strcat(msg, "\". The expected token is: ");
+	if(isTerminal(expected.symbol)) {
+		sprintf(msg, "%s %s", msg, tokenStrings[i]);
+	} else {
+		for(;i<NE+1 && j<5;i++) {
+			if(parsetable[expected.symbol->symbolType][i]!=NULL) {
+				sprintf(msg, "%s %s, ", msg, tokenStrings[i]);
+				j++;
+			}
 		}
+		sprintf(msg, "%s %s", msg, "etc.");
 	}
 	error(msg, e, received->lineno);
 	return panic(tokenStream, stack, parsetable, received, expected);
