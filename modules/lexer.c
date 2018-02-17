@@ -575,7 +575,7 @@ void clean(Queue tokenStream, char* filename) {
 	QueueElement temp = tokenStream->first; 
 	char lexeme[20]; 
 	Token* token;
-	int indent = 0; int prevLineNo = 0; int i; int prevTokenType = -1;
+	int indent = 0; int prevLineNo = 0; int i; int prevTokenType = -1; int firstword=1;
 	FILE* fp = fopen(filename, "w");
 	while(temp!=NULL) {
 		token = temp->data.value;
@@ -589,20 +589,25 @@ void clean(Queue tokenStream, char* filename) {
 			for(i=0; i<indent; i++) {
 				fprintf(fp, "\t");
 			}
+			firstword = 1;
+		}		
+		switch(token->type) {
+			case ID: case FUNID: case END: case INT: case REAL: case STRING: 
+			case MATRIX: case MAIN: case IF: case ELSE: case ENDIF: case READ:
+			case PRINT: case FUNCTION: 
+			if(!firstword) {
+				fprintf(fp, " ");
+			}
 		}
 		fprintf(fp,"%s", lexeme);
 		switch(token->type) {
 			case MAIN: case FUNCTION: case IF: case ELSE: indent+=1; break;
 		}
-		switch(token->type) {
-			case ID: case FUNID: case END: case INT: case REAL: case STRING: 
-			case MATRIX: case MAIN: case IF: case ELSE: case ENDIF: case READ:
-			case PRINT: case FUNCTION: fprintf(fp, " ");
-		}
 		if(prevTokenType==token->type) {
 			fprintf(fp, " ");
 		}
 		prevTokenType = token->type;
+		firstword = 0;
 		temp=temp->next;
 	}
 	close(fp);

@@ -110,7 +110,7 @@ Token* tokenize(TokenType type, char* buf, int lineno) {
 }
 
 void initializeTokenizer() {
-	keywords = makeTrie();
+	keywords = makeTrie(TRIE_CASE_SENSITIVE);
 	TokenType t;
 	t = END;
 	insertInTrie(keywords, "end", t);
@@ -137,7 +137,7 @@ void initializeTokenizer() {
 }
 
 Trie getTokenMapping() {
-	Trie mapping = makeTrie();
+	Trie mapping = makeTrie(TRIE_CASE_INSENSITIVE);
 	insertInTrie(mapping, "ASSIGNOP", ASSIGNOP);
 	insertInTrie(mapping, "COMMENT", COMMENT);
 	insertInTrie(mapping, "FUNID", FUNID);
