@@ -9,6 +9,7 @@
 <stmt> <ifStmt>
 <stmt> <ioStmt> 
 <stmt> <funCallStmt>
+<stmt> SEMICOLON
 <functionDefn> FUNCTION SQO <parameterList> SQC ASSIGNOP FUNID SQO <parameterList> SQC <prog> END
 <parameterList> <type> ID <remainingList>
 <parameterList> $
@@ -25,7 +26,7 @@
 <functionAssign> SQO <varList> SQC ASSIGNOP <rightHandSide> SEMICOLON
 <rightHandSide> <funCall>
 <rightHandSide> SIZE ID
-<ifStmt> IF <booleanExpr> <stmt> <stmtProg> <elseStmt>
+<ifStmt> IF OP <booleanExpr> CL <stmt> <stmtProg> <elseStmt>
 <elseStmt> ELSE <stmt> <stmtProg> ENDIF
 <elseStmt> ENDIF
 <ioStmt> READ OP ID CL SEMICOLON

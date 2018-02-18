@@ -37,8 +37,11 @@ Token* tokenizeId(char* buf, int lineno) {
 	token->value.lexeme = (char*) malloc(bufsize + 1);
 	strcpy(token->value.lexeme, buf);
 	token->lineno = lineno;
-	if(bufsize>20)
+	if(bufsize>20) {
 		raiseIdentifierSizeExceededException(token);
+		free(token);
+		return NULL;
+	}
 	return token;
 }
 
@@ -51,6 +54,11 @@ Token* tokenizeFunId(char* buf,int lineno) {
 		token->type = MAIN;
 	} else {
 		token->type = FUNID;
+	}
+	if(strlen(buf)>20) {
+		raiseIdentifierSizeExceededException(token);
+		free(token);
+		return NULL;
 	}
 	return token;
 }
@@ -80,8 +88,12 @@ Token* tokenizeStr(char* buf, int lineno) {
 	token->value.string->value = (char*) malloc(token->value.string->size+1);
 	strcpy(token->value.string->value, buf + 1);
 	token->lineno = lineno;
-	if(token->value.string->size>20)
+	if(token->value.string->size>20) {
 		raiseStringSizeExceededException(token);
+		free(token->value.string);
+		free(token);
+		return NULL;
+	}
 	return token;
 }
 
@@ -103,7 +115,7 @@ Token* tokenize(TokenType type, char* buf, int lineno) {
 		case NUM: return tokenizeNum(buf, lineno);
 		case RNUM: return tokenizeRNum(buf, lineno);
 		case STR: return tokenizeStr(buf, lineno);
-		default: 1+1;
+		default:
 			token = (Token*) malloc(sizeof(Token));
 			token->type = type;
 			token->value.lexeme = (char*) malloc(strlen(buf));

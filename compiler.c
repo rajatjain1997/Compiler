@@ -10,11 +10,19 @@
 int main(int argc, char* argv[]) {
 	int testing = 1; int cleaning  = 1; int i;
 	char cleanDest[20];
+	if(argc<2) {
+		printf("No source file specified.");
+		return 0;
+	}
 	for(i=2; i<argc; i++) {
 		testing = strcmp(argv[i], "-test");
 		cleaning = strcmp(argv[i], "-clean");
 		if(cleaning==0) {
-			strcpy(cleanDest, argv[i+1]);
+			if(i+1<argc) {
+				strcpy(cleanDest, argv[i+1]);
+			} else {
+				strcpy(cleanDest, "tempOutFile");
+			}
 			i++;
 		}
 	}

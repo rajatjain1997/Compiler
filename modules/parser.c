@@ -43,10 +43,11 @@ int panic(Queue tokenStream, Stack stack, List** parsetable,Token* currentToken,
 }
 
 int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, List** parsetable, StackSymbol expected, Token* received) {
-	char msg[256]; int i = 0; int j = 0;
+	char msg[256]; int i = 0; int j = 0; char buf[20];
 	ErrorType e = ERROR;
 	strcpy(msg, "Unexpected token - \"");
-	strcat(msg, received->value.lexeme);
+	getLexeme(received, buf);
+	strcat(msg, buf);
 	strcat(msg, "\". The expected token is: ");
 	if(isTerminal(expected.symbol)) {
 		sprintf(msg, "%s %s", msg, tokenStrings[i]);
@@ -337,6 +338,9 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 	}
 	if(error_testing) {
 		DFT(parseTree);
+		if(!checkErrorState()) {
+			printf("The code is syntactically correct!");
+		}
 	}
 	return parseTree;
 }
