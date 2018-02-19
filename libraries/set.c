@@ -44,3 +44,7 @@ Set difference(Set s1, Set s2) {
 int isEmpty(Set s) {
 	return s->vector == 0;
 }
+
+void freeSet(Set s) {
+	free(s);
+}

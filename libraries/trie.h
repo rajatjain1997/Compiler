@@ -1,5 +1,7 @@
+#define TRIE_SIZE 29
+
 struct trie {
-	struct trie* level[27];
+	struct trie* level[TRIE_SIZE];
 	int insensitive;
 };
 
@@ -9,6 +11,8 @@ extern const int TRIE_CASE_INSENSITIVE;
 typedef struct trie* Trie;
 
 Trie makeTrie(int insensitive);
+
+void freeTrie(Trie trie);
 
 void insertInTrie(Trie trie, char* str, int info);
 

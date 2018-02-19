@@ -94,6 +94,8 @@ typedef StackHead* Stack;
 
 Head* createList();
 
+void freeList(List h);
+
 Data get(Head*, int);
 
 void printList(Head*);
@@ -117,6 +119,8 @@ int checkCircular(Head*);
 
 Queue createQueue();
 
+void freeQueue(Queue h);
+
 void enqueue(Queue, QueueData);
 
 QueueData dequeue(Queue);
@@ -127,6 +131,8 @@ QueueData getFirst(Queue);
 //Stack Methods Start
 
 Stack createStack();
+
+void freeStack(Stack h);
 
 void push(Stack,StackData);
 
