@@ -8,6 +8,8 @@
 #include<string.h>
 #include<stdio.h>
 
+char nonTerminalStrings[50][30];
+
 void raiseGrammarNotPresentExeption() {
 	char msg[100];
 	ErrorType e = ERROR;
@@ -25,6 +27,7 @@ int addNonTerminal(Grammar g, char* symbol, Trie nonterminalmapping) {
 	if(error_testing) {
 		printf("Found %s as %d\n", symbol, g->size);
 	}
+	strcpy(nonTerminalStrings[g->size],symbol);
 	insertInTrie(nonterminalmapping, symbol, g->size);
 	g->NonTerminals[g->size].symbolType = g->size;
 	g->NonTerminals[g->size].rules = createList();	

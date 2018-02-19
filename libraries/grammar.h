@@ -24,5 +24,7 @@ struct grammar {
 
 typedef struct grammar* Grammar;
 
+extern char nonTerminalStrings[50][30];
+
 Grammar readGrammar(char* filename);
 void freeGrammar(Grammar g);

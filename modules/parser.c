@@ -308,8 +308,10 @@ void visitDFT(Tree tree) {
 	if(isTerminal(tree->symbol) && tree->symbol->token!=NULL) {
 		getLexeme(tree->symbol->token, buf);
 		printf(" %s ->", buf);
+	} else if (!isTerminal(tree->symbol)) {
+		printf(" %s ->", nonTerminalStrings[tree->symbol->symbolType]);
 	} else {
-		printf(" %d ->", tree->symbol->symbolType);
+		printf("%d ->", tree->symbol->symbolType);
 	}
 }
 
