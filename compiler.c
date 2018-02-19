@@ -17,16 +17,22 @@ int main(int argc, char* argv[]) {
 	for(i=2; i<argc; i++) {
 		testing = strcmp(argv[i], "-test");
 		cleaning = strcmp(argv[i], "-clean");
-		if(cleaning==0) {
-			if(i+1<argc) {
-				strcpy(cleanDest, argv[i+1]);
-			} else {
-				strcpy(cleanDest, "tempOutFile");
-			}
+		if(cleaning==0) {	
 			i++;
+			if(i<argc) {
+				strcpy(cleanDest, argv[i]);
+			} else {
+				strcpy(cleanDest, "1");
+			}
 		}
 	}
 	initializeError(argv[1], !testing);
+	if(error_testing) {
+		printf("a) Lexer and Parser are implemented.\n");
+		printf("b) First and follow sets are automated.\n");
+		printf("c) All test cases run without any erraneous output. All errors specified in test case 5 are reported as required.\n");
+		printf("d) Parse tree is successfully generated\n");
+	}
 	Queue tokenstream = read(argv[1]);
 	if(!cleaning) {
 		clean(tokenstream, cleanDest);

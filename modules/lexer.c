@@ -453,10 +453,10 @@ Queue read(char* filename) {
 		QueueElement temp = tokenStream->first;
 		while(temp!=NULL) {
 			getLexeme(temp->data.value, buf);
-			printf("%d (%s)-> ", temp->data.value->type, buf);
+			printf("Token Type: %d, Lexeme: %s, Line no.: %d \n", temp->data.value->type, buf, temp->data.value->lineno);
 			temp=temp->next;
 		}
-		printf("\n");
+		printf("Token stream terminates\n");
 	}
 	return tokenStream;
 }
@@ -466,7 +466,12 @@ void clean(Queue tokenStream, char* filename) {
 	char lexeme[20]; 
 	Token* token;
 	int indent = 0; int prevLineNo = 1; int i; int prevTokenType = -1; int firstword=1;
-	FILE* fp = fopen(filename, "w");
+	FILE* fp;
+	if(strcmp(filename, "1")) {
+		fp = fopen(filename, "w");
+	} else {
+		fp = stdout;
+	}
 	while(temp!=NULL) {
 		token = temp->data.value;
 		getLexeme(token, lexeme);
