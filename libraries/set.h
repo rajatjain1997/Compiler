@@ -13,3 +13,4 @@ Set intersection(Set s1, Set s2);
 Set compliment(Set s);
 Set difference(Set s1, Set s2);
 int isEmpty(Set s);
+void freeSet(Set s);

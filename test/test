@@ -1,7 +1,7 @@
 _main[]
 string g, h;
 g = "compiler";
-if a>b g = "lol";
+if (a>b) g = "lol";
 else
 g = "troll";
 endif

@@ -100,7 +100,27 @@ Grammar readGrammar(char* filename) {
 	Trie nonterminalmapping = makeTrie(TRIE_CASE_INSENSITIVE);
 	Grammar g = createGrammar();
 	while(addRule(g, fp, terminalmapping, nonterminalmapping));
+	freeTrie(terminalmapping);
+	freeTrie(nonterminalmapping);
 	return g;
+}
+
+void freeGrammar(Grammar g) {
+	int i = 0; Element temp; NonTerminal nt;
+	for(;i<g->size;i++) {
+		nt = g->NonTerminals[i];
+		freeSet(nt.first);
+		if(nt.follow!=NULL) {
+			freeSet(nt.follow);
+		}
+		temp = nt.rules->first;
+		while(temp!=NULL) {
+			freeList(temp->data.value.list);
+			temp = temp->next;
+		}
+		freeList(nt.rules);
+		freeList(nt.occurances);
+	}
 }
 
 // void main() {

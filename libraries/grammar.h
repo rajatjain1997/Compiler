@@ -25,3 +25,4 @@ struct grammar {
 typedef struct grammar* Grammar;
 
 Grammar readGrammar(char* filename);
+void freeGrammar(Grammar g);

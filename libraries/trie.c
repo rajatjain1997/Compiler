@@ -8,11 +8,22 @@ const int TRIE_CASE_INSENSITIVE = 1;
 Trie makeTrie(int insensitive) {
 	Trie trie = (Trie) malloc(sizeof(struct trie));
 	int i = 0;
-	for(;i<27;i++) {
+	for(;i<TRIE_SIZE;i++) {
 		trie->level[i] = NULL;
 	}
 	trie->insensitive = insensitive;
 	return trie;
+}
+
+void freeTrie(Trie trie) {
+	if(trie==NULL) {
+		return;
+	}
+	int i;
+	for(i=0;i<TRIE_SIZE-1;i++) {
+		freeTrie(trie->level[i]);
+	}
+	free(trie);
 }
 
 int getIndex(char ch, int insensitive) {
@@ -20,8 +31,12 @@ int getIndex(char ch, int insensitive) {
 		return ch-97;
 	} else if (ch>='A'&&ch<='Z'&&insensitive) {
 		return ch-'A';
-	} else {
+	} else if(ch=='<') {
 		return 26;
+	} else if(ch=='>') {
+		return 27;
+	} else {
+		return TRIE_SIZE-1;
 	}
 }
 

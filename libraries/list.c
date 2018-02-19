@@ -13,6 +13,16 @@ Head* createList() {
 	return h;
 }
 
+void freeList(List h) {
+	Element temp = h->first, prev;
+	while(temp!=NULL) {
+		prev = temp;
+		temp = temp->next;
+		free(prev);
+	}
+	free(h);
+}
+
 
 Node* traverse(Head* h, int index) {
 	if(index>h->size||index<0) {
@@ -208,6 +218,16 @@ Queue createQueue() {
 	return q;
 }
 
+void freeQueue(Queue h) {
+	QueueElement temp = h->first, prev;
+	while(temp!=NULL) {
+		prev = temp;
+		temp = temp->next;
+		free(prev);
+	}
+	free(h);
+}
+
 void enqueue(Queue q, QueueData d) {
 	QueueElement ele = (QueueElement) malloc(sizeof(QueueNode));
 	ele->data = d;
@@ -257,6 +277,16 @@ Stack createStack() {
 	stack->size = 0;
 	stack->top = NULL;
 	return stack;
+}
+
+void freeStack(Stack h) {
+	StackElement temp = h->top, prev;
+	while(temp!=NULL) {
+		prev = temp;
+		temp = temp->next;
+		free(prev);
+	}
+	free(h);
 }
 
 void push(Stack stack, StackData d) {

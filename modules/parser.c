@@ -142,17 +142,17 @@ Set first(Grammar g, Symbol* symbol) {
 			ruleset = first(g, s->data.value.symbol);
 			temp = set;
 			set = setUnion(set, difference(ruleset, empty));
-			//free(temp);
+			freeSet(temp);
 		} while(getFromSet(ruleset, EPSILON) && (s=s->next)!=NULL);
 		if(getFromSet(ruleset, EPSILON) && s==NULL) {
 			temp = set;
 			set = setUnion(set, empty);
-			//free(temp);
+			freeSet(temp);
 		}
 		rule = rule->next;
 	}
 	g->NonTerminals[symbol->symbolType].first = set;
-	//free(empty);
+	freeSet(empty);
 	return set;
 }
 
@@ -165,7 +165,7 @@ Set follow(Grammar g, SymbolType symbolType, int recursive) {
 	Set empty = createSet();
 	putInSet(empty, EPSILON);
 	Element occurance = g->NonTerminals[symbolType].occurances->first; 
-	Element s; Set temp, ruleset; int owner;
+	Element s; Set temp, ruleset; int owner, freeRuleSet = 0;
 	while(occurance!=NULL) {
 		ruleset = empty;
 		s = occurance->data.value.occurance->node->next;
@@ -173,23 +173,28 @@ Set follow(Grammar g, SymbolType symbolType, int recursive) {
 		while(getFromSet(ruleset, EPSILON) && s!=NULL) {
 			if(isTerminal(s->data.value.symbol)) {
 				ruleset = createSet();
-				putInSet(ruleset, s->data.value.symbol->symbolType);	//Try freeing it
+				putInSet(ruleset, s->data.value.symbol->symbolType);
+				freeRuleSet = 1;
 			} else {
 				ruleset = g->NonTerminals[s->data.value.symbol->symbolType].first;
 			}
 			temp = g->NonTerminals[symbolType].follow;
 			g->NonTerminals[symbolType].follow = setUnion(g->NonTerminals[symbolType].follow, difference(ruleset, empty));
 			s=s->next;
-			//free(temp);
+			freeSet(temp);
+			if(freeRuleSet) {
+				freeSet(ruleset);
+				freeRuleSet = 0;
+			}
 		}
 		if(getFromSet(ruleset, EPSILON) && s==NULL) {
 			temp = g->NonTerminals[symbolType].follow;
 			g->NonTerminals[symbolType].follow = setUnion(g->NonTerminals[symbolType].follow, follow(g, owner, 1));
-			//free(temp);
+			freeSet(temp);
 		}
 		occurance = occurance->next;
 	}
-	//free(empty);
+	freeSet(empty);
 	return g->NonTerminals[symbolType].follow;
 }
 
@@ -199,7 +204,7 @@ void createFirstSets(Grammar g) {
 		if(g->NonTerminals[i].first==NULL) {
 			temp = generateSymbol(g->NonTerminals[i].symbolType, 0);
 			first(g, temp);
-			//free(temp);
+			free(temp);
 		}
 	} 
 }
@@ -213,7 +218,8 @@ void createFollowSets(Grammar g) {
 	}
 	for(i=0;i<g->size;i++) {
 		if(!getFromSet(g->NonTerminals[i].first, EPSILON)) {
-			g->NonTerminals[i].follow=NULL; //try to dealloc
+			freeSet(g->NonTerminals[i].follow);
+			g->NonTerminals[i].follow=NULL;
 		}
 	}
 }
@@ -307,6 +313,13 @@ void visitDFT(Tree tree) {
 	}
 }
 
+void collectGarbage(Grammar g, List** parsetable, Stack stack, Queue tokenStream) {
+	free(parsetable);
+	freeStack(stack);
+	freeQueue(tokenStream);
+	freeGrammar(g);
+}
+
 Tree parse(Queue tokenStream, char* grammarfile) {
 	Grammar g = readGrammar(grammarfile);
 	List** parsetable = initializeParser(g);
@@ -333,7 +346,7 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 			raiseUnexpectedSymbolException(tokenStream, stack, parsetable, stackSymbol, currentToken);
 		}
 	}
-	if(stack->size!=0) {
+	if(stack->size!=0 || tokenStream->size!=0) {
 		raiseUnexpectedTerminationException();
 	}
 	if(error_testing) {
@@ -342,6 +355,7 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 			printf("The code is syntactically correct!");
 		}
 	}
+	collectGarbage(g, parsetable, stack, tokenStream);
 	return parseTree;
 }
 
