@@ -8,6 +8,7 @@ Tree createTree(struct symbol* root) {
 	Tree tree = (Tree) malloc(sizeof(struct tree));
 	tree->symbol = root;
 	tree->children = createList();
+	tree->parent = NULL;
 	return tree;
 }
 
@@ -16,6 +17,7 @@ Tree add_child(Tree tree, struct symbol* symbol) {
 	Data d;
 	d.value.tree = child;
 	insertInFront(tree->children, d);
+	child->parent = tree;
 	return child;
 }
 

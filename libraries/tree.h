@@ -5,6 +5,7 @@ struct head;
 struct tree {
 	struct symbol* symbol;
 	struct head* children;
+	struct tree* parent;
 };
 
 typedef struct tree* Tree;

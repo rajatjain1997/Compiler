@@ -305,11 +305,19 @@ List** initializeParser(Grammar g) {
 
 void visitDFT(Tree tree) {
 	char buf[20];
-	if(isTerminal(tree->symbol) && tree->symbol->token!=NULL) {
+	if(tree->symbol->token!=NULL && tree->symbol->token->type==NUM) {
 		getLexeme(tree->symbol->token, buf);
-		printf(" %s ->", buf);
+		printf("%s %d %d %d %s YES ---\n", buf, tree->symbol->token->lineno, tree->symbol->token->type, tree->symbol->token->value.integer, nonTerminalStrings[tree->parent->symbol->symbolType]);
+	} else if(tree->symbol->token!=NULL && tree->symbol->token->type==RNUM) {
+		getLexeme(tree->symbol->token, buf);
+		printf("%s %d %d %f %s YES ---\n", buf, tree->symbol->token->lineno, tree->symbol->token->type, tree->symbol->token->value.real, nonTerminalStrings[tree->parent->symbol->symbolType]);
+	} else if(isTerminal(tree->symbol) && tree->symbol->token!=NULL) {
+		getLexeme(tree->symbol->token, buf);
+		printf("%s %d %d --- %s YES ---\n", buf, tree->symbol->token->lineno, tree->symbol->token->type, nonTerminalStrings[tree->parent->symbol->symbolType]);
+	} else if (!isTerminal(tree->symbol) && tree->parent!=NULL) {
+		printf("--- --- --- --- %s NO %s \n", nonTerminalStrings[tree->parent->symbol->symbolType], nonTerminalStrings[tree->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol)) {
-		printf(" %s ->", nonTerminalStrings[tree->symbol->symbolType]);
+		printf("--- --- --- --- --- NO %s \n", nonTerminalStrings[tree->symbol->symbolType]);
 	} else {
 		printf("%d ->", tree->symbol->symbolType);
 	}
@@ -352,6 +360,7 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 		raiseUnexpectedTerminationException();
 	}
 	if(error_testing) {
+		printf("Printing Parse Tree: \n");
 		DFT(parseTree);
 		if(!checkErrorState()) {
 			printf("The code is syntactically correct!");

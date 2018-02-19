@@ -1,10 +1,10 @@
 _main[]
 	string g, h; ###
-	if a>b
+	if (a>b)
 		g = "lol";
 	else #lol
 		h = "lol";
 	endif
 	#abcd
-	g? = "abc";
+	g = "abc";
 end
