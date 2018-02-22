@@ -450,10 +450,12 @@ Queue read(char* filename) {
 	if(error_testing) {
 		char buf[20];
 		printf("Printing captured tokenstream: \n");
+		printf("Token Type|Lexeme              |Line no.\n");
+		printf("==========|====================|==========\n");
 		QueueElement temp = tokenStream->first;
 		while(temp!=NULL) {
 			getLexeme(temp->data.value, buf);
-			printf("Token Type: %d, Lexeme: %s, Line no.: %d \n", temp->data.value->type, buf, temp->data.value->lineno);
+			printf("%-10s|%-20s|%-10d\n", tokenTypeToString[temp->data.value->type], buf, temp->data.value->lineno);
 			temp=temp->next;
 		}
 		printf("Token stream terminates\n");

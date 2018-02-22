@@ -63,6 +63,7 @@ struct trie;
 struct trie* keywords;
 
 extern const char tokenStrings[][20];
+extern const char tokenTypeToString[][10];
 
 void getLexeme(Token* token, char* buf);
 Token* tokenize(TokenType type, char* buf,int lineno);

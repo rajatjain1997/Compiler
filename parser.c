@@ -307,17 +307,17 @@ void visitDFT(Tree tree) {
 	char buf[20];
 	if(tree->symbol->token!=NULL && tree->symbol->token->type==NUM) {
 		getLexeme(tree->symbol->token, buf);
-		printf("%-10s %-10d %-10d %-10d %-20s YES --------------------\n", buf, tree->symbol->token->lineno, tree->symbol->token->type, tree->symbol->token->value.integer, nonTerminalStrings[tree->parent->symbol->symbolType]);
+		printf("%-20s|%-10d|%-10s|%-10d|%-23s|YES|-----------------------\n", buf, tree->symbol->token->lineno, tokenTypeToString[tree->symbol->token->type], tree->symbol->token->value.integer, nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if(tree->symbol->token!=NULL && tree->symbol->token->type==RNUM) {
 		getLexeme(tree->symbol->token, buf);
-		printf("%-10s %-10d %-10d %-10f %-20s YES --------------------\n", buf, tree->symbol->token->lineno, tree->symbol->token->type, tree->symbol->token->value.real, nonTerminalStrings[tree->parent->symbol->symbolType]);
+		printf("%-20s|%-10d|%-10s|%-10f|%-23s|YES|-----------------------\n", buf, tree->symbol->token->lineno, tokenTypeToString[tree->symbol->token->type], tree->symbol->token->value.real, nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if(isTerminal(tree->symbol) && tree->symbol->token!=NULL) {
 		getLexeme(tree->symbol->token, buf);
-		printf("%-10s %-10d %-10d ---------- %-20s YES --------------------\n", buf, tree->symbol->token->lineno, tree->symbol->token->type, nonTerminalStrings[tree->parent->symbol->symbolType]);
+		printf("%-20s|%-10d|%-10s|----------|%-23s|YES|-----------------------\n", buf, tree->symbol->token->lineno, tokenTypeToString[tree->symbol->token->type], nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol) && tree->parent!=NULL) {
-		printf("---------- ---------- ---------- ---------- %-20s NO %-20s \n", nonTerminalStrings[tree->parent->symbol->symbolType], nonTerminalStrings[tree->symbol->symbolType]);
+		printf("--------------------|----------|----------|----------|%-23s| NO|%-23s \n", nonTerminalStrings[tree->parent->symbol->symbolType], nonTerminalStrings[tree->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol)) {
-		printf("---------- ---------- ---------- ---------- -------------------- NO %-20s \n", nonTerminalStrings[tree->symbol->symbolType]);
+		printf("--------------------|----------|----------|----------|-----------------------| NO|%-23s \n", nonTerminalStrings[tree->symbol->symbolType]);
 	} else {
 		printf("%d ->", tree->symbol->symbolType);
 	}
@@ -361,6 +361,9 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 	}
 	if(error_testing) {
 		printf("Printing Parse Tree: \n");
+
+		printf("Lexeme              |Line No.  |Token     |Value     |Parent Nonterminal     |Y/N|Nonterminal\n");
+		printf("====================|==========|==========|==========|=======================|===|=======================\n");
 		DFT(parseTree);
 		if(!checkErrorState()) {
 			printf("The code is syntactically correct!");

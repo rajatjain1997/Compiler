@@ -9,6 +9,10 @@ const char tokenStrings[][20] = {"=", "#", "Function Identifier", "Identifier", 
 							"string", "matrix", "main", "[", "]", "(", ")", ";", ",", "if", "else", "endif", "read", "print", "function",
 							"+", "-", "*", "/", "@", ".and.", ".or.", ".not.", "<", "<=", "==", ">", ">=", "=/="};
 
+const char tokenTypeToString[][10] = {"ASSIGNOP", "COMMENT", "FUNID", "ID", "NUM", "RNUM", "STR", "END", "INT", "REAL", "STRING", "MATRIX", "MAIN",
+"SQO", "SQC", "OP", "CL", "SEMICOLON", "COMMA", "IF", "ELSE", "ENDIF", "READ", "PRINT", "FUNCTION", "PLUS", "MINUS", "MUL", "DIV", "SIZE", "AND",
+"OR", "NOT", "LT", "LE", "EQ", "GT", "GE", "NE"};
+
 void raiseIdentifierSizeExceededException(Token* token) {
 	char msg[100];
 	ErrorType e = ERROR;
