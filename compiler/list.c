@@ -80,11 +80,6 @@ void insertAtEnd(Head* h, Data data) {
 }
 
 void insertAtIndex(Head* h, Data data, int index) {
-	printf("%d\n", index);
-	Node* temp = (Node*) malloc(sizeof(Node));
-	temp -> data = data;
-	temp -> next = NULL;
-	temp -> prev = NULL;
 	if(index>h->size) {
 		return;
 	} else if(index==0) {
@@ -94,9 +89,11 @@ void insertAtIndex(Head* h, Data data, int index) {
 		insertAtEnd(h,data);
 		return;
 	}
+	Node* temp = (Node*) malloc(sizeof(Node));
+	temp -> data = data;
 	int count = 0;
 	Node* traverser = h->first;
-	while(++count<index) {
+	while(++count<index && traverser!=NULL) {
 		traverser = traverser -> next;
 	}
 	h->size++;

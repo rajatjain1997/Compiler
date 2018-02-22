@@ -204,7 +204,7 @@ void createFirstSets(Grammar g) {
 		if(g->NonTerminals[i].first==NULL) {
 			temp = generateSymbol(g->NonTerminals[i].symbolType, 0);
 			first(g, temp);
-			free(temp);
+			// free(temp);
 		}
 	} 
 }
@@ -324,10 +324,10 @@ void visitDFT(Tree tree) {
 }
 
 void collectGarbage(Grammar g, List** parsetable, Stack stack, Queue tokenStream) {
-	free(parsetable);
-	freeStack(stack);
-	freeQueue(tokenStream);
-	freeGrammar(g);
+	// free(parsetable);
+	// freeStack(stack);
+	// freeQueue(tokenStream);
+	// freeGrammar(g);
 }
 
 Tree parse(Queue tokenStream, char* grammarfile) {

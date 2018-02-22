@@ -1,0 +1,4 @@
+_main[]
+	real a;
+	a = 21.111;
+end

@@ -24,10 +24,10 @@ void printErrors() {
 			printf("%s: %d: error: %s", filename, lineno, message);
 			printf("\n");
 			errorState = 1;
-			return;
+		} else {
+			printf("%s: %d: warning: %s", filename, lineno, message);
+			printf("\n");
 		}
-		printf("%s: %d: warning: %s", filename, lineno, message);
-		printf("\n");
 		temp = temp->next;
 	}
 }

@@ -12,7 +12,6 @@
 <stmt> SEMICOLON
 <functionDefn> FUNCTION SQO <parameterList> SQC ASSIGNOP FUNID SQO <parameterList> SQC <prog> END
 <parameterList> <type> ID <remainingList>
-<parameterList> $
 <type> INT
 <type> REAL
 <type> STRING
