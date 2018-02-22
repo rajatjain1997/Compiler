@@ -5,12 +5,14 @@ struct symbol;
 struct head;
 struct tree;
 struct occurance;
+struct errorMessage;
 
 typedef union {
 	struct tree* tree;
 	struct head* list;
 	struct symbol* symbol;
 	struct occurance* occurance;
+	struct errorMessage* errorMessage;
 } LinkedDataItems;
 
 typedef struct {

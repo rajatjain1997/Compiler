@@ -1,7 +1,7 @@
 #include "lexer.h"
-#include "../libraries/list.h"
-#include"../libraries/token.h"
-#include"../libraries/error.h"
+#include "list.h"
+#include"token.h"
+#include"error.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -113,7 +113,7 @@ void lex(Queue tokenStream, FILE* fp) {
 						case ')': state=18; break;
 						case ';': state=19; break;
 						case '#': state=20; break;
-						case '\n': lineno++; start++; break;
+						case '\n': case '\r': lineno++; start++; break;
 						case '\0': return;
 						case ' ': start++; break;
 						case '\t': start++; break;
@@ -246,7 +246,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				state=0;
 				break;
 			case 20:
-				if(lookahead=='\n' || lookahead=='\0') {
+				if(lookahead=='\n' || lookahead=='\0' || lookahead=='\r') {
 					finalState(COMMENT, buf, &ptr, &start, lookahead, lineno, tokenStream);
 					state=0;
 				}
@@ -446,7 +446,7 @@ Queue read(char* filename) {
 		return NULL;
 	}
 	lex(tokenStream, fp);
-	close(fp);
+	fclose(fp);
 	if(error_testing) {
 		char buf[20];
 		printf("Printing captured tokenstream: \n");
@@ -505,5 +505,5 @@ void clean(Queue tokenStream, char* filename) {
 		firstword = 0;
 		temp=temp->next;
 	}
-	close(fp);
+	fclose(fp);
 }

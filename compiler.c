@@ -1,9 +1,8 @@
-#include "./modules/lexer.h"
-#include "./modules/parser.h"
-#include "./libraries/token.h"
-#include "./libraries/error.h"
-#include "./libraries/list.h"
-#include "./libraries/tree.h"
+#include "lexer.h"
+#include "parser.h"
+#include "error.h"
+#include "list.h"
+#include "tree.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -38,5 +37,8 @@ int main(int argc, char* argv[]) {
 		clean(tokenstream, cleanDest);
 	}
 	Tree parsetree = parse(tokenstream, "grammar.txt");
+	if(checkErrorState()) {
+		printErrors();
+	}
 	return 0;
 }

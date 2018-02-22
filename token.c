@@ -84,8 +84,8 @@ Token* tokenizeStr(char* buf, int lineno) {
 	token->type = STR;
 	buf[strlen(buf)-1] = '\0';
 	token->value.string = (String*) malloc(sizeof(String));
-	token->value.string->size = strlen(buf) - 2;
-	token->value.string->value = (char*) malloc(token->value.string->size+1);
+	token->value.string->size = strlen(buf);
+	token->value.string->value = (char*) malloc(token->value.string->size-1);
 	strcpy(token->value.string->value, buf + 1);
 	token->lineno = lineno;
 	if(token->value.string->size>20) {

@@ -1,4 +1,4 @@
-#define TRIE_SIZE 29
+#define TRIE_SIZE 30
 
 struct trie {
 	struct trie* level[TRIE_SIZE];

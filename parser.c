@@ -1,10 +1,10 @@
-#include "../libraries/list.h"
-#include "../libraries/token.h"
-#include "../libraries/error.h"
-#include "../libraries/tree.h"
-#include "../libraries/symbol.h"
-#include "../libraries/grammar.h"
-#include "../libraries/set.h"
+#include "list.h"
+#include "token.h"
+#include "error.h"
+#include "tree.h"
+#include "symbol.h"
+#include "grammar.h"
+#include "set.h"
 #include "parser.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -142,17 +142,17 @@ Set first(Grammar g, Symbol* symbol) {
 			ruleset = first(g, s->data.value.symbol);
 			temp = set;
 			set = setUnion(set, difference(ruleset, empty));
-			freeSet(temp);
+			//freeSet(temp);
 		} while(getFromSet(ruleset, EPSILON) && (s=s->next)!=NULL);
 		if(getFromSet(ruleset, EPSILON) && s==NULL) {
 			temp = set;
 			set = setUnion(set, empty);
-			freeSet(temp);
+			//freeSet(temp);
 		}
 		rule = rule->next;
 	}
 	g->NonTerminals[symbol->symbolType].first = set;
-	freeSet(empty);
+	//freeSet(empty);
 	return set;
 }
 
@@ -181,20 +181,20 @@ Set follow(Grammar g, SymbolType symbolType, int recursive) {
 			temp = g->NonTerminals[symbolType].follow;
 			g->NonTerminals[symbolType].follow = setUnion(g->NonTerminals[symbolType].follow, difference(ruleset, empty));
 			s=s->next;
-			freeSet(temp);
+			//freeSet(temp);
 			if(freeRuleSet) {
-				freeSet(ruleset);
+				//freeSet(ruleset);
 				freeRuleSet = 0;
 			}
 		}
 		if(getFromSet(ruleset, EPSILON) && s==NULL) {
 			temp = g->NonTerminals[symbolType].follow;
 			g->NonTerminals[symbolType].follow = setUnion(g->NonTerminals[symbolType].follow, follow(g, owner, 1));
-			freeSet(temp);
+			//freeSet(temp);
 		}
 		occurance = occurance->next;
 	}
-	freeSet(empty);
+	//freeSet(empty);
 	return g->NonTerminals[symbolType].follow;
 }
 
@@ -218,7 +218,7 @@ void createFollowSets(Grammar g) {
 	}
 	for(i=0;i<g->size;i++) {
 		if(!getFromSet(g->NonTerminals[i].first, EPSILON)) {
-			freeSet(g->NonTerminals[i].follow);
+			//freeSet(g->NonTerminals[i].follow);
 			g->NonTerminals[i].follow=NULL;
 		}
 	}
@@ -307,17 +307,17 @@ void visitDFT(Tree tree) {
 	char buf[20];
 	if(tree->symbol->token!=NULL && tree->symbol->token->type==NUM) {
 		getLexeme(tree->symbol->token, buf);
-		printf("%s %d %d %d %s YES ---\n", buf, tree->symbol->token->lineno, tree->symbol->token->type, tree->symbol->token->value.integer, nonTerminalStrings[tree->parent->symbol->symbolType]);
+		printf("%-10s %-10d %-10d %-10d %-20s YES --------------------\n", buf, tree->symbol->token->lineno, tree->symbol->token->type, tree->symbol->token->value.integer, nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if(tree->symbol->token!=NULL && tree->symbol->token->type==RNUM) {
 		getLexeme(tree->symbol->token, buf);
-		printf("%s %d %d %f %s YES ---\n", buf, tree->symbol->token->lineno, tree->symbol->token->type, tree->symbol->token->value.real, nonTerminalStrings[tree->parent->symbol->symbolType]);
+		printf("%-10s %-10d %-10d %-10f %-20s YES --------------------\n", buf, tree->symbol->token->lineno, tree->symbol->token->type, tree->symbol->token->value.real, nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if(isTerminal(tree->symbol) && tree->symbol->token!=NULL) {
 		getLexeme(tree->symbol->token, buf);
-		printf("%s %d %d --- %s YES ---\n", buf, tree->symbol->token->lineno, tree->symbol->token->type, nonTerminalStrings[tree->parent->symbol->symbolType]);
+		printf("%-10s %-10d %-10d ---------- %-20s YES --------------------\n", buf, tree->symbol->token->lineno, tree->symbol->token->type, nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol) && tree->parent!=NULL) {
-		printf("--- --- --- --- %s NO %s \n", nonTerminalStrings[tree->parent->symbol->symbolType], nonTerminalStrings[tree->symbol->symbolType]);
+		printf("---------- ---------- ---------- ---------- %-20s NO %-20s \n", nonTerminalStrings[tree->parent->symbol->symbolType], nonTerminalStrings[tree->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol)) {
-		printf("--- --- --- --- --- NO %s \n", nonTerminalStrings[tree->symbol->symbolType]);
+		printf("---------- ---------- ---------- ---------- -------------------- NO %-20s \n", nonTerminalStrings[tree->symbol->symbolType]);
 	} else {
 		printf("%d ->", tree->symbol->symbolType);
 	}

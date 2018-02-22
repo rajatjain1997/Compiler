@@ -35,8 +35,10 @@ int getIndex(char ch, int insensitive) {
 		return 26;
 	} else if(ch=='>') {
 		return 27;
-	} else {
+	} else if(ch=='$'){
 		return TRIE_SIZE-1;
+	} else {
+		return TRIE_SIZE-2;
 	}
 }
 

@@ -80,6 +80,7 @@ void insertAtEnd(Head* h, Data data) {
 }
 
 void insertAtIndex(Head* h, Data data, int index) {
+	printf("%d\n", index);
 	Node* temp = (Node*) malloc(sizeof(Node));
 	temp -> data = data;
 	temp -> next = NULL;
