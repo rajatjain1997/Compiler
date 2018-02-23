@@ -447,19 +447,6 @@ Queue read(char* filename) {
 	}
 	lex(tokenStream, fp);
 	fclose(fp);
-	if(error_testing) {
-		char buf[20];
-		printf("Printing captured tokenstream: \n");
-		printf("Token Type|Lexeme              |Line no.\n");
-		printf("==========|====================|==========\n");
-		QueueElement temp = tokenStream->first;
-		while(temp!=NULL) {
-			getLexeme(temp->data.value, buf);
-			printf("%-10s|%-20s|%-10d\n", tokenTypeToString[temp->data.value->type], buf, temp->data.value->lineno);
-			temp=temp->next;
-		}
-		printf("Token stream terminates\n");
-	}
 	return tokenStream;
 }
 
@@ -507,5 +494,7 @@ void clean(Queue tokenStream, char* filename) {
 		firstword = 0;
 		temp=temp->next;
 	}
-	fclose(fp);
+	if(fp!=stdout) {
+		fclose(fp);
+	}
 }
