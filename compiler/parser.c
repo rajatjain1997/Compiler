@@ -45,7 +45,7 @@ int panic(Queue tokenStream, Stack stack, List** parsetable,Token* currentToken,
 int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, List** parsetable, StackSymbol expected, Token* received) {
 	char msg[256]; int i = 0; int j = 0; char buf[20];
 	ErrorType e = ERROR;
-	strcpy(msg, "Unexpected token - \"");
+	strcpy(msg, "SYNTAX ERROR: Unexpected token - \"");
 	getLexeme(received, buf);
 	strcat(msg, buf);
 	strcat(msg, "\". The expected token is: ");
@@ -67,7 +67,14 @@ int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, List** parset
 void raiseUnexpectedTerminationException() {
 	char msg[100];
 	ErrorType e = ERROR;
-	strcpy(msg, "Unexpected token stream termination. You have skipped some symbols.");
+	strcpy(msg, "SYNTAX ERROR: Unexpected token stream termination. You have skipped some symbols.");
+	error(msg, e, -1);
+}
+
+void raiseLongerStreamException() {
+	char msg[100];
+	ErrorType e = ERROR;
+	strcpy(msg, "SYNTAX ERROR: Program is longer than expected.");
 	error(msg, e, -1);
 }
 
@@ -323,7 +330,7 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 	while(stack->size>0) {		
 		stackSymbol = PDAPop(tokenStream, stack, parsetable, currentToken);
 		if(isTerminal(stackSymbol.symbol)) {
-			if(tokenStream->size<=0) {
+			if(tokenStream->size==0 || stack->size==0) {
 				break;
 			}
 			data = dequeue(tokenStream);
@@ -336,8 +343,11 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 			raiseUnexpectedSymbolException(tokenStream, stack, parsetable, stackSymbol, currentToken);
 		}
 	}
-	if(stack->size!=0 || tokenStream->size!=0) {
+	if(stack->size!=0) {
 		raiseUnexpectedTerminationException();
+	}
+	if(tokenStream->size!=0) {
+		raiseLongerStreamException();
 	}
 	collectGarbage(g, parsetable, stack, tokenStream);
 	return parseTree;

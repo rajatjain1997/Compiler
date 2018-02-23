@@ -16,7 +16,7 @@ void raiseFileCorruptException() {
 void raiseSymbolNotRecognizedException(char lookahead, int lineno) {
 	char msg[100];
 	ErrorType e = ERROR;
-	strcpy(msg, "Symbol not expected here ");
+	strcpy(msg, "LEXICAL ERROR: Symbol not expected here ");
 	msg[25] = lookahead;
 	msg[26] = '\0';
 	strcat(msg, " ASCII (");
@@ -29,7 +29,7 @@ void raiseSymbolNotRecognizedException(char lookahead, int lineno) {
 void raiseBufferOverflowException(int lineno) {
 	char msg[100];
 	ErrorType e = ERROR;
-	sprintf(msg, "Unexpectedly large token at line number %d", lineno);
+	sprintf(msg, "LEXICAL ERROR: Unexpectedly large token at line number %d", lineno);
 	error(msg, e, lineno);
 }
 
