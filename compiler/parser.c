@@ -65,14 +65,14 @@ int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, List** parset
 }
 
 void raiseUnexpectedTerminationException() {
-	char msg[100];
+	char msg[256];
 	ErrorType e = ERROR;
 	strcpy(msg, "SYNTAX ERROR: Unexpected token stream termination. You have skipped some symbols.");
 	error(msg, e, -1);
 }
 
 void raiseLongerStreamException() {
-	char msg[100];
+	char msg[256];
 	ErrorType e = ERROR;
 	strcpy(msg, "SYNTAX ERROR: Program is longer than expected.");
 	error(msg, e, -1);

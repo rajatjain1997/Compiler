@@ -14,7 +14,7 @@ const char tokenTypeToString[][10] = {"ASSIGNOP", "COMMENT", "FUNID", "ID", "NUM
 "OR", "NOT", "LT", "LE", "EQ", "GT", "GE", "NE"};
 
 void raiseIdentifierSizeExceededException(Token* token) {
-	char msg[100];
+	char msg[256];
 	ErrorType e = ERROR;
 	strcpy(msg, "LEXICAL ERROR: Exceeded maximum idenitifier size for identifier ");
 	strcat(msg, token->value.lexeme);
@@ -22,7 +22,7 @@ void raiseIdentifierSizeExceededException(Token* token) {
 }
 
 void raiseStringSizeExceededException(Token* token) {
-	char msg[100];
+	char msg[256];
 	ErrorType e = ERROR;
 	strcpy(msg, "LEXICAL ERROR: Exceeded maximum idenitifier size for string ");
 	strcat(msg, token->value.string->value);

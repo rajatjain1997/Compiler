@@ -14,20 +14,15 @@ void raiseFileCorruptException() {
 }
 
 void raiseSymbolNotRecognizedException(char lookahead, int lineno) {
-	char msg[100];
+	char msg[256];
 	ErrorType e = ERROR;
 	strcpy(msg, "LEXICAL ERROR: Symbol not expected here ");
-	msg[25] = lookahead;
-	msg[26] = '\0';
-	strcat(msg, " ASCII (");
-	int ascii = lookahead;
-	itoa(ascii, msg+34, 10);
-	strcat(msg, ")");
+	sprintf(msg, "LEXICAL ERROR: Symbol not expected here %c ASCII(%d)", lookahead, lookahead);
 	error(msg, e, lineno);
 }
 
 void raiseBufferOverflowException(int lineno) {
-	char msg[100];
+	char msg[256];
 	ErrorType e = ERROR;
 	sprintf(msg, "LEXICAL ERROR: Unexpectedly large token at line number %d", lineno);
 	error(msg, e, lineno);
@@ -88,7 +83,7 @@ void lex(Queue tokenStream, FILE* fp) {
 	while(1) {
 		char lookahead = buf[ptr];
 		switch(state) {
-			case 0: 
+			case 0:
 				if((lookahead>='a' && lookahead<='z')||(lookahead>='A' && lookahead<='Z'))
 					state=1;
 				else if(lookahead>='0' && lookahead<='9')
@@ -210,7 +205,7 @@ void lex(Queue tokenStream, FILE* fp) {
 					case 'a': state=28; break;
 					case 'o': state=29; break;
 					case 'n': state=30; break;
-					default: 
+					default:
 						raiseSymbolNotRecognizedException(lookahead, lineno);
 						start = ptr;
 						ptr--;
@@ -266,7 +261,7 @@ void lex(Queue tokenStream, FILE* fp) {
 						case 'a': state=28; break;
 						case 'o': state=29; break;
 						case 'n': state=30; break;
-						default: 
+						default:
 							raiseSymbolNotRecognizedException(lookahead, lineno);
 							start = ptr;
 							ptr--;
@@ -343,7 +338,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				}
 				break;
 			case 31:
-				if(lookahead>='0' && lookahead<='9') 
+				if(lookahead>='0' && lookahead<='9')
 					state=38;
 				else {
 					raiseSymbolNotRecognizedException(lookahead, lineno);
@@ -451,8 +446,8 @@ Queue read(char* filename) {
 }
 
 void clean(Queue tokenStream, char* filename) {
-	QueueElement temp = tokenStream->first; 
-	char lexeme[20]; 
+	QueueElement temp = tokenStream->first;
+	char lexeme[20];
 	Token* token;
 	int indent = 0; int prevLineNo = 1; int i; int prevTokenType = -1; int firstword=1;
 	FILE* fp;
@@ -474,11 +469,11 @@ void clean(Queue tokenStream, char* filename) {
 				fprintf(fp, "\t");
 			}
 			firstword = 1;
-		}		
+		}
 		switch(token->type) {
-			case ID: case FUNID: case END: case INT: case REAL: case STRING: 
+			case ID: case FUNID: case END: case INT: case REAL: case STRING:
 			case MATRIX: case MAIN: case IF: case ELSE: case ENDIF: case READ:
-			case PRINT: case FUNCTION: 
+			case PRINT: case FUNCTION:
 			if(!firstword) {
 				fprintf(fp, " ");
 			}

@@ -4,6 +4,7 @@
 #include"error.h"
 #include"trie.h"
 #include"list.h"
+#include"set.h"
 #include<stdlib.h>
 #include<string.h>
 #include<stdio.h>
@@ -27,7 +28,7 @@ int addNonTerminal(Grammar g, char* symbol, Trie nonterminalmapping) {
 	strcpy(nonTerminalStrings[g->size],symbol);
 	insertInTrie(nonterminalmapping, symbol, g->size);
 	g->NonTerminals[g->size].symbolType = g->size;
-	g->NonTerminals[g->size].rules = createList();	
+	g->NonTerminals[g->size].rules = createList();
 	g->NonTerminals[g->size].occurances = createList();
 	g->NonTerminals[g->size].follow = NULL;
 	g->NonTerminals[g->size].first = NULL;
@@ -57,13 +58,13 @@ int addRule(Grammar g, FILE* fp, Trie terminalmapping, Trie nonterminalmapping) 
 	if(!fgets(buffer, 256, fp)) {
 		return 0;
 	}
-	symbol = strtok(buffer, " \n");
+	symbol = strtok(buffer, " \n\r");
 	grammarindex = findInTrie(nonterminalmapping, symbol);
 	if(grammarindex == -1) {
 		grammarindex = addNonTerminal(g, symbol, nonterminalmapping);
 	}
 	List rule = createRule(g, grammarindex);
-	while(symbol = strtok(NULL, " \n")) {
+	while(symbol = strtok(NULL, " \n\r")) {
 		if(strcmp(symbol, "$")==0) {
 			break;
 		}
@@ -73,7 +74,7 @@ int addRule(Grammar g, FILE* fp, Trie terminalmapping, Trie nonterminalmapping) 
 			insertAtEnd(rule, d);
 		} else {
 			mapping = findInTrie(nonterminalmapping, symbol);
-			if(mapping != -1) { 
+			if(mapping != -1) {
 				d.value.symbol = generateSymbol(mapping, 0);
 				insertAtEnd(rule, d);
 				d.value.occurance = createOccurance(rule->last, grammarindex);
@@ -100,8 +101,8 @@ Grammar readGrammar(char* filename) {
 	Trie nonterminalmapping = makeTrie(TRIE_CASE_INSENSITIVE);
 	Grammar g = createGrammar();
 	while(addRule(g, fp, terminalmapping, nonterminalmapping));
-	freeTrie(terminalmapping);
-	freeTrie(nonterminalmapping);
+	// freeTrie(terminalmapping);
+	// freeTrie(nonterminalmapping);
 	return g;
 }
 
