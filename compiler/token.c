@@ -1,3 +1,8 @@
+/**
+ *	AUTHOR: Rajat Jain
+ *  ID No. 2015A7PS0549P
+ */
+
 #include"token.h"
 #include"error.h"
 #include"trie.h"
@@ -5,7 +10,7 @@
 #include<stdio.h>
 #include<string.h>
 
-const char tokenStrings[][20] = {"=", "#", "Function Identifier", "Identifier", "Integer Number", "Real Number", "a String", "end", "int", "real", 
+const char tokenStrings[][20] = {"=", "#", "Function Identifier", "Identifier", "Integer Number", "Real Number", "a String", "end", "int", "real",
 							"string", "matrix", "main", "[", "]", "(", ")", ";", ",", "if", "else", "endif", "read", "print", "function",
 							"+", "-", "*", "/", "@", ".and.", ".or.", ".not.", "<", "<=", "==", ">", ">=", "=/="};
 

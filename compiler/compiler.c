@@ -1,3 +1,8 @@
+/**
+ *	AUTHOR: Rajat Jain
+ *  ID No. 2015A7PS0549P
+ */
+
 #include "lexer.h"
 #include "parser.h"
 #include "error.h"
@@ -57,7 +62,7 @@ int main(int argc, char* argv[]) {
 	for(i=2; i<argc; i++) {
 		testing = strcmp(argv[i], "-test");
 		cleaning = strcmp(argv[i], "-clean");
-		if(cleaning==0) {	
+		if(cleaning==0) {
 			i++;
 			if(i<argc) {
 				strcpy(cleanDest, argv[i]);
@@ -92,7 +97,7 @@ int main(int argc, char* argv[]) {
 						break;
 				case 2: printTokenStream(tokenstream);
 						break;
-				default:innerLoop=1; 
+				default:innerLoop=1;
 						break;
 			}
 			if(innerLoop) {
@@ -102,7 +107,7 @@ int main(int argc, char* argv[]) {
 		parsetree = parse(tokenstream, "grammar.txt");
 		while(error_testing) {
 			switch(choice) {
-				case 3: 
+				case 3:
 					if(!checkErrorState()) {
 						printf("The code is syntactically correct!\n");
 					} else {

@@ -1,5 +1,5 @@
 all: compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o tree.o trie.o
-	gcc -o ../test/a.out compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o
+	gcc -o stage1exe compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o
 
 compiler.o: lexer.h parser.h error.h list.h tree.h symbol.h token.h grammar.h compiler.c
 	gcc -c compiler.c

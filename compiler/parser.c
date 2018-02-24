@@ -1,3 +1,8 @@
+/**
+ *	AUTHOR: Rajat Jain
+ *  ID No. 2015A7PS0549P
+ */
+
 #include "list.h"
 #include "token.h"
 #include "error.h"
@@ -171,7 +176,7 @@ Set follow(Grammar g, SymbolType symbolType, int recursive) {
 	}
 	Set empty = createSet();
 	putInSet(empty, EPSILON);
-	Element occurance = g->NonTerminals[symbolType].occurances->first; 
+	Element occurance = g->NonTerminals[symbolType].occurances->first;
 	Element s; Set temp, ruleset; int owner, freeRuleSet = 0;
 	while(occurance!=NULL) {
 		ruleset = empty;
@@ -213,7 +218,7 @@ void createFirstSets(Grammar g) {
 			first(g, temp);
 			// free(temp);
 		}
-	} 
+	}
 }
 
 void createFollowSets(Grammar g) {
@@ -244,7 +249,7 @@ List** createParseTable(Grammar g) {
 			parsetable[nonTerminal][terminal] = NULL;
 
 			//Checking if the non-terminal has a valid rule
-			if(!getFromSet(g->NonTerminals[nonTerminal].first, terminal) && 
+			if(!getFromSet(g->NonTerminals[nonTerminal].first, terminal) &&
 				(
 					g->NonTerminals[nonTerminal].follow==NULL ||
 					(g->NonTerminals[nonTerminal].follow!=NULL && !getFromSet(g->NonTerminals[nonTerminal].follow, terminal))
@@ -327,7 +332,7 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 	StackSymbol stackSymbol;
 	data = dequeue(tokenStream);
 	currentToken = data.value;
-	while(stack->size>0) {		
+	while(stack->size>0) {
 		stackSymbol = PDAPop(tokenStream, stack, parsetable, currentToken);
 		if(isTerminal(stackSymbol.symbol)) {
 			if(tokenStream->size==0 || stack->size==0) {

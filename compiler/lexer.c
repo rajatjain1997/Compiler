@@ -1,3 +1,8 @@
+/**
+ *	AUTHOR: Rajat Jain
+ *  ID No. 2015A7PS0549P
+ */
+
 #include "lexer.h"
 #include "list.h"
 #include"token.h"
@@ -6,12 +11,20 @@
 #include<stdlib.h>
 #include<string.h>
 
+/*
+ * void raiseFileCorruptException(): Raises an error if the file cannot be opened by the lexer. The error has no line number so that it floats to the top.
+ */
+
 void raiseFileCorruptException() {
 	char msg[100];
 	ErrorType e = ERROR;
 	strcpy(msg, "Cannot open file");
 	error(msg, e, -1);
 }
+
+/*
+ * void raiseSymbolNotRecognizedException(char lookahead, int lineno): Raises an error if the symbol is not expected in the matched pattern.
+ */
 
 void raiseSymbolNotRecognizedException(char lookahead, int lineno) {
 	char msg[256];
@@ -21,12 +34,23 @@ void raiseSymbolNotRecognizedException(char lookahead, int lineno) {
 	error(msg, e, lineno);
 }
 
+/*
+ * void raiseSymbolNotRecognizedException(char lookahead, int lineno): Raises an error if tokens overflow the current buffersize of 50 bits. Else the entire token is printed
+ * while error reporting.
+ */
+
 void raiseBufferOverflowException(int lineno) {
 	char msg[256];
 	ErrorType e = ERROR;
 	sprintf(msg, "LEXICAL ERROR: Unexpectedly large token at line number %d", lineno);
 	error(msg, e, lineno);
 }
+
+/*
+ * int incrementptr(char* buf, int ptr, int start, FILE* fp): Increments lookahead pointer in the abstract buffer to point to the next character in file.
+ * The dual buffer is implemented with a dynamic boundary at buf+start such that all characters in buf2 = buf+start are new while those in buf1 = buf have already been
+ * tokenized.
+ */
 
 int incrementptr(char* buf, int ptr, int start, FILE* fp) {
 	if(ptr<49) {
@@ -45,6 +69,12 @@ int incrementptr(char* buf, int ptr, int start, FILE* fp) {
 		return 50-start;
 	}
 }
+
+/*
+ * void finalState(TokenType tokenType, char* buf, int* ptr, int* start, char lookahead, int lineno, Queue tokenStream): Tokenizes tokens in buffer from buf+start to ptr.
+ * Also manages the buffer in case the dynamic boundary is overflowing and sets the buffer state.
+ * It is also responsible for adding the tokens to the token stream or raise an exception is there is any error.
+ */
 
 void finalState(TokenType tokenType, char* buf, int* ptr, int* start, char lookahead, int lineno, Queue tokenStream) {
 	QueueData tokenData;
@@ -65,6 +95,10 @@ void finalState(TokenType tokenType, char* buf, int* ptr, int* start, char looka
 	*start = *ptr;
 	*ptr=*ptr-1;
 }
+
+/*
+ * void lex(Queue tokenStream, FILE* fp): The DFA attached to the lexer. It uses the file provided to it to generate a tokenstream from captured lexemes.
+ */
 
 void lex(Queue tokenStream, FILE* fp) {
 	initializeTokenizer();
@@ -434,6 +468,11 @@ void lex(Queue tokenStream, FILE* fp) {
 	}
 }
 
+/*
+ * Queue read(char* filename): Driver function for the lexer.
+ * Etymology: The function is named "read" because this is the only instance where a stream to the user source code is opened.
+ */
+
 Queue read(char* filename) {
 	Queue tokenStream = createQueue();
 	FILE* fp = fopen(filename, "r");
@@ -445,6 +484,11 @@ Queue read(char* filename) {
 	fclose(fp);
 	return tokenStream;
 }
+
+/*
+ * void clean(Queue tokenStream, char* filename): Cleans the source code of any comments and prettifies it. This function does auto-indentation as well :-).
+ * If filename is passed as "1", the cleaned code is printed on stdout.
+ */
 
 void clean(Queue tokenStream, char* filename) {
 	QueueElement temp = tokenStream->first;
