@@ -24,18 +24,16 @@ int panic(Queue tokenStream, Stack stack, List** parsetable,Token* currentToken,
 	Token* temp = currentToken; StackData d;
 	d.value.stackSymbol = currentSymbol;
 	while(tokenStream->size>0) {
-		if(isTerminal(currentSymbol.symbol)) {
-			return 0;
-		} else if(parsetable[currentSymbol.symbol->symbolType][temp->type]!=NULL) {
+		if(isTerminal(currentSymbol.symbol)&&currentSymbol.symbol->symbolType==temp->type) {
 			push(stack, d);
 			return 0;
-		} else if(stack->size!=0 && isTerminal(top(stack).value.stackSymbol.symbol)) {
-			if(top(stack).value.stackSymbol.symbol->symbolType==temp->type) {
-				return 0;
-			} else {
-				temp = dequeue(tokenStream).value;
-				*currentToken = *temp;
-			}
+		} else if(!isTerminal(currentSymbol.symbol) && parsetable[currentSymbol.symbol->symbolType][temp->type]!=NULL) {
+			push(stack, d);
+			return 0;
+		} else if(stack->size!=0 && isTerminal(top(stack).value.stackSymbol.symbol) &&
+			top(stack).value.stackSymbol.symbol->symbolType==temp->type
+		) {
+			return 0;
 		} else if(stack->size!=0 && !isTerminal(top(stack).value.stackSymbol.symbol) &&
 			parsetable[top(stack).value.stackSymbol.symbol->symbolType][temp->type]!=NULL
 		) {
@@ -81,7 +79,7 @@ int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, List** parset
 }
 
 /**
- * void raiseUnexpectedSymbolException(): Raises an error if token stream terminates but the stack doesn't.
+ * void raiseUnexpectedTerminationException(): Raises an error if token stream terminates but the stack doesn't.
  */
 
 void raiseUnexpectedTerminationException() {
@@ -135,8 +133,7 @@ StackSymbol PDAPop(Queue tokenStream, Stack PDAStack, List** parsetable, Token* 
 	while(isTerminal(popped.symbol)) {
 		if(attachTokenToSymbol(extractSymbol(popped.symbolTree), currentToken)==-1) {
 			if(raiseUnexpectedSymbolException(tokenStream, PDAStack, parsetable, popped, currentToken)==-1 && PDAStack->size>0) {
-				popped = pop(PDAStack).value.stackSymbol;
-				continue;
+				return popped;
 			}
 		}
 		break;
@@ -383,7 +380,7 @@ void collectGarbage(Grammar g, List** parsetable, Stack stack, Queue tokenStream
 }
 
 /*
- * Tree parse(Queue tokenStream, char* grammarfile): Driver function for the parser. Takes a tokenstrem and grammar file AND
+ * Tree parse(Queue tokenStream, char* grammarfile): Driver function for the parser. Takes a tokenstream and grammar file AND
  * returns a parse tree.
  */
 
@@ -410,7 +407,9 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 		if(parsetable[stackSymbol.symbol->symbolType][currentToken->type]!=NULL) {
 			PDAPush(stack, stackSymbol, parsetable[stackSymbol.symbol->symbolType][currentToken->type]);
 		} else {
-			raiseUnexpectedSymbolException(tokenStream, stack, parsetable, stackSymbol, currentToken);
+			if(raiseUnexpectedSymbolException(tokenStream, stack, parsetable, stackSymbol, currentToken)==-1) {
+				break;
+			}
 		}
 	}
 	if(stack->size!=0) {
