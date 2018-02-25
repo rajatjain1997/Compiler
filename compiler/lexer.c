@@ -29,8 +29,21 @@ void raiseFileCorruptException() {
 void raiseSymbolNotRecognizedException(char lookahead, int lineno) {
 	char msg[256];
 	ErrorType e = ERROR;
-	strcpy(msg, "LEXICAL ERROR: Symbol not expected here ");
 	sprintf(msg, "LEXICAL ERROR: Symbol not expected here %c ASCII(%d)", lookahead, lookahead);
+	error(msg, e, lineno);
+}
+
+/*
+ * void raisePatternNotRecognizedException(char lookahead, int lineno): Raises an error if the pattern leads to a trap state in the DFA.
+ */
+
+void raisePatternNotRecognizedException(char* buf, int ptr, int start, int lineno) {
+	char msg[256];
+	ErrorType e = ERROR;
+	char lookahead = buf[ptr];
+	buf[ptr] = '\0';
+	sprintf(msg, "LEXICAL ERROR: Unidentified pattern: %s", buf+start);
+	buf[ptr] = lookahead;
 	error(msg, e, lineno);
 }
 
@@ -177,7 +190,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				if((lookahead>='a' && lookahead<='z')||(lookahead>='A' && lookahead<='Z'))
 					state=23;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr+1;
 					ptr--;
 					state=0;
@@ -187,7 +200,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				if((lookahead>='a' && lookahead<='z') || lookahead==' ')
 					state=24;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr+1;
 					ptr--;
 					state=0;
@@ -240,7 +253,7 @@ void lex(Queue tokenStream, FILE* fp) {
 					case 'o': state=29; break;
 					case 'n': state=30; break;
 					default:
-						raiseSymbolNotRecognizedException(lookahead, lineno);
+						raisePatternNotRecognizedException(buf, ptr, start, lineno);
 						start = ptr;
 						ptr--;
 						state=0;
@@ -318,7 +331,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				else if(lookahead=='\"')
 					state=32;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr;
 					ptr--;
 					state=0;
@@ -332,7 +345,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				if(lookahead=='=')
 					state=34;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr;
 					ptr--;
 					state=0;
@@ -346,7 +359,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				if(lookahead=='n')
 					state=35;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr;
 					ptr--;
 					state=0;
@@ -356,7 +369,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				if(lookahead=='r')
 					state=36;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr;
 					ptr--;
 					state=0;
@@ -366,7 +379,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				if(lookahead=='o')
 					state=37;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr;
 					ptr--;
 					state=0;
@@ -376,7 +389,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				if(lookahead>='0' && lookahead<='9')
 					state=38;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr;
 					ptr--;
 					state=0;
@@ -398,7 +411,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				if(lookahead=='d')
 					state=39;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr;
 					ptr--;
 					state=0;
@@ -408,7 +421,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				if(lookahead=='.')
 					state=40;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr;
 					ptr--;
 					state=0;
@@ -418,7 +431,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				if(lookahead=='t')
 					state=41;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr;
 					ptr--;
 					state=0;
@@ -432,7 +445,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				if(lookahead=='.')
 					state=42;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr;
 					ptr--;
 					state=0;
@@ -446,7 +459,7 @@ void lex(Queue tokenStream, FILE* fp) {
 				if(lookahead=='.')
 					state=43;
 				else {
-					raiseSymbolNotRecognizedException(lookahead, lineno);
+					raisePatternNotRecognizedException(buf, ptr, start, lineno);
 					start = ptr;
 					ptr--;
 					state=0;

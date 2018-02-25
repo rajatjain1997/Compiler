@@ -14,30 +14,46 @@
 #include <stdio.h>
 #include <string.h>
 
-void visitDFT(Tree tree) {
+void visitInOrder(Tree tree, FILE* fp) {
 	char buf[20];
 	if(tree->symbol->token!=NULL && tree->symbol->token->type==NUM) {
 		getLexeme(tree->symbol->token, buf);
-		printf("%-20s|%-10d|%-10s|%-10d|%-23s|YES|-----------------------\n", buf, tree->symbol->token->lineno, tokenTypeToString[tree->symbol->token->type], tree->symbol->token->value.integer, nonTerminalStrings[tree->parent->symbol->symbolType]);
+		fprintf(fp, "%-20s|%-10d|%-10s|%-10d|%-23s|YES|-----------------------\n", buf, tree->symbol->token->lineno, tokenTypeToString[tree->symbol->token->type], tree->symbol->token->value.integer, nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if(tree->symbol->token!=NULL && tree->symbol->token->type==RNUM) {
 		getLexeme(tree->symbol->token, buf);
-		printf("%-20s|%-10d|%-10s|%-10f|%-23s|YES|-----------------------\n", buf, tree->symbol->token->lineno, tokenTypeToString[tree->symbol->token->type], tree->symbol->token->value.real, nonTerminalStrings[tree->parent->symbol->symbolType]);
+		fprintf(fp, "%-20s|%-10d|%-10s|%-10f|%-23s|YES|-----------------------\n", buf, tree->symbol->token->lineno, tokenTypeToString[tree->symbol->token->type], tree->symbol->token->value.real, nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if(isTerminal(tree->symbol) && tree->symbol->token!=NULL) {
 		getLexeme(tree->symbol->token, buf);
-		printf("%-20s|%-10d|%-10s|----------|%-23s|YES|-----------------------\n", buf, tree->symbol->token->lineno, tokenTypeToString[tree->symbol->token->type], nonTerminalStrings[tree->parent->symbol->symbolType]);
+		fprintf(fp,"%-20s|%-10d|%-10s|----------|%-23s|YES|-----------------------\n", buf, tree->symbol->token->lineno, tokenTypeToString[tree->symbol->token->type], nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol) && tree->parent!=NULL) {
-		printf("--------------------|----------|----------|----------|%-23s| NO|%-23s \n", nonTerminalStrings[tree->parent->symbol->symbolType], nonTerminalStrings[tree->symbol->symbolType]);
+		fprintf(fp, "--------------------|----------|----------|----------|%-23s| NO|%-23s \n", nonTerminalStrings[tree->parent->symbol->symbolType], nonTerminalStrings[tree->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol)) {
-		printf("--------------------|----------|----------|----------|-----------------------| NO|%-23s \n", nonTerminalStrings[tree->symbol->symbolType]);
+		fprintf(fp, "--------------------|----------|----------|----------|-----------------------| NO|%-23s \n", nonTerminalStrings[tree->symbol->symbolType]);
 	} else {
-		printf("%d (Error)\n", tree->symbol->symbolType);
+		fprintf(fp, "%d (Error)\n", tree->symbol->symbolType);
 	}
 }
 
-void printTree(Tree tree) {
-	printf("Lexeme              |Line No.  |Token     |Value     |Parent Nonterminal     |Y/N|Nonterminal\n");
-	printf("====================|==========|==========|==========|=======================|===|=======================\n");
-	DFT(tree);
+void inOrderTraversal(Tree tree, FILE* fp) {
+	Element temp;
+	if(tree->children->size==0) {
+		visitInOrder(tree, fp);
+	} else {
+		inOrderTraversal(tree->children->first->data.value.tree, fp);
+		visitInOrder(tree, fp);
+		temp = tree->children->first->next;
+		while(temp!=NULL) {
+			inOrderTraversal(temp->data.value.tree, fp);
+			temp = temp->next;
+		}
+	}
+}
+
+void printTree(Tree tree, FILE* fp) {
+	fprintf(fp, "Lexeme              |Line No.  |Token     |Value     |Parent Nonterminal     |Y/N|Nonterminal\n");
+	fprintf(fp, "====================|==========|==========|==========|=======================|===|=======================\n");
+	inOrderTraversal(tree, fp);
+	fclose(fp);
 }
 
 void printTokenStream(Queue tokenStream) {
@@ -54,25 +70,28 @@ void printTokenStream(Queue tokenStream) {
 
 int main(int argc, char* argv[]) {
 	int testing = 1; int cleaning  = 1; int i; int choice, innerLoop = 0, outerLoop = 0;
+	FILE* parseTreeOut;
 	char cleanDest[20];
 	if(argc<2) {
 		printf("No source file specified.");
 		return 0;
 	}
-	for(i=2; i<argc; i++) {
-		testing = strcmp(argv[i], "-test");
-		cleaning = strcmp(argv[i], "-clean");
-		if(cleaning==0) {
-			i++;
-			if(i<argc) {
-				strcpy(cleanDest, argv[i]);
-			} else {
-				strcpy(cleanDest, "1");
-			}
-		}
-	}
+	// for(i=2; i<argc; i++) {
+	// 	testing = strcmp(argv[i], "-test");
+	// 	cleaning = strcmp(argv[i], "-clean");
+	// 	if(cleaning==0) {
+	// 		i++;
+	// 		if(i<argc) {
+	// 			strcpy(cleanDest, argv[i]);
+	// 		} else {
+	// 			strcpy(cleanDest, "1");
+	// 		}
+	// 	}
+	// }
 	//Compiler always runs in testing mode.
 	testing = 0;
+	//Compiler always prints cleaned code to console.
+	strcpy(cleanDest,"1");
 	initializeError(argv[1], !testing);
 	Queue tokenstream; Tree parsetree;
 
@@ -114,7 +133,13 @@ int main(int argc, char* argv[]) {
 						printErrors();
 					}
 					break;
-				case 4: printTree(parsetree);
+				case 4:
+						if(argc==3) {
+							parseTreeOut = fopen(argv[2], "w");
+						} else {
+							parseTreeOut = stdout;
+						}
+						printTree(parsetree, parseTreeOut);
 						break;
 				case 5: case 1: case 2: outerLoop = 1;
 						break;

@@ -34,26 +34,26 @@ struct symbol* extractSymbol(Tree tree) {
 // 	// printf("%s\n", tree->dir_name);
 // }
 
-void DFT(Tree tree) {
-	StackData d;
-	Element temp, x;
-	Stack st = createStack();
-	visitDFT(tree);
-	d.value.element = tree->children->first;
-	push(st,d);
-	while(st->size!=0) {
-		temp = pop(st).value.element;
-		if(temp!=NULL) {
-			visitDFT(temp->data.value.tree);
-			x = temp->data.value.tree->children->first;
-			temp = temp->next;
-			d.value.element = temp;
-			push(st, d);
-			d.value.element = x;
-			push(st, d);
-		}
-	}
-}
+// void DFT(Tree tree) {
+// 	StackData d;
+// 	Element temp, x;
+// 	Stack st = createStack();
+// 	visitDFT(tree);
+// 	d.value.element = tree->children->first;
+// 	push(st,d);
+// 	while(st->size!=0) {
+// 		temp = pop(st).value.element;
+// 		if(temp!=NULL) {
+// 			visitDFT(temp->data.value.tree);
+// 			x = temp->data.value.tree->children->first;
+// 			temp = temp->next;
+// 			d.value.element = temp;
+// 			push(st, d);
+// 			d.value.element = x;
+// 			push(st, d);
+// 		}
+// 	}
+// }
 
 // void BFT(Tree tree) {
 // 	DataQueue d;
