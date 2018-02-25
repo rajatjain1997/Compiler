@@ -132,7 +132,10 @@ StackSymbol PDAPop(Queue tokenStream, Stack PDAStack, List** parsetable, Token* 
 	StackSymbol popped = data.value.stackSymbol;
 	while(isTerminal(popped.symbol)) {
 		if(attachTokenToSymbol(extractSymbol(popped.symbolTree), currentToken)==-1) {
-			if(raiseUnexpectedSymbolException(tokenStream, PDAStack, parsetable, popped, currentToken)==-1 && PDAStack->size>0) {
+			if(raiseUnexpectedSymbolException(tokenStream, PDAStack, parsetable, popped, currentToken)!=-1 && PDAStack->size>0) {
+				popped = pop(PDAStack).value.stackSymbol;
+				continue;
+			} else {
 				return popped;
 			}
 		}
