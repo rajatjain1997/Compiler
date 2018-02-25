@@ -2,7 +2,7 @@ _main[     ]
 	string str1, str2;
 	matrix m1;
 	str1 = "eradicate";
-	blankSTR = "   ";
+	blankSTR = "  ";
 	str2 = "plagiarism";
 	function [string s]= _concatenate[string a, string a2]
 		str1 = a + a2;
@@ -10,5 +10,5 @@ _main[     ]
 	string ccSubmission;
 	ccSubmission = _concatenate(str1, blankSTR);
 	ccSubmission = _concatenate(ccSubmission, str2);
-end;
+end
 

@@ -66,7 +66,7 @@ int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, List** parset
 	strcat(msg, buf);
 	strcat(msg, "\". The expected token is: ");
 	if(isTerminal(expected.symbol)) {
-		sprintf(msg, "%s %s", msg, tokenStrings[i]);
+		sprintf(msg, "%s %s", msg, tokenStrings[expected.symbol->symbolType]);
 	} else {
 		for(;i<NE+1 && j<5;i++) {
 			if(parsetable[expected.symbol->symbolType][i]!=NULL) {
