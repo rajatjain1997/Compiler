@@ -16,6 +16,10 @@
 
 char nonTerminalStrings[50][30];
 
+/*
+ * raiseGrammarNotPresentExeption(): Raises an error if the grammar file cannot be opened.
+ */
+
 void raiseGrammarNotPresentExeption() {
 	char msg[100];
 	ErrorType e = ERROR;
@@ -23,11 +27,19 @@ void raiseGrammarNotPresentExeption() {
 	error(msg, e, -1);
 }
 
+/*
+ * createGrammar(): Allocates memory for the Grammar type.
+ */
+
 Grammar createGrammar() {
 	Grammar g = malloc(sizeof(struct grammar));
 	g->size = 0;
 	return g;
 }
+
+/*
+ * addNonTerminal(): Adds a new non terminal to the grammar and inserts it into a temporary Trie.
+ */
 
 int addNonTerminal(Grammar g, char* symbol, Trie nonterminalmapping) {
 	strcpy(nonTerminalStrings[g->size],symbol);

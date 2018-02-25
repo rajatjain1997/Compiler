@@ -154,17 +154,17 @@ Set first(Grammar g, Symbol* symbol) {
 			ruleset = first(g, s->data.value.symbol);
 			temp = set;
 			set = setUnion(set, difference(ruleset, empty));
-			//freeSet(temp);
+			freeSet(temp);
 		} while(getFromSet(ruleset, EPSILON) && (s=s->next)!=NULL);
 		if(getFromSet(ruleset, EPSILON) && s==NULL) {
 			temp = set;
 			set = setUnion(set, empty);
-			//freeSet(temp);
+			freeSet(temp);
 		}
 		rule = rule->next;
 	}
 	g->NonTerminals[symbol->symbolType].first = set;
-	//freeSet(empty);
+	freeSet(empty);
 	return set;
 }
 
@@ -193,20 +193,20 @@ Set follow(Grammar g, SymbolType symbolType, int recursive) {
 			temp = g->NonTerminals[symbolType].follow;
 			g->NonTerminals[symbolType].follow = setUnion(g->NonTerminals[symbolType].follow, difference(ruleset, empty));
 			s=s->next;
-			//freeSet(temp);
+			freeSet(temp);
 			if(freeRuleSet) {
-				//freeSet(ruleset);
+				freeSet(ruleset);
 				freeRuleSet = 0;
 			}
 		}
 		if(getFromSet(ruleset, EPSILON) && s==NULL) {
 			temp = g->NonTerminals[symbolType].follow;
 			g->NonTerminals[symbolType].follow = setUnion(g->NonTerminals[symbolType].follow, follow(g, owner, 1));
-			//freeSet(temp);
+			freeSet(temp);
 		}
 		occurance = occurance->next;
 	}
-	//freeSet(empty);
+	freeSet(empty);
 	return g->NonTerminals[symbolType].follow;
 }
 
@@ -216,7 +216,7 @@ void createFirstSets(Grammar g) {
 		if(g->NonTerminals[i].first==NULL) {
 			temp = generateSymbol(g->NonTerminals[i].symbolType, 0);
 			first(g, temp);
-			// free(temp);
+			free(temp);
 		}
 	}
 }
@@ -316,10 +316,10 @@ List** initializeParser(Grammar g) {
 }
 
 void collectGarbage(Grammar g, List** parsetable, Stack stack, Queue tokenStream) {
-	// free(parsetable);
-	// freeStack(stack);
-	// freeQueue(tokenStream);
-	// freeGrammar(g);
+	free(parsetable);
+	freeStack(stack);
+	freeQueue(tokenStream);
+	freeGrammar(g);
 }
 
 Tree parse(Queue tokenStream, char* grammarfile) {
