@@ -1,5 +1,7 @@
 *.o
 *.out
-compiler/stage1exe
+compiler/
 test/
 !*.txt
+!*.c
+!*.h

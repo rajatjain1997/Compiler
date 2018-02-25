@@ -11,9 +11,26 @@
 #include<stdlib.h>
 
 char* filename;
+
+/*
+ * error_testing: A variable that maintains whether compiler is in test state or not.
+ */
 int error_testing = 0;
+
+/*
+ * errorState: A variable that maintains whether the compilation process resulted in an error or not.
+ */
 int errorState = 0;
+
+
+/*
+ * errorBuffer: Buffers all errors to display them in ascending order of line nos. in the end.
+ */
 List errorBuffer;
+
+/*
+ * void printErrors(): Used to print all errors in error buffer.
+ */
 
 void printErrors() {
 	ErrorMessage* errmsg;
@@ -38,6 +55,10 @@ void printErrors() {
 	}
 }
 
+/*
+ * void error(char* message, ErrorType type, int lineno): Adds new errors to error buffer.
+ */
+
 void error(char* message, ErrorType type, int lineno) {
 	ErrorMessage* errmsg = (ErrorMessage*) malloc(sizeof(ErrorMessage));
 	errmsg->message = malloc(strlen(message));
@@ -56,11 +77,20 @@ void error(char* message, ErrorType type, int lineno) {
 	errorState = 1;
 }
 
+/*
+ * void initializeError(char* file, int testing): Initializes error module with filename and testing mode.
+ */
+
+
 void initializeError(char* file, int testing) {
 	filename = file;
 	error_testing = testing;
 	errorBuffer = createList();
 }
+
+/*
+ * int checkErrorState(): Determines if the program is in an erraneous state.
+ */
 
 int checkErrorState() {
 	return errorState;

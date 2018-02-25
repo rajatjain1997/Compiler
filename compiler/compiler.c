@@ -14,6 +14,10 @@
 #include <stdio.h>
 #include <string.h>
 
+/*
+ * void visitInOrder(Tree tree, FILE* fp): Used to print each node of the parse tree in order.
+ */
+
 void visitInOrder(Tree tree, FILE* fp) {
 	char buf[20];
 	if(tree->symbol->token!=NULL && tree->symbol->token->type==NUM) {
@@ -34,6 +38,10 @@ void visitInOrder(Tree tree, FILE* fp) {
 	}
 }
 
+/*
+ * void inOrderTraversal(Tree tree, FILE* fp): used to traverse the passed tree in order.
+ */
+
 void inOrderTraversal(Tree tree, FILE* fp) {
 	Element temp;
 	if(tree->children->size==0) {
@@ -49,6 +57,10 @@ void inOrderTraversal(Tree tree, FILE* fp) {
 	}
 }
 
+/*
+ * void printTree(Tree tree, FILE* fp): Used to print the parse tree in order.
+ */
+
 void printTree(Tree tree, FILE* fp) {
 	fprintf(fp, "Lexeme              |Line No.  |Token     |Value     |Parent Nonterminal     |Y/N|Nonterminal\n");
 	fprintf(fp, "====================|==========|==========|==========|=======================|===|=======================\n");
@@ -57,6 +69,10 @@ void printTree(Tree tree, FILE* fp) {
 		fclose(fp);
 	}
 }
+
+/*
+ * void printTokenStream(Queue tokenStream): Used to print the token stream returned by lexer.
+ */
 
 void printTokenStream(Queue tokenStream) {
 	char buf[20];

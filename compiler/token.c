@@ -10,13 +10,25 @@
 #include<stdio.h>
 #include<string.h>
 
+/*
+ * tokenStrings: Contains human readable interpretations of tokens. Used to generate readable error messages.
+ */
+
 const char tokenStrings[][20] = {"=", "#", "Function Identifier", "Identifier", "Integer Number", "Real Number", "a String", "end", "int", "real",
 							"string", "matrix", "main", "[", "]", "(", ")", ";", ",", "if", "else", "endif", "read", "print", "function",
 							"+", "-", "*", "/", "@", ".and.", ".or.", ".not.", "<", "<=", "==", ">", ">=", "=/="};
 
+/*
+ * tokenTypeToString: Used to convert enumerated TokenType to its string representation.
+ */
+
 const char tokenTypeToString[][10] = {"ASSIGNOP", "COMMENT", "FUNID", "ID", "NUM", "RNUM", "STR", "END", "INT", "REAL", "STRING", "MATRIX", "MAIN",
 "SQO", "SQC", "OP", "CL", "SEMICOLON", "COMMA", "IF", "ELSE", "ENDIF", "READ", "PRINT", "FUNCTION", "PLUS", "MINUS", "MUL", "DIV", "SIZE", "AND",
 "OR", "NOT", "LT", "LE", "EQ", "GT", "GE", "NE"};
+
+/*
+ * void raiseIdentifierSizeExceededException(Token* token): Raises an exception when size of an identifier or FUNID exceedes 20.
+ */
 
 void raiseIdentifierSizeExceededException(Token* token) {
 	char msg[256];
@@ -26,6 +38,10 @@ void raiseIdentifierSizeExceededException(Token* token) {
 	error(msg, e, token->lineno);
 }
 
+/*
+ * void raiseStringSizeExceededException(Token* token): Raises an exception when size of a string or FUNID exceedes 20.
+ */
+
 void raiseStringSizeExceededException(Token* token) {
 	char msg[256];
 	ErrorType e = ERROR;
@@ -33,6 +49,10 @@ void raiseStringSizeExceededException(Token* token) {
 	strcat(msg, token->value.string->value);
 	error(msg, e, token->lineno);
 }
+
+/*
+ * Token* tokenizeId(char* buf, int lineno): Used to tokenize identifiers, keywords are checked using a trie here.
+ */
 
 Token* tokenizeId(char* buf, int lineno) {
 	int bufsize = strlen(buf);
@@ -54,6 +74,10 @@ Token* tokenizeId(char* buf, int lineno) {
 	return token;
 }
 
+/*
+ * Token* tokenizeFunId(char* buf, int lineno): Used to tokenize Function Ids
+ */
+
 Token* tokenizeFunId(char* buf,int lineno) {
 	Token* token = (Token*) malloc(sizeof(Token));
 	token->value.lexeme = (char*) malloc(strlen(buf) + 1);
@@ -72,6 +96,11 @@ Token* tokenizeFunId(char* buf,int lineno) {
 	return token;
 }
 
+/*
+ * Token* tokenizeNum(char* buf, int lineno): Used to tokenize numbers and convert them into integers.
+ */
+
+
 Token* tokenizeNum(char* buf, int lineno) {
 	Token* token = (Token*) malloc(sizeof(Token));
 	token->type = NUM;
@@ -80,6 +109,10 @@ Token* tokenizeNum(char* buf, int lineno) {
 	return token;
 }
 
+/*
+ * Token* tokenizeRNum(char* buf, int lineno): Used to tokenize numbers and convert them into float.
+ */
+
 Token* tokenizeRNum(char* buf, int lineno) {
 	Token* token = (Token*) malloc(sizeof(Token));
 	token->type = RNUM;
@@ -87,6 +120,10 @@ Token* tokenizeRNum(char* buf, int lineno) {
 	token->lineno = lineno;
 	return token;
 }
+
+/*
+ * Token* tokenizeStr(char* buf, int lineno): Used to tokenize strings.
+ */
 
 Token* tokenizeStr(char* buf, int lineno) {
 	Token* token = (Token*) malloc(sizeof(Token));
@@ -106,6 +143,10 @@ Token* tokenizeStr(char* buf, int lineno) {
 	return token;
 }
 
+/*
+ * void getLexeme(token* token, char* lexeme): Fills lexeme with a string representation of the token.
+ */
+
 void getLexeme(Token* token, char* lexeme) {
 	switch(token->type) {
 		case NUM: sprintf(lexeme, "%d", token->value.integer); break;
@@ -115,6 +156,10 @@ void getLexeme(Token* token, char* lexeme) {
 	}
 	return;
 }
+
+/*
+ * Token* tokenize(TokenType type, char* buf, int lineno): Driver for all functionality of the tokenizer.
+ */
 
 Token* tokenize(TokenType type, char* buf, int lineno) {
 	Token* token;
@@ -133,6 +178,10 @@ Token* tokenize(TokenType type, char* buf, int lineno) {
 			return token;
 	};
 }
+
+/*
+ * void initializeTokenizer(): Used to initialize tokenizer with all the keywords and their mappings.
+ */
 
 void initializeTokenizer() {
 	keywords = makeTrie(TRIE_CASE_SENSITIVE);
@@ -160,6 +209,10 @@ void initializeTokenizer() {
 	t = FUNCTION;
 	insertInTrie(keywords, "function", t);
 }
+
+/*
+ * Trie getTokenMapping(): Used to initialize return a trie that mapps strings to their corresponding enums.
+ */
 
 Trie getTokenMapping() {
 	Trie mapping = makeTrie(TRIE_CASE_INSENSITIVE);
