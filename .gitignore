@@ -1,3 +1,5 @@
 *.o
-*.exe
 *.out
+compiler/stage1exe
+test/
+!*.txt
