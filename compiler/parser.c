@@ -15,6 +15,11 @@
 #include <stdio.h>
 #include <string.h>
 
+/*
+ * int panic(Queue tokenStream, Stack stack, List** parsetable,Token* currentToken, StackSymbol currentSymbol):
+ * Used to recover from error if there is an unidentified token.
+ */
+
 int panic(Queue tokenStream, Stack stack, List** parsetable,Token* currentToken, StackSymbol currentSymbol) {
 	Token* temp = currentToken; StackData d;
 	d.value.stackSymbol = currentSymbol;
@@ -47,6 +52,12 @@ int panic(Queue tokenStream, Stack stack, List** parsetable,Token* currentToken,
 	return -1;
 }
 
+/*
+ * int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, List** parsetable, StackSymbol expected, Token* received):
+ * Raises an exception in case an unexpected token arrives and prints the expected symbols. Also calls panic mode recovery
+ * in order to recover from the said error.
+ */
+
 int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, List** parsetable, StackSymbol expected, Token* received) {
 	char msg[256]; int i = 0; int j = 0; char buf[20];
 	ErrorType e = ERROR;
@@ -69,6 +80,10 @@ int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, List** parset
 	return panic(tokenStream, stack, parsetable, received, expected);
 }
 
+/**
+ * void raiseUnexpectedSymbolException(): Raises an error if token stream terminates but the stack doesn't.
+ */
+
 void raiseUnexpectedTerminationException() {
 	char msg[256];
 	ErrorType e = ERROR;
@@ -76,12 +91,21 @@ void raiseUnexpectedTerminationException() {
 	error(msg, e, -1);
 }
 
+/**
+ * void raiseLongerStreamException(): Raises an error if the stack becomes empty but the stream doesn't terminate.
+ */
+
 void raiseLongerStreamException() {
 	char msg[256];
 	ErrorType e = ERROR;
 	strcpy(msg, "SYNTAX ERROR: Program is longer than expected.");
 	error(msg, e, -1);
 }
+
+/**
+ * void PDAPush(Stack PDAStack, StackSymbol lastPopped, List rule): Used to push a rule onto the stack. It also adds children
+ * to lastPopped in the parse tree.
+ */
 
 void PDAPush(Stack PDAStack, StackSymbol lastPopped, List rule) {
 	Symbol* symbol;
@@ -99,6 +123,11 @@ void PDAPush(Stack PDAStack, StackSymbol lastPopped, List rule) {
 	}
 }
 
+/**
+ * void PDAPop(Queue tokenStream, Stack PDAStack, List** parsetable, Token* currentToken): Used to pop a symbol off the stack.
+ * It also attaches the token to the leaf nodes of the parse tree if it is a terminal.
+ */
+
 StackSymbol PDAPop(Queue tokenStream, Stack PDAStack, List** parsetable, Token* currentToken) {
 	StackData data;
 	data = pop(PDAStack);
@@ -115,6 +144,10 @@ StackSymbol PDAPop(Queue tokenStream, Stack PDAStack, List** parsetable, Token* 
 	return popped;
 }
 
+/**
+ * Stack createPDAStack(): used to allocate memory to a stack and initialize it with the stack symbol on top.
+ */
+
 Stack createPDAStack() {
 	Stack stack = createStack();
 	StackData data;
@@ -127,6 +160,11 @@ Stack createPDAStack() {
 	push(stack, data);
 	return stack;
 }
+
+/**
+ * Set first(Grammar g, Symbol* symbol): Finds the first set of the provided symbol in the grammar recursively and
+ * returns it.
+ */
 
 Set first(Grammar g, Symbol* symbol) {
 	Set set;
@@ -154,19 +192,24 @@ Set first(Grammar g, Symbol* symbol) {
 			ruleset = first(g, s->data.value.symbol);
 			temp = set;
 			set = setUnion(set, difference(ruleset, empty));
-			freeSet(temp);
+			//freeSet(temp);
 		} while(getFromSet(ruleset, EPSILON) && (s=s->next)!=NULL);
 		if(getFromSet(ruleset, EPSILON) && s==NULL) {
 			temp = set;
 			set = setUnion(set, empty);
-			freeSet(temp);
+			//freeSet(temp);
 		}
 		rule = rule->next;
 	}
 	g->NonTerminals[symbol->symbolType].first = set;
-	freeSet(empty);
+	//freeSet(empty);
 	return set;
 }
+
+/**
+ * Set follow(Grammar g, Symbol* symbol, int recursive): Finds the follow set of the provided symbol in the grammar recursively and
+ * returns it. Recursive argument is set to 1 if the call is not from the function itself to prevent cycles.
+ */
 
 Set follow(Grammar g, SymbolType symbolType, int recursive) {
 	if(g->NonTerminals[symbolType].follow!=NULL && recursive) {
@@ -193,22 +236,26 @@ Set follow(Grammar g, SymbolType symbolType, int recursive) {
 			temp = g->NonTerminals[symbolType].follow;
 			g->NonTerminals[symbolType].follow = setUnion(g->NonTerminals[symbolType].follow, difference(ruleset, empty));
 			s=s->next;
-			freeSet(temp);
+			//freeSet(temp);
 			if(freeRuleSet) {
-				freeSet(ruleset);
+				//freeSet(ruleset);
 				freeRuleSet = 0;
 			}
 		}
 		if(getFromSet(ruleset, EPSILON) && s==NULL) {
 			temp = g->NonTerminals[symbolType].follow;
 			g->NonTerminals[symbolType].follow = setUnion(g->NonTerminals[symbolType].follow, follow(g, owner, 1));
-			freeSet(temp);
+			//freeSet(temp);
 		}
 		occurance = occurance->next;
 	}
-	freeSet(empty);
+	//freeSet(empty);
 	return g->NonTerminals[symbolType].follow;
 }
+
+/**
+ * Set createFirstSets(Grammar g): Initializes first sets for all non terminals in the grammar.
+ */
 
 void createFirstSets(Grammar g) {
 	int i = 0; Symbol* temp;
@@ -216,10 +263,14 @@ void createFirstSets(Grammar g) {
 		if(g->NonTerminals[i].first==NULL) {
 			temp = generateSymbol(g->NonTerminals[i].symbolType, 0);
 			first(g, temp);
-			free(temp);
+			// free(temp);
 		}
 	}
 }
+
+/**
+ * Set createFollowSets(Grammar g): Initializes follow sets for all nullable non terminals in the grammar.
+ */
 
 void createFollowSets(Grammar g) {
 	int i = 0;
@@ -235,6 +286,11 @@ void createFollowSets(Grammar g) {
 		}
 	}
 }
+
+/**
+ * Set createParseTable(Grammar g): Constructs the parse table for the grammar G. First and follow sets must be initialized
+ * before calling this.
+ */
 
 List** createParseTable(Grammar g) {
 	List **parsetable;
@@ -309,6 +365,10 @@ List** createParseTable(Grammar g) {
 	return parsetable;
 }
 
+/*
+ * List** initializeParser(Grammar g): Returns a fully constructed parse table for the grammar.
+ */
+
 List** initializeParser(Grammar g) {
 	createFirstSets(g);
 	createFollowSets(g);
@@ -316,11 +376,16 @@ List** initializeParser(Grammar g) {
 }
 
 void collectGarbage(Grammar g, List** parsetable, Stack stack, Queue tokenStream) {
-	free(parsetable);
-	freeStack(stack);
-	freeQueue(tokenStream);
-	freeGrammar(g);
+	// free(parsetable);
+	// freeStack(stack);
+	// freeQueue(tokenStream);
+	// freeGrammar(g);
 }
+
+/*
+ * Tree parse(Queue tokenStream, char* grammarfile): Driver function for the parser. Takes a tokenstrem and grammar file AND
+ * returns a parse tree.
+ */
 
 Tree parse(Queue tokenStream, char* grammarfile) {
 	Grammar g = readGrammar(grammarfile);
@@ -358,7 +423,7 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 	return parseTree;
 }
 
-//Functions for GDB
+//Functions for GDB. Allow for easy stepping and error checking during debugging.
 
 void printStack(Stack s) {
 	StackElement temp = s->top;
@@ -375,14 +440,18 @@ void printStack(Stack s) {
 	printf("\n");
 }
 
-// void main() {
-// 	List** parsetable = initializeParser("grammar.txt");
-// 	int i, j;
-// 	for(i = 0; i<39; i++) {
-// 		for(j = 0; j<NE; j++) {
-// 			if(parsetable[i][j]!=NULL) {
-// 				printf("%d %d\n", i, j);
-// 			}
-// 		}
-// 	}
-// }
+void printParseTable(List** parsetable, Grammar g) {
+	int i, j;
+	for(i=0; i<g->size;i++) {
+		for(j=0;j<NE;j++) {
+			if(parsetable[i][j]!=NULL) {
+				if(parsetable[i][j]->size==0)
+					printf("%s %s %s\n", nonTerminalStrings[i], tokenTypeToString[j], "EPSILON");
+				else if (!isTerminal(parsetable[i][j]->first->data.value.symbol))
+					printf("%s %s %s\n", nonTerminalStrings[i], tokenTypeToString[j], nonTerminalStrings[parsetable[i][j]->first->data.value.symbol->symbolType]);
+				else
+					printf("%s %s %s\n", nonTerminalStrings[i], tokenTypeToString[j], tokenTypeToString[parsetable[i][j]->first->data.value.symbol->symbolType]);
+			}
+		}
+	}
+}

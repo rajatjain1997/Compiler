@@ -53,7 +53,9 @@ void printTree(Tree tree, FILE* fp) {
 	fprintf(fp, "Lexeme              |Line No.  |Token     |Value     |Parent Nonterminal     |Y/N|Nonterminal\n");
 	fprintf(fp, "====================|==========|==========|==========|=======================|===|=======================\n");
 	inOrderTraversal(tree, fp);
-	fclose(fp);
+	if(fp!=stdout) {
+		fclose(fp);
+	}
 }
 
 void printTokenStream(Queue tokenStream) {
@@ -171,6 +173,6 @@ int main(int argc, char* argv[]) {
 	printf("Made By:\n");
 	printf("Rajat Jain\n");
 	printf("2015A7PS0549P\n");
-	printf("Please suggest any changes you would like to make!");
+	printf("Please suggest any changes you would like to make!\n");
 	return 0;
 }

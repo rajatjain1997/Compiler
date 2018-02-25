@@ -17,7 +17,7 @@
 char nonTerminalStrings[50][30];
 
 /*
- * raiseGrammarNotPresentExeption(): Raises an error if the grammar file cannot be opened.
+ * void raiseGrammarNotPresentExeption(): Raises an error if the grammar file cannot be opened.
  */
 
 void raiseGrammarNotPresentExeption() {
@@ -28,7 +28,7 @@ void raiseGrammarNotPresentExeption() {
 }
 
 /*
- * createGrammar(): Allocates memory for the Grammar type.
+ * Grammar createGrammar(): Allocates memory for the Grammar type.
  */
 
 Grammar createGrammar() {
@@ -38,7 +38,8 @@ Grammar createGrammar() {
 }
 
 /*
- * addNonTerminal(): Adds a new non terminal to the grammar and inserts it into a temporary Trie.
+ * int addNonTerminal(): Adds a new non terminal to the grammar and inserts it into a temporary Trie.
+ * Returns: The index of the nonTerminal.
  */
 
 int addNonTerminal(Grammar g, char* symbol, Trie nonterminalmapping) {
@@ -53,12 +54,21 @@ int addNonTerminal(Grammar g, char* symbol, Trie nonterminalmapping) {
 	return g->size-1;
 }
 
+/*
+ * Occurance createOccurance(Element node, int owner): Appends a new occurance to the occurance list of
+ * the owner non-terminal. All insertion operations are O(1) as the list is doubly linked.
+ */
+
 Occurance createOccurance(Element node, int owner) {
 	Occurance occ = malloc(sizeof(struct occurance));
 	occ->node = node;
 	occ->owner = owner;
 	return occ;
 }
+
+/*
+ * List createRule(Grammar g, int nonterminalindex): Creates a new rule instance in the provided nonterminal index and returns it.
+ */
 
 List createRule(Grammar g, int nonterminalindex) {
 	Data d;
@@ -67,6 +77,12 @@ List createRule(Grammar g, int nonterminalindex) {
 	insertAtEnd(g->NonTerminals[nonterminalindex].rules, d);
 	return rule;
 }
+
+/*
+ * int addRule(Grammar g, FILE* fp. Trie terminalmapping, Trie nonterminalmapping): Reads exactly one line from the file and adds
+ * rules to the grammar appropriately by adding any new nonterminals as needed. Here $ is considered as epsilon. And rules of type
+ * A -> $ are represented as empty lists.
+ */
 
 int addRule(Grammar g, FILE* fp, Trie terminalmapping, Trie nonterminalmapping) {
 	char buffer[256], *symbol;
@@ -108,6 +124,11 @@ int addRule(Grammar g, FILE* fp, Trie terminalmapping, Trie nonterminalmapping) 
 	return 1;
 }
 
+/**
+ * Grammar readGrammar(char* filename): Opens the grammar file and constructs and returns the grammar structure.
+ * Grammar is an array of nonterminals which in turn contain their rules and occurances.
+ */
+
 Grammar readGrammar(char* filename) {
 	FILE* fp = fopen(filename, "r");
 	if(fp==NULL) {
@@ -122,6 +143,10 @@ Grammar readGrammar(char* filename) {
 	// freeTrie(nonterminalmapping);
 	return g;
 }
+
+/**
+ * void freeGrammar(Grammar g): Used to free the grammar once compilation is over.
+ */
 
 void freeGrammar(Grammar g) {
 	int i = 0; Element temp; NonTerminal nt;
