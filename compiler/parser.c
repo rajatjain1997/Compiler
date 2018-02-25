@@ -301,7 +301,7 @@ List** createParseTable(Grammar g) {
 	}
 	TokenType terminal; int nonTerminal; Element temp, temp2; List rule; int firstSymbol;
 	for(nonTerminal = 0; nonTerminal < g->size; nonTerminal++) {
-		for(terminal = 0; terminal < NE; terminal++) {
+		for(terminal = 0; terminal < NE+1; terminal++) {
 			parsetable[nonTerminal][terminal] = NULL;
 
 			//Checking if the non-terminal has a valid rule

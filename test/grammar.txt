@@ -5,12 +5,11 @@
 <stmtOrFunctionDefn> <stmt>
 <stmtOrFunctionDefn> <functionDefn>
 <stmt> <declarationStmt>
-<stmt> <assignmentStmt> 
+<stmt> <assignmentStmt>
 <stmt> <ifStmt>
-<stmt> <ioStmt> 
+<stmt> <ioStmt>
 <stmt> <funCallStmt>
-<stmt> SEMICOLON
-<functionDefn> FUNCTION SQO <parameterList> SQC ASSIGNOP FUNID SQO <parameterList> SQC <prog> END
+<functionDefn> FUNCTION SQO <parameterList> SQC ASSIGNOP FUNID SQO <parameterList> SQC <prog> END SEMICOLON
 <parameterList> <type> ID <remainingList>
 <type> INT
 <type> REAL
@@ -26,8 +25,8 @@
 <rightHandSide> <funCall>
 <rightHandSide> SIZE ID
 <ifStmt> IF OP <booleanExpr> CL <stmt> <stmtProg> <elseStmt>
-<elseStmt> ELSE <stmt> <stmtProg> ENDIF
-<elseStmt> ENDIF
+<elseStmt> ELSE <stmt> <stmtProg> ENDIF SEMICOLON
+<elseStmt> ENDIF SEMICOLON
 <ioStmt> READ OP ID CL SEMICOLON
 <ioStmt> PRINT OP ID CL SEMICOLON
 <stmtProg> <stmt> <stmtProg>
@@ -72,7 +71,7 @@
 <remainingIntegerList> COMMA NUM <remainingIntegerList>
 <remainingIntegerList> SEMICOLON <integerList>
 <remainingIntegerList> $
-<funCallStmt> <funCall> SEMICOLON 
+<funCallStmt> <funCall> SEMICOLON
 <funCall> FUNID OP <argList> CL
 <argList> <arithmeticExpression> <moreArgs>
 <argList> $
