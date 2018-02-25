@@ -392,6 +392,9 @@ Tree parse(Queue tokenStream, char* grammarfile) {
 	Token* currentToken;
 	QueueData data;
 	StackSymbol stackSymbol;
+	if(tokenStream->size==0) {
+		return parseTree;
+	}
 	data = dequeue(tokenStream);
 	currentToken = data.value;
 	while(stack->size>0) {
