@@ -1,0 +1,82 @@
+<mainFunction> MAIN SQO SQC <prog> END
+<prog> <stmtOrFunctionDefn> <stmtAndFunctionDefn>
+<stmtAndFunctionDefn> <stmtOrFunctionDefn> <stmtAndFunctionDefn>
+<stmtAndFunctionDefn> $
+<stmtOrFunctionDefn> <stmt>
+<stmtOrFunctionDefn> <functionDefn>
+<stmt> <declarationStmt>
+<stmt> <assignmentStmt>
+<stmt> <ifStmt>
+<stmt> <ioStmt>
+<stmt> <funCallStmt>
+<functionDefn> FUNCTION SQO <parameterList> SQC ASSIGNOP FUNID SQO <parameterList> SQC <prog> END SEMICOLON
+<parameterList> <type> ID <remainingList>
+<type> INT
+<type> REAL
+<type> STRING
+<type> MATRIX
+<remainingList> COMMA <parameterList>
+<remainingList> $
+<declarationStmt> <type> <varList> SEMICOLON
+<assignmentStmt> <variableAssign>
+<assignmentStmt> <functionAssign>
+<variableAssign> ID ASSIGNOP <arithmeticExpression> SEMICOLON
+<functionAssign> SQO <varList> SQC ASSIGNOP <rightHandSide> SEMICOLON
+<rightHandSide> <funCall>
+<rightHandSide> SIZE ID
+<ifStmt> IF OP <booleanExpr> CL <stmt> <stmtProg> <elseStmt>
+<elseStmt> ELSE <stmt> <stmtProg> ENDIF SEMICOLON
+<elseStmt> ENDIF SEMICOLON
+<ioStmt> READ OP ID CL SEMICOLON
+<ioStmt> PRINT OP ID CL SEMICOLON
+<stmtProg> <stmt> <stmtProg>
+<stmtProg> $
+<arithmeticExpression> <divMulExpression> <addSubGenerator>
+<addSubGenerator> <addSubOperators> <divMulExpression> <addSubGenerator>
+<addSubGenerator> $
+<divMulExpression> <term> <divMulGenerator>
+<divMulGenerator> <divMulOperators> <term> <divMulGenerator>
+<divMulGenerator> $
+<term> OP <arithmeticExpression> CL
+<term> <var>
+<addSubOperators> PLUS
+<addSubOperators> MINUS
+<divMulOperators> MUL
+<divMulOperators> DIV
+<var> NUM
+<var> RNUM
+<var> ID <matrixElem>
+<var> STR
+<var> <matrix>
+<var> <funCall>
+<var> SIZE ID
+<booleanExpr> OP <booleanExpr> CL <logicalOp> OP <booleanExpr> CL
+<booleanExpr> NOT OP <booleanExpr> CL
+<booleanExpr> <constrainedVars> <relationalOp> <constrainedVars>
+<constrainedVars> NUM
+<constrainedVars> RNUM
+<constrainedVars> ID
+<matrixElem> SQO NUM COMMA NUM SQC
+<matrixElem> $
+<logicalOp> AND
+<logicalOp> OR
+<relationalOp> LT
+<relationalOp> LE
+<relationalOp> EQ
+<relationalOp> GT
+<relationalOp> GE
+<relationalOp> NE
+<varList> ID <moreIDs>
+<moreIDs> COMMA <varList>
+<moreIDs> $
+<matrix> SQO <integerList> SQC
+<integerList> NUM <remainingIntegerList>
+<remainingIntegerList> COMMA NUM <remainingIntegerList>
+<remainingIntegerList> SEMICOLON <integerList>
+<remainingIntegerList> $
+<funCallStmt> <funCall> SEMICOLON
+<funCall> FUNID OP <argList> CL
+<argList> <arithmeticExpression> <moreArgs>
+<argList> $
+<moreArgs> COMMA <argList>
+<moreArgs> $
