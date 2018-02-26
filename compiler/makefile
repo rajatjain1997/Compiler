@@ -33,3 +33,6 @@ tree.o: tree.c tree.h list.h
 
 trie.o: trie.c trie.h
 	gcc -c trie.c
+
+remove:
+	rm *.o

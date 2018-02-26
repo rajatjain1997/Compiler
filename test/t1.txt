@@ -2,7 +2,7 @@ _main[]
 	int a, g,h,x;
 	real b,z;
 	matrix s;
-	int u,v;	
+	int u,v;
 	mat1 = [1,2, 3; 4, 5, 6; 6, 7, 8];
 	s = "abcd";
 	a = 2 + 5;
@@ -28,11 +28,4 @@ _main[]
 	else
 		x = 20;
 	endif;
-end;
-
-#Semantic errors
-#line 7: type mismatch errors
-#line 9: type mismatch error
-#line 15: type mismatch error
-#line 18: type mismatch error
-#line 20: type mismatch error
+end

@@ -52,7 +52,10 @@
 <var> SIZE ID
 <booleanExpr> OP <booleanExpr> CL <logicalOp> OP <booleanExpr> CL
 <booleanExpr> NOT OP <booleanExpr> CL
-<booleanExpr> <var> <relationalOp> <var>
+<booleanExpr> <constrainedVars> <relationalOp> <constrainedVars>
+<constrainedVars> NUM
+<constrainedVars> RNUM
+<constrainedVars> ID
 <matrixElem> SQO NUM COMMA NUM SQC
 <matrixElem> $
 <logicalOp> AND
