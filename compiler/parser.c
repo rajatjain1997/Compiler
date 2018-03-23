@@ -107,6 +107,7 @@ void raiseLongerStreamException() {
 
 void PDAPush(Stack PDAStack, StackSymbol lastPopped, List rule) {
 	Symbol* symbol;
+	attachRuleToSymbol(lastPopped.symbolTree->symbol, rule);
 	Element itr = rule->last;
 	while(itr!=NULL) {
 		symbol = generateSymbol(itr->data.value.symbol->symbolType, isTerminal(itr->data.value.symbol));
