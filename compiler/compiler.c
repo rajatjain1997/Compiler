@@ -19,16 +19,17 @@
  */
 
 void visitInOrder(Tree tree, FILE* fp) {
-	char buf[20];
-	if(tree->symbol->token!=NULL && tree->symbol->token->type==NUM) {
-		getLexeme(tree->symbol->token, buf);
-		fprintf(fp, "%-20s|%-10d|%-10s|%-10d|%-23s|YES|-----------------------\n", buf, tree->symbol->token->lineno, tokenTypeToString[tree->symbol->token->type], tree->symbol->token->value.integer, nonTerminalStrings[tree->parent->symbol->symbolType]);
-	} else if(tree->symbol->token!=NULL && tree->symbol->token->type==RNUM) {
-		getLexeme(tree->symbol->token, buf);
-		fprintf(fp, "%-20s|%-10d|%-10s|%-10f|%-23s|YES|-----------------------\n", buf, tree->symbol->token->lineno, tokenTypeToString[tree->symbol->token->type], tree->symbol->token->value.real, nonTerminalStrings[tree->parent->symbol->symbolType]);
-	} else if(isTerminal(tree->symbol) && tree->symbol->token!=NULL) {
-		getLexeme(tree->symbol->token, buf);
-		fprintf(fp,"%-20s|%-10d|%-10s|----------|%-23s|YES|-----------------------\n", buf, tree->symbol->token->lineno, tokenTypeToString[tree->symbol->token->type], nonTerminalStrings[tree->parent->symbol->symbolType]);
+	char buf[20]; Token* token;
+	token = getToken(tree->symbol);
+	if(token!=NULL && token->type==NUM) {
+		getLexeme(token, buf);
+		fprintf(fp, "%-20s|%-10d|%-10s|%-10d|%-23s|YES|-----------------------\n", buf, token->lineno, tokenTypeToString[token->type], token->value.integer, nonTerminalStrings[tree->parent->symbol->symbolType]);
+	} else if(token!=NULL && token->type==RNUM) {
+		getLexeme(token, buf);
+		fprintf(fp, "%-20s|%-10d|%-10s|%-10f|%-23s|YES|-----------------------\n", buf, token->lineno, tokenTypeToString[token->type], token->value.real, nonTerminalStrings[tree->parent->symbol->symbolType]);
+	} else if(isTerminal(tree->symbol) && token!=NULL) {
+		getLexeme(token, buf);
+		fprintf(fp,"%-20s|%-10d|%-10s|----------|%-23s|YES|-----------------------\n", buf, token->lineno, tokenTypeToString[token->type], nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol) && tree->parent!=NULL) {
 		fprintf(fp, "--------------------|----------|----------|----------|%-23s| NO|%-23s \n", nonTerminalStrings[tree->parent->symbol->symbolType], nonTerminalStrings[tree->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol)) {

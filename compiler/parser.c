@@ -109,7 +109,7 @@ void PDAPush(Stack PDAStack, StackSymbol lastPopped, List rule) {
 	Symbol* symbol;
 	Element itr = rule->last;
 	while(itr!=NULL) {
-		symbol = generateSymbol(itr->data.value.symbol->symbolType, itr->data.value.symbol->isTerminal);
+		symbol = generateSymbol(itr->data.value.symbol->symbolType, isTerminal(itr->data.value.symbol));
 		Tree symbolTree = add_child(lastPopped.symbolTree, symbol);
 		StackSymbol toPush;
 		toPush.symbol = symbol;

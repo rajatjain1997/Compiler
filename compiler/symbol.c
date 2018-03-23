@@ -16,7 +16,7 @@ Symbol* generateSymbol(SymbolType symbolType, int isTerminal) {
 	Symbol* symbol = (Symbol*) malloc(sizeof(Symbol));
 	symbol->symbolType = symbolType;
 	symbol->isTerminal = isTerminal;
-	symbol->token = NULL;
+	symbol->value.token = NULL;
 	return symbol;
 }
 
@@ -27,7 +27,7 @@ Symbol* generateSymbol(SymbolType symbolType, int isTerminal) {
 
 int attachTokenToSymbol(Symbol* symbol, Token* token) {
 	if(token->type==symbol->symbolType && symbol->isTerminal) {
-		symbol->token = token;
+		symbol->value.token = token;
 		return 0;
 	}
 	return -1;
@@ -39,4 +39,11 @@ int attachTokenToSymbol(Symbol* symbol, Token* token) {
 
 int isTerminal(Symbol* symbol) {
 	return symbol->isTerminal;
+}
+
+struct Token* getToken(Symbol* symbol) {
+	if(isTerminal(symbol)) {
+		return symbol->value.token;
+	}
+	return NULL;
 }
