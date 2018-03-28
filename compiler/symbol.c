@@ -46,7 +46,7 @@ struct Token* getToken(Symbol* symbol) {
 	return symbol->token;
 }
 
-int attachRuleToSymbol(Symbol* symbol, struct head* rule) {
+int attachRuleToSymbol(Symbol* symbol, struct rule* rule) {
 	if(!isTerminal(symbol) && symbol->rule==NULL) {
 		symbol->rule = rule;
 		return 0;

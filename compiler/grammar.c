@@ -67,15 +67,18 @@ Occurance createOccurance(Element node, int owner) {
 }
 
 /*
- * List createRule(Grammar g, int nonterminalindex): Creates a new rule instance in the provided nonterminal index and returns it.
+ * List createRule(Grammar g, int nonterminalindex): Creates a new rule instance in the provided nonterminal index and returns a
+ * a reference to the rulelist..
  */
 
-List createRule(Grammar g, int nonterminalindex) {
+List createRule(Grammar g, int nonterminalindex, int ruleindex) {
 	Data d;
-	List rule = createList();
-	d.value.list = rule;
+	Rule* rule = (Rule*) malloc(sizeof(Rule));
+	rule->rule = createList();
+	rule->index = ruleindex;
+	d.value.rule = rule;
 	insertAtEnd(g->NonTerminals[nonterminalindex].rules, d);
-	return rule;
+	return rule->rule;
 }
 
 /*
@@ -84,7 +87,7 @@ List createRule(Grammar g, int nonterminalindex) {
  * A -> $ are represented as empty lists.
  */
 
-int addRule(Grammar g, FILE* fp, Trie terminalmapping, Trie nonterminalmapping) {
+int addRule(Grammar g, FILE* fp, Trie terminalmapping, Trie nonterminalmapping, int rulenos) {
 	char buffer[256], *symbol;
 	int grammarindex, mapping;
 	Data d;
@@ -96,7 +99,7 @@ int addRule(Grammar g, FILE* fp, Trie terminalmapping, Trie nonterminalmapping) 
 	if(grammarindex == -1) {
 		grammarindex = addNonTerminal(g, symbol, nonterminalmapping);
 	}
-	List rule = createRule(g, grammarindex);
+	List rule = createRule(g, grammarindex, rulenos);
 	while(symbol = strtok(NULL, " \n\r")) {
 		if(strcmp(symbol, "$")==0) {
 			break;
@@ -138,7 +141,8 @@ Grammar readGrammar(char* filename) {
 	Trie terminalmapping = getTokenMapping();
 	Trie nonterminalmapping = makeTrie(TRIE_CASE_INSENSITIVE);
 	Grammar g = createGrammar();
-	while(addRule(g, fp, terminalmapping, nonterminalmapping));
+	int rulenos = 0;
+	while(addRule(g, fp, terminalmapping, nonterminalmapping, rulenos) && ++rulenos);
 	// freeTrie(terminalmapping);
 	// freeTrie(nonterminalmapping);
 	return g;

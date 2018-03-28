@@ -76,7 +76,8 @@
 <remainingIntegerList> $
 <funCallStmt> <funCall> SEMICOLON
 <funCall> FUNID OP <argList> CL
-<argList> <arithmeticExpression> <moreArgs>
+<argList> <argListN>
 <argList> $
-<moreArgs> COMMA <argList>
+<argListN> <arithmeticExpression> <moreArgs>
+<moreArgs> COMMA <argListN>
 <moreArgs> $

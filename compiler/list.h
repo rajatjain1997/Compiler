@@ -11,6 +11,7 @@ struct head;
 struct tree;
 struct occurance;
 struct errorMessage;
+struct rule;
 
 typedef union {
 	struct tree* tree;
@@ -18,6 +19,7 @@ typedef union {
 	struct symbol* symbol;
 	struct occurance* occurance;
 	struct errorMessage* errorMessage;
+	struct rule* rule;
 } LinkedDataItems;
 
 typedef struct {

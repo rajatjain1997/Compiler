@@ -7,6 +7,11 @@ struct head;
 struct node;
 struct set;
 
+typedef struct rule {
+		struct head* rule;
+		int index;
+} Rule;
+
 typedef struct nonTerminal {
 	int symbolType;
 	struct head* rules;

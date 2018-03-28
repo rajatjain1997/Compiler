@@ -20,7 +20,7 @@
  * Used to recover from error if there is an unidentified token.
  */
 
-int panic(Queue tokenStream, Stack stack, List** parsetable,Token* currentToken, StackSymbol currentSymbol) {
+int panic(Queue tokenStream, Stack stack, Rule*** parsetable,Token* currentToken, StackSymbol currentSymbol) {
 	Token* temp = currentToken; StackData d;
 	d.value.stackSymbol = currentSymbol;
 	while(tokenStream->size>0) {
@@ -56,7 +56,7 @@ int panic(Queue tokenStream, Stack stack, List** parsetable,Token* currentToken,
  * in order to recover from the said error.
  */
 
-int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, List** parsetable, StackSymbol expected, Token* received) {
+int raiseUnexpectedSymbolException(Queue tokenStream, Stack stack, Rule*** parsetable, StackSymbol expected, Token* received) {
 	char msg[256]; int i = 0; int j = 0; char buf[20];
 	ErrorType e = ERROR;
 	strcpy(msg, "SYNTAX ERROR: Unexpected token - \"");
@@ -105,10 +105,10 @@ void raiseLongerStreamException() {
  * to lastPopped in the parse tree.
  */
 
-void PDAPush(Stack PDAStack, StackSymbol lastPopped, List rule) {
+void PDAPush(Stack PDAStack, StackSymbol lastPopped, Rule* rule) {
 	Symbol* symbol;
 	attachRuleToSymbol(lastPopped.symbolTree->symbol, rule);
-	Element itr = rule->last;
+	Element itr = rule->rule->last;
 	while(itr!=NULL) {
 		symbol = generateSymbol(itr->data.value.symbol->symbolType, isTerminal(itr->data.value.symbol));
 		Tree symbolTree = add_child(lastPopped.symbolTree, symbol);
@@ -127,7 +127,7 @@ void PDAPush(Stack PDAStack, StackSymbol lastPopped, List rule) {
  * It also attaches the token to the leaf nodes of the parse tree if it is a terminal.
  */
 
-StackSymbol PDAPop(Queue tokenStream, Stack PDAStack, List** parsetable, Token* currentToken) {
+StackSymbol PDAPop(Queue tokenStream, Stack PDAStack, Rule*** parsetable, Token* currentToken) {
 	StackData data;
 	data = pop(PDAStack);
 	StackSymbol popped = data.value.stackSymbol;
@@ -183,12 +183,12 @@ Set first(Grammar g, Symbol* symbol) {
 	Element rule = g->NonTerminals[symbol->symbolType].rules->first;
 	Element s; Set ruleset, temp;
 	while(rule!=NULL) {
-		if(rule->data.value.list->size==0) {
+		if(rule->data.value.rule->rule->size==0) {
 			set = setUnion(set, empty);
 			rule = rule->next;
 			continue;
 		}
-		s = rule->data.value.list->first;
+		s = rule->data.value.rule->rule->first;
 		do {
 			ruleset = first(g, s->data.value.symbol);
 			temp = set;
@@ -293,12 +293,12 @@ void createFollowSets(Grammar g) {
  * before calling this.
  */
 
-List** createParseTable(Grammar g) {
-	List **parsetable;
-	parsetable = (List**) malloc(sizeof(List*)*g->size);
+Rule*** createParseTable(Grammar g) {
+	Rule ***parsetable;
+	parsetable = (Rule***) malloc(sizeof(Rule**)*g->size);
 	int i = 0;
 	for(;i<g->size;i++) {
-		parsetable[i] = (List*) malloc(sizeof(List)*(NE+2));
+		parsetable[i] = (Rule**) malloc(sizeof(Rule*)*(NE+2));
 	}
 	TokenType terminal; int nonTerminal; Element temp, temp2; List rule; int firstSymbol;
 	for(nonTerminal = 0; nonTerminal < g->size; nonTerminal++) {
@@ -320,12 +320,12 @@ List** createParseTable(Grammar g) {
 			//Iterating through all rules of the non-terminal in order to find the correct rule
 
 			while(temp!=NULL && parsetable[nonTerminal][terminal]==NULL) {
-				rule = temp->data.value.list;
+				rule = temp->data.value.rule->rule;
 
 				//For A->EPSILON. In such a case the rule needs to be applied if terminal is present in the follow set of A.
 				if(rule->size==0) {
 					if(getFromSet(g->NonTerminals[nonTerminal].follow, terminal)) {
-						parsetable[nonTerminal][terminal] = rule;
+						parsetable[nonTerminal][terminal] = temp->data.value.rule;
 					}
 					break;
 				}
@@ -337,11 +337,11 @@ List** createParseTable(Grammar g) {
 					firstSymbol = temp2->data.value.symbol->symbolType;
 					if(isTerminal(temp2->data.value.symbol)) {
 						if(firstSymbol==terminal) {
-							parsetable[nonTerminal][terminal] = rule;
+							parsetable[nonTerminal][terminal] = temp->data.value.rule;
 						}
 						break;
 					} else if(getFromSet(g->NonTerminals[firstSymbol].first, terminal)) {
-						parsetable[nonTerminal][terminal] = rule;
+						parsetable[nonTerminal][terminal] = temp->data.value.rule;
 						break;
 					} else if (getFromSet(g->NonTerminals[firstSymbol].first, EPSILON)) {
 						temp2 = temp2->next;
@@ -355,7 +355,7 @@ List** createParseTable(Grammar g) {
 
 				if(temp2==NULL && getFromSet(g->NonTerminals[firstSymbol].first, EPSILON)) {
 					if(getFromSet(g->NonTerminals[nonTerminal].follow, terminal)) {
-						parsetable[nonTerminal][terminal] = rule;
+						parsetable[nonTerminal][terminal] = temp->data.value.rule;
 						break;
 					}
 				}
@@ -370,13 +370,13 @@ List** createParseTable(Grammar g) {
  * List** initializeParser(Grammar g): Returns a fully constructed parse table for the grammar.
  */
 
-List** initializeParser(Grammar g) {
+Rule*** initializeParser(Grammar g) {
 	createFirstSets(g);
 	createFollowSets(g);
 	return createParseTable(g);
 }
 
-void collectGarbage(Grammar g, List** parsetable, Stack stack, Queue tokenStream) {
+void collectGarbage(Grammar g, Rule*** parsetable, Stack stack, Queue tokenStream) {
 	// free(parsetable);
 	// freeStack(stack);
 	// freeQueue(tokenStream);
@@ -390,7 +390,7 @@ void collectGarbage(Grammar g, List** parsetable, Stack stack, Queue tokenStream
 
 Tree parse(Queue tokenStream, char* grammarfile) {
 	Grammar g = readGrammar(grammarfile);
-	List** parsetable = initializeParser(g);
+	Rule*** parsetable = initializeParser(g);
 	Stack stack = createPDAStack();
 	Tree parseTree = top(stack).value.stackSymbol.symbolTree;
 	Token* currentToken;
@@ -446,17 +446,17 @@ void printStack(Stack s) {
 	printf("\n");
 }
 
-void printParseTable(List** parsetable, Grammar g) {
+void printParseTable(Rule*** parsetable, Grammar g) {
 	int i, j;
 	for(i=0; i<g->size;i++) {
 		for(j=0;j<NE;j++) {
 			if(parsetable[i][j]!=NULL) {
-				if(parsetable[i][j]->size==0)
+				if(parsetable[i][j]->rule->size==0)
 					printf("%s %s %s\n", nonTerminalStrings[i], tokenTypeToString[j], "EPSILON");
-				else if (!isTerminal(parsetable[i][j]->first->data.value.symbol))
-					printf("%s %s %s\n", nonTerminalStrings[i], tokenTypeToString[j], nonTerminalStrings[parsetable[i][j]->first->data.value.symbol->symbolType]);
+				else if (!isTerminal(parsetable[i][j]->rule->first->data.value.symbol))
+					printf("%s %s %s\n", nonTerminalStrings[i], tokenTypeToString[j], nonTerminalStrings[parsetable[i][j]->rule->first->data.value.symbol->symbolType]);
 				else
-					printf("%s %s %s\n", nonTerminalStrings[i], tokenTypeToString[j], tokenTypeToString[parsetable[i][j]->first->data.value.symbol->symbolType]);
+					printf("%s %s %s\n", nonTerminalStrings[i], tokenTypeToString[j], tokenTypeToString[parsetable[i][j]->rule->first->data.value.symbol->symbolType]);
 			}
 		}
 	}
