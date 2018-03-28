@@ -38,3 +38,5 @@ extern char nonTerminalStrings[50][30];
 
 Grammar readGrammar(char* filename);
 void freeGrammar(Grammar g);
+struct head* extractRule(Rule* rule);
+int getRuleIndex(Rule* rule);

@@ -54,6 +54,6 @@ int attachRuleToSymbol(Symbol* symbol, struct rule* rule) {
 	return -1;
 }
 
-struct head* getRule(Symbol* symbol) {
+struct rule* getRule(Symbol* symbol) {
 	return symbol->rule;
 }

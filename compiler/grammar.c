@@ -170,6 +170,13 @@ void freeGrammar(Grammar g) {
 	}
 }
 
+struct head* extractRule(Rule* rule) {
+	return rule->rule;
+}
+int getRuleIndex(Rule* rule) {
+	return rule->index;
+}
+
 // void main() {
 // 	Grammar g = readGrammar("Test Grammar");
 // 	Node* temp = g->NonTerminals[0].rules->first;

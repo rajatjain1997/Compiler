@@ -21,4 +21,4 @@ int attachTokenToSymbol(Symbol* symbol, struct Token* token);
 int isTerminal(Symbol* symbol);
 struct Token* getToken(Symbol* symbol);
 int attachRuleToSymbol(Symbol* symbol, struct rule* rule);
-struct head* getRule(Symbol* symbol);
+struct rule* getRule(Symbol* symbol);

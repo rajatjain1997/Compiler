@@ -6,10 +6,13 @@
 struct symbol;
 struct head;
 
+#define ATTR_NOS 2
+
 struct tree {
 	struct symbol* symbol;
 	struct head* children;
 	struct tree* parent;
+	int attr[ATTR_NOS];
 };
 
 typedef struct tree* Tree;
