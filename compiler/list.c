@@ -210,6 +210,14 @@ int checkCircular(Head* h) {
 	return 0;
 }
 
+List appendLists(List list1, List list2) {
+	list1->last->next = list2->first;
+	list2->first->prev = list1->last;
+	list1->last = list2->last;
+	free(list2);
+	return list1;
+}
+
 //Linked List Methods End
 //Queue Methods Start
 

@@ -123,6 +123,8 @@ Data deleteAtIndex(Head*, int);
 
 int checkCircular(Head*);
 
+List appendLists(List list1, List list2);
+
 //Linked List Methods End
 //Queue Methods Start
 

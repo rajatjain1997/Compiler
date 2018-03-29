@@ -12,7 +12,7 @@ struct tree {
 	struct symbol* symbol;
 	struct head* children;
 	struct tree* parent;
-	int attr[ATTR_NOS];
+	void* attr[ATTR_NOS];
 };
 
 typedef struct tree* Tree;

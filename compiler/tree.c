@@ -14,6 +14,10 @@ Tree createTree(struct symbol* root) {
 	tree->symbol = root;
 	tree->children = createList();
 	tree->parent = NULL;
+	int i = 0;
+	for(;i<ATTR_NOS;i++) {
+		tree->attr[i] = NULL;
+	}
 	return tree;
 }
 

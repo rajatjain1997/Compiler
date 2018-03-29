@@ -24,6 +24,10 @@ int getFromSet(Set bv, int j) {
 	return 0;
 }
 
+void clearSet(Set set) {
+	set->vector = (uint64_t) 0;
+}
+
 Set setUnion(Set s1, Set s2) {
 	Set result = createSet();
 	result->vector = s1->vector | s2->vector;

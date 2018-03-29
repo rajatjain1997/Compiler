@@ -15,7 +15,7 @@
 #include<stdio.h>
 
 char nonTerminalStrings[50][30];
-
+struct trie* nonTerminalMapping;
 /*
  * void raiseGrammarNotPresentExeption(): Raises an error if the grammar file cannot be opened.
  */
@@ -144,7 +144,7 @@ Grammar readGrammar(char* filename) {
 	int rulenos = 0;
 	while(addRule(g, fp, terminalmapping, nonterminalmapping, rulenos) && ++rulenos);
 	// freeTrie(terminalmapping);
-	// freeTrie(nonterminalmapping);
+	nonTerminalMapping = nonterminalmapping;
 	return g;
 }
 

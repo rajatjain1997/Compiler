@@ -6,6 +6,9 @@
 struct head;
 struct node;
 struct set;
+struct trie;
+
+#define MAX_GRAMMAR_SIZE 50
 
 typedef struct rule {
 		struct head* rule;
@@ -28,13 +31,14 @@ struct occurance {
 typedef struct occurance* Occurance;
 
 struct grammar {
-	NonTerminal NonTerminals[50];
+	NonTerminal NonTerminals[MAX_GRAMMAR_SIZE];
 	int size;
 };
 
 typedef struct grammar* Grammar;
 
 extern char nonTerminalStrings[50][30];
+extern struct trie* nonTerminalMapping;
 
 Grammar readGrammar(char* filename);
 void freeGrammar(Grammar g);
