@@ -251,6 +251,20 @@ void visitSyn(Tree tree, Symbol*** dictionary) {
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<functionAssign>", 0));
       break;
+    case 22://<variableAssign> ID ASSIGNOP <arithmeticExpression> SEMICOLON
+      childList = createList();
+      insertInList(childList, extractChild(tree, "", ID, 1));
+      insertInList(childList, extractChild(tree, "<arithmeticExpression>", 0, 1));
+      childList = transfromTree(tree, extractChild(tree, "", ASSIGNOP, 1)->symbol, childList);
+      insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
+      break;
+    case 23://<functionAssign> SQO <varList> SQC ASSIGNOP <rightHandSide> SEMICOLON
+      childList = appendLists(extractChild(tree, "<varList>", 0, 1)->attr[0], extractChild(tree, "<rightHandSide>", 0, 1)->attr[0]);
+      childList = transfromTree(tree, extractChild(tree, "", ASSIGNOP, 1)->symbol, childList);
+      insertInList(prunelist, lookupSymbolDictionary("", SQO));
+      insertInList(prunelist, lookupSymbolDictionary("<varList>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("", SQC));
+      insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
   }
   pruneChildren(childList, prunelist);
 }
