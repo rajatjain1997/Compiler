@@ -1,10 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "tree.h"
 #include "grammar.h"
 #include "token.h"
 #include "symbol.h"
 #include "list.h"
 #include "set.h"
+#include "ast.h"
+#include "trie.h"
 
 Symbol*** generateSymbolDictionary() {
   Symbol*** dictionary = (Symbol***) malloc(sizeof(Symbol***) * 2);
@@ -21,12 +24,17 @@ Symbol*** generateSymbolDictionary() {
 }
 
 Symbol* lookupSymbolDictionary(char nonterminal[], int terminal) {
-  static Symbol*** dictionary = generateSymbolDictionary();
+  static Symbol*** dictionary = NULL;
+  if(dictionary==NULL) {
+    dictionary = generateSymbolDictionary();
+  }
+  Symbol* symbol;
   if(nonterminal[0] == '\0') {
     symbol = dictionary[0][findInTrie(nonTerminalMapping, nonterminal)];
   } else {
-    symbol = dictionary[1][terminal]
+    symbol = dictionary[1][terminal];
   }
+  return symbol;
 }
 
 void pruneChildren(List children, List prunelist) {
@@ -54,8 +62,8 @@ void pruneChildren(List children, List prunelist) {
       } else if(index==initialsize-1) {
         deletelast = 1;
       } else {
-        free(temp->prev->data.value.tree->symbol)
-        free(temp->prev->data.value.tree)
+        free(temp->prev->data.value.tree->symbol);
+        free(temp->prev->data.value.tree);
         free(temp->prev);
       }
       free(lastdeleted);
@@ -91,7 +99,7 @@ Tree extractChild(Tree tree ,char nonterminal[], TokenType terminal, int childno
       isTerminal(temp->data.value.tree->symbol) == isTerminal(symbol) &&
       ++index == childno
     ) {
-      return data.value.tree;
+      return temp->data.value.tree;
     }
     temp = temp->next;
   }
@@ -105,13 +113,13 @@ List transfromTree(Tree tree, Symbol* head, List children) {
   return oldchildren;
 }
 
-void visitInh(Tree tree, Symbol*** dictionary) {
+void visitInh(Tree tree) {
   switch(getRuleIndex(getRule(tree->symbol))) {
-    case 0:
+    case 0: break;
   }
 }
 
-void visitSyn(Tree tree, Symbol*** dictionary) {
+void visitSyn(Tree tree) {
   int i;
   List childList;
   List prunelist = createList();
@@ -139,7 +147,7 @@ void visitSyn(Tree tree, Symbol*** dictionary) {
       break;
     case 2: //<stmtAndFunctionDefn> <stmtOrFunctionDefn> <stmtAndFunctionDefn1>
       tree->attr[0] = extractChild(tree, "<stmtAndFunctionDefn>", 0, 1)->attr[0];
-      d.value.tree = extractChild(tree,"<stmtOrFunctionDefn>", 1)->attr[0];
+      d.value.tree = extractChild(tree,"<stmtOrFunctionDefn>", 0, 1)->attr[0];
       insertInFront(tree->attr[0], d);
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<stmtAndFunctionDefn>", 0));
@@ -187,9 +195,9 @@ void visitSyn(Tree tree, Symbol*** dictionary) {
     case 11://<functionDefn> FUNCTION SQO <parameterList1> SQC ASSIGNOP FUNID SQO <parameterList2> SQC <prog> END SEMICOLON
       childList = createList();
       insertInList(childList, extractChild(tree, "", FUNID, 1));
-      insertInList(childList, extractChild(tree, "<parameterList>", 1));
-      insertInList(childList, extractChild(tree, "<parameterList>", 2));
-      appendLists(childList, extractChild(tree, "<prog>", 1)->attr[0]);
+      insertInList(childList, extractChild(tree, "<parameterList>", 0, 1));
+      insertInList(childList, extractChild(tree, "<parameterList>", 0, 2));
+      appendLists(childList, extractChild(tree, "<prog>", 0, 1)->attr[0]);
       childList = transfromTree(tree, tree->symbol, childList);
       insertInList(prunelist, lookupSymbolDictionary("", FUNCTION));
       insertInList(prunelist, lookupSymbolDictionary("", SQO));
@@ -229,7 +237,7 @@ void visitSyn(Tree tree, Symbol*** dictionary) {
     case 17://<remainingList> COMMA <parameterList>
       tree->attr[0] = extractChild(tree, "<parameterList>", 0, 1);
       childList = tree->children;
-      insertInList(prinelist, lookupSymbolDictionary("", COMMA));
+      insertInList(prunelist, lookupSymbolDictionary("", COMMA));
       insertInList(prunelist, lookupSymbolDictionary("<parameterList>", 0));
       break;
     case 18://<remainingList> $
@@ -269,7 +277,7 @@ void visitSyn(Tree tree, Symbol*** dictionary) {
   pruneChildren(childList, prunelist);
 }
 
-Tree createAST(Tree parsetree) {
+Tree createAST(Tree tree) {
   Element temp;
 	if(tree->children->size!=0) {
     visitInh(tree);
@@ -280,5 +288,5 @@ Tree createAST(Tree parsetree) {
 		}
     visitSyn(tree);
 	}
-  return parsetree;
+  return tree;
 }
