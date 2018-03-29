@@ -119,7 +119,7 @@ void visitSyn(Tree tree, Symbol*** dictionary) {
   Symbol* symbol;
   Tree tempchild;
   switch(getRuleIndex(getRule(tree->symbol))) {
-    case 0:
+    case 0: //<mainFunction> MAIN SQO SQC <prog> END
       childList = transfromTree(tree,
         extractChild(tree, "", MAIN, 1)->symbol,
         extractChild(tree, "<prog>", 0, 1)->attr[0]
@@ -129,7 +129,7 @@ void visitSyn(Tree tree, Symbol*** dictionary) {
       insertInList(prunelist, lookupSymbolDictionary("<prog>", 0));
       insertInList(prunelist, lookupSymbolDictionary("", END));
       break;
-    case 1:
+    case 1: //<prog> <stmtOrFunctionDefn> <stmtAndFunctionDefn>
       tree->attr[0] = extractChild(tree, "<stmtAndFunctionDefn>", 0, 1)->attr[0];
       d.value.tree = extractChild(tree,"<stmtOrFunctionDefn>", 0, 1)->attr[0];
       insertInFront(tree->attr[0], d);
@@ -137,7 +137,7 @@ void visitSyn(Tree tree, Symbol*** dictionary) {
       insertInList(prunelist, lookupSymbolDictionary("<stmtAndFunctionDefn>", 0));
       insertInList(prunelist, lookupSymbolDictionary("<stmtOrFunctionDefn>", 0));
       break;
-    case 2:
+    case 2: //<stmtAndFunctionDefn> <stmtOrFunctionDefn> <stmtAndFunctionDefn1>
       tree->attr[0] = extractChild(tree, "<stmtAndFunctionDefn>", 0, 1)->attr[0];
       d.value.tree = extractChild(tree,"<stmtOrFunctionDefn>", 1)->attr[0];
       insertInFront(tree->attr[0], d);
@@ -145,46 +145,46 @@ void visitSyn(Tree tree, Symbol*** dictionary) {
       insertInList(prunelist, lookupSymbolDictionary("<stmtAndFunctionDefn>", 0));
       insertInList(prunelist, lookupSymbolDictionary("<stmtOrFunctionDefn>", 0));
       break;
-    case 3:
+    case 3: //<stmtAndFunctionDefn> $
       tree->attr[0] = createList();
       childList = tree->children;
       break;
-    case 4:
+    case 4: //<stmtOrFunctionDefn> <stmt>
       tree->attr[0] = extractChild(tree, "<stmt>", 0, 1)->attr[0];
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<stmt>", 0));
       break;
-    case 5:
+    case 5: //<stmtOrFunctionDefn> <functionDefn>
       tree->attr[0] = extractChild(tree, "<functionDefn>", 0, 1)->attr[0];
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<functionDefn>", 0));
       break;
-    case 6:
+    case 6: //<stmt> <declarationStmt>
       tree->attr[0] = extractChild(tree, "<declarationStmt>", 0, 1)->attr[0];
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<declarationStmt>", 0));
       break;
-    case 7:
+    case 7: //<stmt> <assignmentStmt>
       tree->attr[0] = extractChild(tree, "<assignmentStmt>", 0, 1)->attr[0];
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<assignmentStmt>", 0));
       break;
-    case 8:
+    case 8: //<stmt> <ifStmt>
       tree->attr[0] = extractChild(tree, "<ifStmt>", 0, 1)->attr[0];
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<ifStmt>", 0));
       break;
-    case 9:
+    case 9: //<stmt> <ioStmt>
       tree->attr[0] = extractChild(tree, "<ioStmt>", 0, 1)->attr[0];
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<ioStmt>", 0));
       break;
-    case 10:
+    case 10://<stmt> <funCallStmt>
       tree->attr[0] = extractChild(tree, "<funCallStmt>", 0, 1)->attr[0];
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<funCallStmt>", 0));
       break;
-    case 11:
+    case 11://<functionDefn> FUNCTION SQO <parameterList1> SQC ASSIGNOP FUNID SQO <parameterList2> SQC <prog> END SEMICOLON
       childList = createList();
       insertInList(childList, extractChild(tree, "", FUNID, 1));
       insertInList(childList, extractChild(tree, "<parameterList>", 1));
@@ -201,19 +201,55 @@ void visitSyn(Tree tree, Symbol*** dictionary) {
       insertInList(prunelist, lookupSymbolDictionary("", END));
       insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
       break;
-    case 12:
+    case 12://<parameterList> <type> ID <remainingList>
       childList = createList();
       insertInList(childList, extractChild(tree, "", ID, 1));
       appendLists(childList, extractChild(tree, "<remainingList>", 0, 1)->attr[0]);
+      tree->attr[0] = childList;
       childList = transfromTree(tree, tree->symbol, childList);
       insertInList(prunelist, lookupSymbolDictionary("<type>", 0));
       insertInList(prunelist, lookupSymbolDictionary("<remainingList>", 0));
       break;
-    case 13:
+    case 13://<type> INT
       tree->attr[0] = extractChild(tree, "", INT, 1);
+      childList = tree->children;
       break;
-    case 14:
+    case 14://<type> REAL
       tree->attr[0] = extractChild(tree, "", REAL, 1);
+      childList = tree->children;
+      break;
+    case 15://<type> STRING
+      tree->attr[0] = extractChild(tree, "", STRING, 1);
+      childList = tree->children;
+      break;
+    case 16://<type> MATRIX
+      tree->attr[0] = extractChild(tree, "", MATRIX, 1);
+      childList = tree->children;
+      break;
+    case 17://<remainingList> COMMA <parameterList>
+      tree->attr[0] = extractChild(tree, "<parameterList>", 0, 1);
+      childList = tree->children;
+      insertInList(prinelist, lookupSymbolDictionary("", COMMA));
+      insertInList(prunelist, lookupSymbolDictionary("<parameterList>", 0));
+      break;
+    case 18://<remainingList> $
+      tree->attr[0] = createList();
+      childList = tree->children;
+      break;
+    case 19://<declarationStmt> <type> <varList> SEMICOLON
+      childList = transfromTree(tree, extractChild(tree, "<type>", 0, 1)->attr[0], extractChild(tree, "<varList>", 0, 1)->attr[0]);
+      insertInList(prunelist, lookupSymbolDictionary("<type>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("<varList>", 0));
+      break;
+    case 20://<assignmentStmt> <variableAssign>
+      tree->attr[0] = extractChild(tree, "<variableAssign>", 0, 1)->attr[0];
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("<variableAssign>", 0));
+      break;
+    case 21://<assignmentStmt> <functionAssign>
+      tree->attr[0] = extractChild(tree, "<functionAssign>", 0, 1)->attr[0];
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("<functionAssign>", 0));
       break;
   }
   pruneChildren(childList, prunelist);
