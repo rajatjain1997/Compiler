@@ -42,48 +42,48 @@ void pruneChildren(List children, List prunelist) {
     return;
   }
 
-  Element temp = children->first->next, prev = children->first;
+  Element temp = children->first->next;
   Element todelete = prunelist->first, lastdeleted;
-  int index = 0, deletefirst = 0, deletelast = 0, initialsize = children->size;
+  int index = 0; initialsize = children->size;
 
   prunelist->first = NULL;
   prunelist->last = NULL;
   prunelist->size = 0;
 
   while(temp!=NULL && todelete!=NULL) {
-    if(temp->data.value.tree->symbol->symbolType == todelete->data.value.symbol->symbolType &&
-      isTerminal(temp->data.value.tree->symbol) == isTerminal(todelete->data.value.symbol)
+    if(
+      (
+        temp->data.value.tree->attr[ATTR_NOS]==NULL &&
+        temp->data.value.tree->symbol->symbolType == todelete->data.value.symbol->symbolType &&
+        isTerminal(temp->data.value.tree->symbol) == isTerminal(todelete->data.value.symbol)
+      ) ||
+      (
+        temp->data.value.tree->attr[ATTR_NOS]!=NULL &&
+        temp->data.value.tree->attr[ATTR_NOS]->symbolType == todelete->data.value.symbol->symbolType &&
+        isTerminal(temp->data.value.tree->attr[ATTR_NOS]) == isTerminal(todelete->data.value.symbol)
+      )
     ) {
       temp=temp->next;
       lastdeleted = todelete;
       todelete = todelete->next;
-      if(index==0) {
-        deletefirst = 1;
-      } else if(index==initialsize-1) {
-        deletelast = 1;
-      } else {
-        free(temp->prev->data.value.tree->symbol);
-        free(temp->prev->data.value.tree);
-        free(temp->prev);
-      }
+      free(temp->prev->data.value.tree->symbol);
+      free(temp->prev->data.value.tree);
       free(lastdeleted);
-    } else {
-      prev->next = temp;
-      temp->prev = prev;
-      prev = temp;
-      temp = temp->next;
+    }
+    if(!(index==0) && !(index==initialsize-1)) {
+      free(temp->prev);
     }
     index++;
   }
-  if(deletefirst) {
-    deleteFromFront(children);
-  }
-  if(deletelast) {
-    deleteAtEnd(children);
-  }
+  deleteFromFront(children);
+  deleteAtEnd(children);
+  children->size = 0;
 }
 
 void insertInList(List list, void* element) {
+  if(element==NULL) {
+    return;
+  }
   Data d;
   d.value.tree = (Tree) element;
   insertAtEnd(list, d);
@@ -95,8 +95,19 @@ Tree extractChild(Tree tree ,char nonterminal[], TokenType terminal, int childno
   Element temp = children->first;
   int index = 0;
   while(temp!=NULL) {
-    if(temp->data.value.tree->symbol->symbolType == symbol->symbolType &&
-      isTerminal(temp->data.value.tree->symbol) == isTerminal(symbol) &&
+    if(
+      (
+        (
+          temp->data.value.tree->attr[ATTR_NOS]==NULL &&
+          temp->data.value.tree->symbol->symbolType == symbol->symbolType &&
+          isTerminal(temp->data.value.tree->symbol) == isTerminal(symbol)
+        ) ||
+        (
+          temp->data.value.tree->attr[ATTR_NOS]!=NULL &&
+          temp->data.value.tree->attr[ATTR_NOS]->symbolType == symbol->symbolType &&
+          isTerminal(temp->data.value.tree->attr[ATTR_NOS]) == isTerminal(symbol)
+        )
+    ) &&
       ++index == childno
     ) {
       return temp->data.value.tree;
@@ -108,6 +119,7 @@ Tree extractChild(Tree tree ,char nonterminal[], TokenType terminal, int childno
 
 List transformTree(Tree tree, Tree head, List children) {
   if(head!=NULL) {
+    tree->attr[ATTR_NOS] = tree->symbol;
     tree->symbol = head->symbol;
     free(head);
   }
@@ -267,18 +279,67 @@ void visitSyn(Tree tree) {
       insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
       break;
     case 23://<functionAssign> SQO <varList> SQC ASSIGNOP <rightHandSide> SEMICOLON
-      childList = appendLists(extractChild(tree, "<varList>", 0, 1)->attr[0], extractChild(tree, "<rightHandSide>", 0, 1)->attr[0]);
+      childList = extractChild(tree, "<varList>", 0, 1)->attr[0];
+      insertInList(childList, extractChild(tree, "<rightHandSide>", 0, 1));
       childList = transformTree(tree, extractChild(tree, "", ASSIGNOP, 1), childList);
       insertInList(prunelist, lookupSymbolDictionary("", SQO));
       insertInList(prunelist, lookupSymbolDictionary("<varList>", 0));
       insertInList(prunelist, lookupSymbolDictionary("", SQC));
       insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
     case 24://<rightHandSide> <funCall>
-      tree->attr[1] = extractChild(tree, "<funCall>", 0, 1)->attr[0];
-      childList = tree->children;
-      insertInList(prunelist, lookupSymbolDictionary("<funCall>", 0));
+      childList = transformTree(tree, extractChild(tree, "<funCall>", 0, 1)->attr[0],
+                        extractChild(tree, "<funCall>", 0, 1)->attr[0]->children);
       break;
-
+    case 25://<rightHandSide> SIZE ID
+      childList = createList();
+      insertInList(childList, extractChild(tree, "", ID, 1));
+      childList = transformTree(tree, extractChild(tree, "", SIZE, 1), childList);
+      tree->attr[0] = tree;
+      break;
+    case 26: //<ifStmt> IF OP <booleanExpr> CL <stmt> <stmtProg> <elseStmt>
+      childList = extractChild(tree, "<stmtProg>", 0, 1)->attr[0];
+      d.value->tree = extractChild(tree, "<stmt>", 0, 1)->attr[0];
+      insertInFront(childList, d);
+      d.value->tree = extractChild(tree, "<booleanExpr>", 0, 1);
+      insertInFront(childList, d);
+      insertInList(childList, extractChild(tree, "<elseStmt>", 0, 1));
+      childList = transformTree(tree, extractChild(tree, "", IF, 1), childList);
+      insertInList(prunelist, lookupSymbolDictionary("", OP));
+      insertInList(prunelist, lookupSymbolDictionary("", CL));
+      insertInList(prunelist, lookupSymbolDictionary("<stmt>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("<stmtProg>", 0));
+    break;
+    case 27://<elseStmt> ELSE <stmt> <stmtProg> ENDIF SEMICOLON
+      childList = extractChild(tree, "<stmtProg>", 0, 1)->attr[0];
+      d.value->tree = extractChild(tree, "<stmt>", 0, 1)->attr[0];
+      insertInFront(childList, d);
+      childList = transformTree(tree, NULL, childList);
+      insertInList(prunelist, lookupSymbolDictionary("", ELSE));
+      insertInList(prunelist, lookupSymbolDictionary("<stmt>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("<stmtProg>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("", ENDIF));
+      insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
+    case 28://<elseStmt> ENDIF SEMICOLON
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("", ENDIF));
+      insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
+      break;
+    case 29://<ioStmt> READ OP ID CL SEMICOLON
+      childList = createList();
+      insertInList(childList, extractChild(tree, "", ID, 1));
+      childList = transformTree(tree, extractChild(tree, "", READ, 1), childList);
+      insertInList(prunelist, lookupSymbolDictionary("", OP));
+      insertInList(prunelist, lookupSymbolDictionary("", CL));
+      insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
+      break;
+    case 30://<ioStmt> PRINT OP ID CL SEMICOLON
+      childList = createList();
+      insertInList(childList, extractChild(tree, "", ID, 1));
+      childList = transformTree(tree, extractChild(tree, "", PRINT, 1), childList);
+      insertInList(prunelist, lookupSymbolDictionary("", OP));
+      insertInList(prunelist, lookupSymbolDictionary("", CL));
+      insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
+      break;
   }
   pruneChildren(childList, prunelist);
 }

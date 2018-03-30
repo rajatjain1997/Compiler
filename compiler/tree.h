@@ -6,7 +6,7 @@
 struct symbol;
 struct head;
 
-#define ATTR_NOS 2
+#define ATTR_NOS 3
 
 struct tree {
 	struct symbol* symbol;
