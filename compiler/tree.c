@@ -34,6 +34,18 @@ struct symbol* extractSymbol(Tree tree) {
 	return tree->symbol;
 }
 
+void freeTree(Tree tree) {
+	if(getToken(tree->symbol)!=NULL) {
+		free(tree->symbol->token);
+	}
+	free(tree->symbol);
+	int i = 0;
+	for(;i<ATTR_NOS;i++) {
+		free(tree->attr[i]);
+	}
+	freeList(tree->children);
+}
+
 // void visitBFT(Tree tree) {
 // 	// printf("%s\n", tree->dir_name);
 // }

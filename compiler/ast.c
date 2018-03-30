@@ -44,7 +44,7 @@ void pruneChildren(List children, List prunelist) {
 
   Element temp = children->first->next;
   Element todelete = prunelist->first, lastdeleted;
-  int index = 0; initialsize = children->size;
+  int index = 0; initialsize = children->size; int i = 0;
 
   prunelist->first = NULL;
   prunelist->last = NULL;
@@ -66,8 +66,7 @@ void pruneChildren(List children, List prunelist) {
       temp=temp->next;
       lastdeleted = todelete;
       todelete = todelete->next;
-      free(temp->prev->data.value.tree->symbol);
-      free(temp->prev->data.value.tree);
+      freeTree(temp->prev->data.value.tree);
       free(lastdeleted);
     }
     if(!(index==0) && !(index==initialsize-1)) {
@@ -340,6 +339,64 @@ void visitSyn(Tree tree) {
       insertInList(prunelist, lookupSymbolDictionary("", CL));
       insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
       break;
+    case 31://<stmtProg> <stmt> <stmtProg1>
+      tree->attr[0] = extractChild(tree, "<stmtProg>", 0, 1)->attr[0];
+      d.value.tree = extractChild(tree,"<stmt>", 0, 1)->attr[0];
+      insertInFront(tree->attr[0], d);
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("<stmtProg>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("<stmt>", 0));
+      break;
+    case 32://<stmtProg> $
+      tree->attr[0] = createList();
+      childList = tree->children;
+      break;
+    case 33://<arithmeticExpression> <divMulExpression> <addSubGenerator>
+      childList = transformTree(tree, extractChild(tree, "<addSubGenerator>", 0, 1)->attr[0],
+                    extractChild(tree, "<addSubGenerator>", 0, 1)->attr[0]->children);
+      insertInList(prunelist, lookupSymbolDictionary("<divMulExpression>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("<addSubGenerator>", 0));
+      break;
+    case 34://<addSubGenerator> <addSubOperators> <divMulExpression> <addSubGenerator1>
+      tree->attr[0] = extractChild(tree, "<addSubGenerator>", 0, 1)->attr[0];
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("<addSubOperators>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("<divMulExpression>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("<addSubGenerator>", 0));
+      break;
+    case 35://<addSubGenerator> $
+      tree->attr[0] = tree->attr[1];
+      childList = tree->children;
+      break;
+    case 36://<divMulExpression> <term> <divMulGenerator>
+      childList = transformTree(tree, extractChild(tree, "<divMulGenerator>", 0, 1)->attr[0],
+                    extractChild(tree, "<divMulGenerator>", 0, 1)->attr[0]->children);
+      insertInList(prunelist, lookupSymbolDictionary("<term>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("<divMulGenerator>", 0));
+      break;
+    case 37://<divMulGenerator> <divMulOperators> <term> <divMulGenerator1>
+      tree->attr[0] = extractChild(tree, "<divMulGenerator>", 0, 1)->attr[0];
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("<divMulOperators>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("<term>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("<divMulGenerator>", 0));
+      break;
+    case 38://<divMulGenerator> $
+      tree->attr[0] = tree->attr[1];
+      childList = tree->children;
+      break;
+    case 39://<term> OP <arithmeticExpression> CL
+      tree->attr[0] = extractChild(tree, "<arithmeticExpression>", 0, 1);
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("", OP));
+      insertInList(prunelist, lookupSymbolDictionary("", CL));
+      break;
+    case 40://<term> <var>
+      tree->attr[0] = extractChild(tree, "<var>", 0, 1)->attr[0];
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("<var>", 0));
+      break;
+
   }
   pruneChildren(childList, prunelist);
 }

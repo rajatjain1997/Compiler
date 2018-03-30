@@ -19,4 +19,5 @@ typedef struct tree* Tree;
 
 Tree createTree(struct symbol* root);
 Tree add_child(Tree tree, struct symbol* symbol);
+void freeTree(Tree tree);
 struct symbol* extractSymbol(Tree tree);
