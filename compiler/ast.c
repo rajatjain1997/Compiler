@@ -41,7 +41,7 @@ void pruneChildren(List children, List prunelist) {
     return;
   }
 
-  Element temp = children->first->next;
+  Element temp = children->first, prev;
   Element todelete = prunelist->first, lastdeleted;
   int index = 0, initialsize = children->size; int i = 0;
   Tree tree;
@@ -63,10 +63,11 @@ void pruneChildren(List children, List prunelist) {
         isTerminal(((Symbol*)(temp->data.value.tree->attr[ATTR_NOS]))) == isTerminal(todelete->data.value.symbol)
       )
     ) {
+      prev=temp;
       temp=temp->next;
       lastdeleted = todelete;
       todelete = todelete->next;
-      tree = temp->prev->data.value.tree;
+      tree = prev->data.value.tree;
       if(getToken(tree->symbol)!=NULL) {
     		free(tree->symbol->token);
     	}
@@ -74,7 +75,7 @@ void pruneChildren(List children, List prunelist) {
       free(lastdeleted);
     }
     if(!(index==0) && !(index==initialsize-1)) {
-      free(temp->prev);
+      free(prev);
     }
     index++;
   }
@@ -654,7 +655,7 @@ void visitSyn(Tree tree) {
 
 Tree createAST(Tree tree) {
   Element temp;
-	if(tree->children->size!=0) {
+	if(!isTerminal(tree->symbol)) {
     visitInh(tree);
 		temp = tree->children->first;
 		while(temp!=NULL) {
@@ -662,6 +663,6 @@ Tree createAST(Tree tree) {
 			temp = temp->next;
 		}
     visitSyn(tree);
-	}
+  }
   return tree;
 }
