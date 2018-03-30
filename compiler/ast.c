@@ -134,9 +134,12 @@ void visitInh(Tree tree) {
 }
 
 void visitSyn(Tree tree) {
+  static List prunelist = NULL;
+  if(prunelist==NULL) {
+    prunelist = createList();
+  }
   int i;
   List childList;
-  List prunelist = createList();
   Data d;
   Symbol* symbol;
   Tree tempchild;
@@ -396,7 +399,55 @@ void visitSyn(Tree tree) {
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<var>", 0));
       break;
-
+    case 41://<addSubOperators> PLUS
+      tree->attr[0] = extractChild(tree, "", PLUS, 1);
+      childList = tree->children;
+      break;
+    case 42://<addSubOperators> MINUS
+      tree->attr[0] = extractChild(tree, "", MINUS, 1);
+      childList = tree->children;
+      break;
+    case 43://<divMulOperators> MUL
+      tree->attr[0] = extractChild(tree, "", MUL, 1);
+      childList = tree->children;
+      break;
+    case 44://<divMulOperators> DIV
+      tree->attr[0] = extractChild(tree, "", DIV, 1);
+      childList = tree->children;
+      break;
+    case 45://<var> NUM
+      tree->attr[0] = extractChild(tree, "", NUM, 1);
+      childList = tree->children;
+      break;
+    case 46://<var> RNUM
+      tree->attr[0] = extractChild(tree, "", RNUM, 1);
+      childList = tree->children;
+      break;
+    case 47://<var> ID <matrixElem>
+      tree->attr[0] = extractChild(tree, "", ID, 1);
+      appendLists(tree->attr[0]->children, extractChild(tree, "<matrixElem>", 0, 1)->attr[0]);
+      childList = tree->children;
+      break;
+    case 48://<var> STR
+      tree->attr[0] = extractChild(tree, "", STR, 1);
+      childList = tree->children;
+      break;
+    case 49://<var> <matrix>
+      tree->attr[0] = extractChild(tree, "<matrix>", 0, 1);
+      childList = tree->children;
+      break;
+    case 50://<var> <funCall>
+      tree->attr[0] = extractChild(tree, "<funCall>", 0, 1);
+      childList = tree->children;
+      break;
+    case 51://<var> SIZE ID
+      tree->attr[0] = extractChild(tree, "", SIZE, 1);
+      insertInList(tree->attr[0]->children, extractChild(tree, "", ID, 1));
+      childList = tree->children;
+      break;
+    // case 52://<booleanExpr> OP <booleanExpr1> CL <logicalOp> OP <booleanExpr2> CL
+    //   childList = createList();
+    //
   }
   pruneChildren(childList, prunelist);
 }
