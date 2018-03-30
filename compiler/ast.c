@@ -66,7 +66,7 @@ void pruneChildren(List children, List prunelist) {
       temp=temp->next;
       lastdeleted = todelete;
       todelete = todelete->next;
-      freeTree(temp->prev->data.value.tree);
+      freeTree(temp->prev->data.value.tree, 0);
       free(lastdeleted);
     }
     if(!(index==0) && !(index==initialsize-1)) {
@@ -138,11 +138,8 @@ void visitSyn(Tree tree) {
   if(prunelist==NULL) {
     prunelist = createList();
   }
-  int i;
-  List childList;
-  Data d;
-  Symbol* symbol;
-  Tree tempchild;
+  static List childList = NULL;
+  static Data d;
   switch(getRuleIndex(getRule(tree->symbol))) {
     case 0: //<mainFunction> MAIN SQO SQC <prog> END
       childList = transformTree(tree, extractChild(tree, "", MAIN, 1), extractChild(tree, "<prog>", 0, 1)->attr[0]);
@@ -168,7 +165,7 @@ void visitSyn(Tree tree) {
       insertInList(prunelist, lookupSymbolDictionary("<stmtOrFunctionDefn>", 0));
       break;
     case 3: //<stmtAndFunctionDefn> $
-      tree->attr[0] = createList();
+      tree->attr[0] = tree->children;
       childList = tree->children;
       break;
     case 4: //<stmtOrFunctionDefn> <stmt>
@@ -184,7 +181,6 @@ void visitSyn(Tree tree) {
     case 6: //<stmt> <declarationStmt>
       tree->attr[0] = extractChild(tree, "<declarationStmt>", 0, 1)->attr[0];
       childList = tree->children;
-      insertInList(prunelist, lookupSymbolDictionary("<declarationStmt>", 0));
       break;
     case 7: //<stmt> <assignmentStmt>
       tree->attr[0] = extractChild(tree, "<assignmentStmt>", 0, 1)->attr[0];
@@ -194,12 +190,10 @@ void visitSyn(Tree tree) {
     case 8: //<stmt> <ifStmt>
       tree->attr[0] = extractChild(tree, "<ifStmt>", 0, 1)->attr[0];
       childList = tree->children;
-      insertInList(prunelist, lookupSymbolDictionary("<ifStmt>", 0));
       break;
     case 9: //<stmt> <ioStmt>
       tree->attr[0] = extractChild(tree, "<ioStmt>", 0, 1)->attr[0];
       childList = tree->children;
-      insertInList(prunelist, lookupSymbolDictionary("<ioStmt>", 0));
       break;
     case 10://<stmt> <funCallStmt>
       tree->attr[0] = extractChild(tree, "<funCallStmt>", 0, 1)->attr[0];
@@ -255,21 +249,22 @@ void visitSyn(Tree tree) {
       insertInList(prunelist, lookupSymbolDictionary("<parameterList>", 0));
       break;
     case 18://<remainingList> $
-      tree->attr[0] = createList();
+      tree->attr[0] = tree->children;
       childList = tree->children;
       break;
     case 19://<declarationStmt> <type> <varList> SEMICOLON
+      tree->attr[0] = tree;
       childList = transformTree(tree, extractChild(tree, "<type>", 0, 1)->attr[0], extractChild(tree, "<varList>", 0, 1)->attr[0]);
       insertInList(prunelist, lookupSymbolDictionary("<type>", 0));
       insertInList(prunelist, lookupSymbolDictionary("<varList>", 0));
       break;
     case 20://<assignmentStmt> <variableAssign>
-      tree->attr[0] = extractChild(tree, "<variableAssign>", 0, 1)->attr[0];
+      tree->attr[0] = extractChild(tree, "<variableAssign>", 0, 1);
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<variableAssign>", 0));
       break;
     case 21://<assignmentStmt> <functionAssign>
-      tree->attr[0] = extractChild(tree, "<functionAssign>", 0, 1)->attr[0];
+      tree->attr[0] = extractChild(tree, "<functionAssign>", 0, 1);
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<functionAssign>", 0));
       break;
@@ -299,6 +294,7 @@ void visitSyn(Tree tree) {
       tree->attr[0] = tree;
       break;
     case 26: //<ifStmt> IF OP <booleanExpr> CL <stmt> <stmtProg> <elseStmt>
+      tree->attr[0] = tree;
       childList = extractChild(tree, "<stmtProg>", 0, 1)->attr[0];
       d.value->tree = extractChild(tree, "<stmt>", 0, 1)->attr[0];
       insertInFront(childList, d);
@@ -327,6 +323,7 @@ void visitSyn(Tree tree) {
       insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
       break;
     case 29://<ioStmt> READ OP ID CL SEMICOLON
+      tree->attr[0] = tree;
       childList = createList();
       insertInList(childList, extractChild(tree, "", ID, 1));
       childList = transformTree(tree, extractChild(tree, "", READ, 1), childList);
@@ -335,6 +332,7 @@ void visitSyn(Tree tree) {
       insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
       break;
     case 30://<ioStmt> PRINT OP ID CL SEMICOLON
+      tree->attr[0] = tree;
       childList = createList();
       insertInList(childList, extractChild(tree, "", ID, 1));
       childList = transformTree(tree, extractChild(tree, "", PRINT, 1), childList);
@@ -351,7 +349,7 @@ void visitSyn(Tree tree) {
       insertInList(prunelist, lookupSymbolDictionary("<stmt>", 0));
       break;
     case 32://<stmtProg> $
-      tree->attr[0] = createList();
+      tree->attr[0] = tree->children;
       childList = tree->children;
       break;
     case 33://<arithmeticExpression> <divMulExpression> <addSubGenerator>
@@ -445,9 +443,178 @@ void visitSyn(Tree tree) {
       insertInList(tree->attr[0]->children, extractChild(tree, "", ID, 1));
       childList = tree->children;
       break;
-    // case 52://<booleanExpr> OP <booleanExpr1> CL <logicalOp> OP <booleanExpr2> CL
-    //   childList = createList();
-    //
+    case 52://<booleanExpr> OP <booleanExpr1> CL <logicalOp> OP <booleanExpr2> CL
+      childList = createList();
+      insertInList(childList, extractChild(tree, "<booleanExpr>", 0, 1));
+      insertInList(childList, extractChild(tree, "<booleanExpr>", 0, 2));
+      childList = transformTree(tree, extractChild(tree, "<logicalOp>", 0, 1)->attr[0], childList);
+      insertInList(prunelist, lookupSymbolDictionary("", OP));
+      insertInList(prunelist, lookupSymbolDictionary("", CL));
+      insertInList(prunelist, lookupSymbolDictionary("<logicalOp>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("", OP));
+      insertInList(prunelist, lookupSymbolDictionary("", CL));
+      break;
+    case 53://<booleanExpr> NOT OP <booleanExpr1> CL
+      childList = createList();
+      insertInList(childList, extractChild(tree, "<booleanExpr>", 0, 1));
+      childList = transformTree(tree, extractChild(tree, "", NOT, 1), childList);
+      insertInList(prunelist, lookupSymbolDictionary("", OP));
+      insertInList(prunelist, lookupSymbolDictionary("", CL));
+      break;
+    case 54://<booleanExpr> <constrainedVars1> <relationalOp> <constrainedVars2>
+      childList = createList();
+      insertInList(childList, extractChild(tree, "<constrainedVars>", 0, 1)->attr[0]);
+      insertInList(childList, extractChild(tree, "<constrainedVars>", 0, 2)->attr[0]);
+      childList = transformTree(tree, extractChild(tree, "<relationalOp>", 0, 1)->attr[0], childList);
+      insertInList(prunelist, lookupSymbolDictionary("<constrainedVars>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("<relationalOp>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("<constrainedVars>", 0));
+      break;
+    case 55://<constrainedVars> NUM
+      tree->attr[0] =  extractChild(tree, "", NUM, 1);
+      childList = tree->children;
+      break;
+    case 56://<constrainedVars> RNUM
+      tree->attr[0] =  extractChild(tree, "", RNUM, 1);
+      childList = tree->children;
+      break;
+    case 57://<constrainedVars> ID
+      tree->attr[0] =  extractChild(tree, "", ID, 1);
+      childList = tree->children;
+      break;
+    case 58://<matrixElem> SQO NUM COMMA NUM SQC
+      tree->attr[0] = createList();
+      insertInList(tree->attr[0], extractChild(tree, "", NUM, 1));
+      insertInList(tree->attr[0], extractChild(tree, "", NUM, 2));
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("", SQO));
+      insertInList(prunelist, lookupSymbolDictionary("", COMMA));
+      insertInList(prunelist, lookupSymbolDictionary("", SQC));
+      break;
+    case 59://<matrixElem> $
+      tree->attr[0] = tree->children;
+      childList = tree->children;
+      break;
+    case 60://<logicalOp> AND
+      tree->attr[0] = extractChild(tree, "", AND, 1);
+      childList = tree->children;
+      break;
+    case 61://<logicalOp> OR
+      tree->attr[0] = extractChild(tree, "", OR, 1);
+      childList = tree->children;
+      break;
+    case 62://<relationalOp> LT
+      tree->attr[0] = extractChild(tree, "", LT, 1);
+      childList = tree->children;
+      break;
+    case 63://<relationalOp> LE
+      tree->attr[0] = extractChild(tree, "", LE, 1);
+      childList = tree->children;
+      break;
+    case 64://<relationalOp> EQ
+      tree->attr[0] = extractChild(tree, "", EQ, 1);
+      childList = tree->children;
+      break;
+    case 65://<relationalOp> GT
+      tree->attr[0] = extractChild(tree, "", GT, 1);
+      childList = tree->children;
+      break;
+    case 66://<relationalOp> GE
+      tree->attr[0] = extractChild(tree, "", GE, 1);
+      childList = tree->children;
+      break;
+    case 67://<relationalOp> NE
+      tree->attr[0] = extractChild(tree, "", NE, 1);
+      childList = tree->children;
+      break;
+    case 68://<varList> ID <moreIDs>
+      tree->attr[0] = extractChild(tree, "<moreIDs>", 0, 1)->attr[0];
+      insertInList(tree->attr[0], extractChild(tree, "", ID, 1));
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("<moreIDs>", 0));
+      break;
+    case 69://<moreIDs> COMMA <varList>
+      tree->attr[0] = extractChild(tree, "<varList>", 0, 1)->attr[0];
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("", COMMA));
+      insertInList(prunelist, lookupSymbolDictionary("<varList>", 0));
+      break;
+    case 70://<moreIDs> $
+      tree->attr[0] = tree->children;
+      childList = tree->children;
+      break;
+    case 71://<matrix> SQO <integerList> SQC
+      childList = transformTree(tree, NULL, extractChild(tree, "<integerList>", 0, 1)->attr[0]);
+      insertInList(prunelist, lookupSymbolDictionary("", SQO));
+      insertInList(prunelist, lookupSymbolDictionary("", SQC));
+      break;
+    case 72://<integerList> NUM <remainingIntegerList>
+      tree->attr[0] = extractChild(tree, "<remainingIntegerList>", 0, 1)->attr[1];
+      d.value.tree = extractChild(tree, "", NUM, 1);
+      insertInFront(extractChild(tree, "<remainingIntegerList>", 0, 1)->attr[0], d);
+      childList = transformTree(tree, NULL, extractChild(tree, "<remainingIntegerList>", 0, 1)->attr[0]);
+      d.value.tree = tree;
+      insertInFront(tree->attr[0], d);
+      insertInList(prunelist, lookupSymbolDictionary("<remainingIntegerList>", 0));
+      break;
+    case 73://<remainingIntegerList> COMMA NUM <remainingIntegerList1>
+      tree->attr[0] = extractChild(tree, "<remainingIntegerList>", 0, 1)->attr[0];
+      tree->attr[1] = extractChild(tree, "<remainingIntegerList>", 0, 1)->attr[1];
+      d.value.tree = extractChild(tree, "", NUM, 1);
+      insertInFront(tree->attr[0], d);
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("", COMMA));
+      insertInList(prunelist, lookupSymbolDictionary("<remainingIntegerList>", 0));
+      break;
+    case 74://<remainingIntegerList> SEMICOLON <integerList>
+      tree->attr[0] = createList();
+      tree->attr[1] = extractChild(tree, "<integerList>", 0, 1)->attr[0];
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("",COMMA));
+      insertInList(prunelist, lookupSymbolDictionary("<integerList>",0));
+      break;
+    case 75://<remainingIntegerList> $
+      tree->attr[0] = tree->children;
+      tree->attr[1] = createList();
+      childList = tree->children;
+      break;
+    case 76://<funCallStmt> <funCall> SEMICOLON
+      tree->attr[0] = extractChild(tree, "<funCall>", 0, 1);
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
+      break;
+    case 77://<funCall> FUNID OP <argList> CL
+      childList = transformTree(tree, extractChild(tree, "", FUNID, 1), extractChild(tree, "<argList>", 0, 1)->attr[0]);
+      insertInList(prunelist, lookupSymbolDictionary("", OP));
+      insertInList(prunelist, lookupSymbolDictionary("<argList>", 0));
+      insertInList(prunelist, lookupSymbolDictionary("", CL));
+      break;
+    case 78://<argList> <argListN>
+      tree->attr[0] = extractChild(tree, "<argListN>", 0, 1)->attr[0];
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("<argListN>", 0));
+      break;
+    case 79://<argList> $
+      tree->attr[0] = tree->children;
+      childList = tree->children;
+      break;
+    case 80://<argListN> <arithmeticExpression> <moreArgs>
+      tree->attr[0] = extractChild(tree, "<moreArgs>", 0, 1)->attr[0];
+      d.value.tree = extractChild(tree, "<arithmeticExpression>", 0, 1);
+      insertInFront(tree->attr[0], d);
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("<moreArgs>", 0));
+      break;
+    case 81://<moreArgs> COMMA <argListN>
+      tree->attr[0] = extractChild(tree, "<argListN>", 0, 1)->attr[0];
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("", COMMA));
+      insertInList(prunelist, lookupSymbolDictionary("<argListN>", 0));
+      break;
+    case 82://<moreArgs> $
+      tree->attr[0] = tree->children;
+      childList = tree->children;
+      break;
   }
   pruneChildren(childList, prunelist);
 }
