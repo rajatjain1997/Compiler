@@ -128,8 +128,35 @@ List transformTree(Tree tree, Tree head, List children) {
 }
 
 void visitInh(Tree tree) {
-  switch(getRuleIndex(getRule(tree->symbol))) {
-    case 0: break;
+  static List childList;
+  if(tree->parent==NULL) {
+    return;
+  }
+  switch(getRuleIndex(getRule(tree->parent->symbol))) {
+    case 33://<arithmeticExpression> <divMulExpression> <addSubGenerator>
+      if(tree->symbol->symbolType== findInTrie(nonTerminalMapping, "<addSubGenerator>") && !isTerminal(tree->symbol)) {
+        tree->attr[1] = extractChild(tree->parent, "<divMulExpression>", 0, 1)->attr[0];
+      }
+      break;
+    case 34://<addSubGenerator> <addSubOperators> <divMulExpression> <addSubGenerator1>
+      if(tree->symbol->symbolType== findInTrie(nonTerminalMapping, "<addSubGenerator>") && !isTerminal(tree->symbol)) {
+        tree->attr[1] = createTree(extractChild(tree->parent, "<addSubOperators>", 0, 1)->attr[0]->symbol);
+        insertInList(tree->attr[0]->children, tree->parent->attr[1]);
+        insertInList(tree->attr[0]->children, extractChild(tree->parent, "<divMulExpression>", 0, 1)->attr[0]);
+      }
+      break;
+    case 36://<divMulExpression> <term> <divMulGenerator>
+      if(tree->symbol->symbolType== findInTrie(nonTerminalMapping, "<divMulGenerator>") && !isTerminal(tree->symbol)) {
+        tree->attr[1] = extractChild(tree->parent, "<term>", 0, 1)->attr[0];
+      }
+      break;
+    case 37://<divMulGenerator> <divMulOperators> <term> <divMulGenerator1>
+      if(tree->symbol->symbolType== findInTrie(nonTerminalMapping, "<divMulGenerator>") && !isTerminal(tree->symbol)) {
+        tree->attr[1] = createTree(extractChild(tree->parent, "<divMulOperators>", 0, 1)->attr[0]->symbol);
+        insertInList(tree->attr[0]->children, tree->parent->attr[1]);
+        insertInList(tree->attr[0]->children, extractChild(tree->parent, "<term>", 0, 1)->attr[0]);
+      }
+      break;
   }
 }
 
@@ -220,7 +247,10 @@ void visitSyn(Tree tree) {
     case 12://<parameterList> <type> ID <remainingList>
       childList = createList();
       insertInList(childList, extractChild(tree, "", ID, 1));
-      appendLists(childList, extractChild(tree, "<remainingList>", 0, 1)->attr[0]);
+      transformTree(extractChild(tree, "<type>", 0, 1)->attr[0], NULL, childList);
+      d.value.tree = extractChild(tree, "<type>", 0, 1)->attr[0];
+      childList = extractChild(tree, "<remainingList>", 0, 1)->attr[0];
+      insertInFront(childList, d);
       tree->attr[0] = childList;
       childList = transformTree(tree, NULL, childList);
       insertInList(prunelist, lookupSymbolDictionary("<type>", 0));
@@ -246,7 +276,6 @@ void visitSyn(Tree tree) {
       tree->attr[0] = extractChild(tree, "<parameterList>", 0, 1);
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("", COMMA));
-      insertInList(prunelist, lookupSymbolDictionary("<parameterList>", 0));
       break;
     case 18://<remainingList> $
       tree->attr[0] = tree->children;
