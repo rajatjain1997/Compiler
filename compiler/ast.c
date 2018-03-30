@@ -106,8 +106,11 @@ Tree extractChild(Tree tree ,char nonterminal[], TokenType terminal, int childno
   return NULL;
 }
 
-List transfromTree(Tree tree, Symbol* head, List children) {
-  tree->symbol = head;
+List transformTree(Tree tree, Tree head, List children) {
+  if(head!=NULL) {
+    tree->symbol = head->symbol;
+    free(head);
+  }
   List oldchildren = tree->children;
   tree->children = children;
   return oldchildren;
@@ -128,10 +131,7 @@ void visitSyn(Tree tree) {
   Tree tempchild;
   switch(getRuleIndex(getRule(tree->symbol))) {
     case 0: //<mainFunction> MAIN SQO SQC <prog> END
-      childList = transfromTree(tree,
-        extractChild(tree, "", MAIN, 1)->symbol,
-        extractChild(tree, "<prog>", 0, 1)->attr[0]
-      );
+      childList = transformTree(tree, extractChild(tree, "", MAIN, 1), extractChild(tree, "<prog>", 0, 1)->attr[0]);
       insertInList(prunelist, lookupSymbolDictionary("", SQO));
       insertInList(prunelist, lookupSymbolDictionary("", SQC));
       insertInList(prunelist, lookupSymbolDictionary("<prog>", 0));
@@ -198,7 +198,7 @@ void visitSyn(Tree tree) {
       insertInList(childList, extractChild(tree, "<parameterList>", 0, 1));
       insertInList(childList, extractChild(tree, "<parameterList>", 0, 2));
       appendLists(childList, extractChild(tree, "<prog>", 0, 1)->attr[0]);
-      childList = transfromTree(tree, tree->symbol, childList);
+      childList = transformTree(tree, NULL, childList);
       insertInList(prunelist, lookupSymbolDictionary("", FUNCTION));
       insertInList(prunelist, lookupSymbolDictionary("", SQO));
       insertInList(prunelist, lookupSymbolDictionary("", SQC));
@@ -214,7 +214,7 @@ void visitSyn(Tree tree) {
       insertInList(childList, extractChild(tree, "", ID, 1));
       appendLists(childList, extractChild(tree, "<remainingList>", 0, 1)->attr[0]);
       tree->attr[0] = childList;
-      childList = transfromTree(tree, tree->symbol, childList);
+      childList = transformTree(tree, NULL, childList);
       insertInList(prunelist, lookupSymbolDictionary("<type>", 0));
       insertInList(prunelist, lookupSymbolDictionary("<remainingList>", 0));
       break;
@@ -245,7 +245,7 @@ void visitSyn(Tree tree) {
       childList = tree->children;
       break;
     case 19://<declarationStmt> <type> <varList> SEMICOLON
-      childList = transfromTree(tree, extractChild(tree, "<type>", 0, 1)->attr[0], extractChild(tree, "<varList>", 0, 1)->attr[0]);
+      childList = transformTree(tree, extractChild(tree, "<type>", 0, 1)->attr[0], extractChild(tree, "<varList>", 0, 1)->attr[0]);
       insertInList(prunelist, lookupSymbolDictionary("<type>", 0));
       insertInList(prunelist, lookupSymbolDictionary("<varList>", 0));
       break;
@@ -263,16 +263,22 @@ void visitSyn(Tree tree) {
       childList = createList();
       insertInList(childList, extractChild(tree, "", ID, 1));
       insertInList(childList, extractChild(tree, "<arithmeticExpression>", 0, 1));
-      childList = transfromTree(tree, extractChild(tree, "", ASSIGNOP, 1)->symbol, childList);
+      childList = transformTree(tree, extractChild(tree, "", ASSIGNOP, 1), childList);
       insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
       break;
     case 23://<functionAssign> SQO <varList> SQC ASSIGNOP <rightHandSide> SEMICOLON
       childList = appendLists(extractChild(tree, "<varList>", 0, 1)->attr[0], extractChild(tree, "<rightHandSide>", 0, 1)->attr[0]);
-      childList = transfromTree(tree, extractChild(tree, "", ASSIGNOP, 1)->symbol, childList);
+      childList = transformTree(tree, extractChild(tree, "", ASSIGNOP, 1), childList);
       insertInList(prunelist, lookupSymbolDictionary("", SQO));
       insertInList(prunelist, lookupSymbolDictionary("<varList>", 0));
       insertInList(prunelist, lookupSymbolDictionary("", SQC));
       insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
+    case 24://<rightHandSide> <funCall>
+      tree->attr[1] = extractChild(tree, "<funCall>", 0, 1)->attr[0];
+      childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("<funCall>", 0));
+      break;
+
   }
   pruneChildren(childList, prunelist);
 }
