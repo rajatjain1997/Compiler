@@ -44,7 +44,7 @@ void pruneChildren(List children, List prunelist) {
 
   Element temp = children->first->next;
   Element todelete = prunelist->first, lastdeleted;
-  int index = 0; initialsize = children->size; int i = 0;
+  int index = 0, initialsize = children->size; int i = 0;
 
   prunelist->first = NULL;
   prunelist->last = NULL;
@@ -59,8 +59,8 @@ void pruneChildren(List children, List prunelist) {
       ) ||
       (
         temp->data.value.tree->attr[ATTR_NOS]!=NULL &&
-        temp->data.value.tree->attr[ATTR_NOS]->symbolType == todelete->data.value.symbol->symbolType &&
-        isTerminal(temp->data.value.tree->attr[ATTR_NOS]) == isTerminal(todelete->data.value.symbol)
+        ((Symbol*)(temp->data.value.tree->attr[ATTR_NOS]))->symbolType == todelete->data.value.symbol->symbolType &&
+        isTerminal(((Symbol*)(temp->data.value.tree->attr[ATTR_NOS]))) == isTerminal(todelete->data.value.symbol)
       )
     ) {
       temp=temp->next;
@@ -103,8 +103,8 @@ Tree extractChild(Tree tree ,char nonterminal[], TokenType terminal, int childno
         ) ||
         (
           temp->data.value.tree->attr[ATTR_NOS]!=NULL &&
-          temp->data.value.tree->attr[ATTR_NOS]->symbolType == symbol->symbolType &&
-          isTerminal(temp->data.value.tree->attr[ATTR_NOS]) == isTerminal(symbol)
+          ((Symbol*)(temp->data.value.tree->attr[ATTR_NOS]))->symbolType == symbol->symbolType &&
+          isTerminal(((Symbol*)(temp->data.value.tree->attr[ATTR_NOS]))) == isTerminal(symbol)
         )
     ) &&
       ++index == childno
@@ -140,9 +140,9 @@ void visitInh(Tree tree) {
       break;
     case 34://<addSubGenerator> <addSubOperators> <divMulExpression> <addSubGenerator1>
       if(tree->symbol->symbolType== findInTrie(nonTerminalMapping, "<addSubGenerator>") && !isTerminal(tree->symbol)) {
-        tree->attr[1] = createTree(extractChild(tree->parent, "<addSubOperators>", 0, 1)->attr[0]->symbol);
-        insertInList(tree->attr[0]->children, tree->parent->attr[1]);
-        insertInList(tree->attr[0]->children, extractChild(tree->parent, "<divMulExpression>", 0, 1)->attr[0]);
+        tree->attr[1] = createTree(((Tree)(extractChild(tree->parent, "<addSubOperators>", 0, 1)->attr[0]))->symbol);
+        insertInList(((Tree)(tree->attr[0]))->children, tree->parent->attr[1]);
+        insertInList(((Tree)(tree->attr[0]))->children, extractChild(tree->parent, "<divMulExpression>", 0, 1)->attr[0]);
       }
       break;
     case 36://<divMulExpression> <term> <divMulGenerator>
@@ -152,9 +152,9 @@ void visitInh(Tree tree) {
       break;
     case 37://<divMulGenerator> <divMulOperators> <term> <divMulGenerator1>
       if(tree->symbol->symbolType== findInTrie(nonTerminalMapping, "<divMulGenerator>") && !isTerminal(tree->symbol)) {
-        tree->attr[1] = createTree(extractChild(tree->parent, "<divMulOperators>", 0, 1)->attr[0]->symbol);
-        insertInList(tree->attr[0]->children, tree->parent->attr[1]);
-        insertInList(tree->attr[0]->children, extractChild(tree->parent, "<term>", 0, 1)->attr[0]);
+        tree->attr[1] = createTree(((Tree)(extractChild(tree->parent, "<divMulOperators>", 0, 1)->attr[0]))->symbol);
+        insertInList(((Tree)(tree->attr[0]))->children, tree->parent->attr[1]);
+        insertInList(((Tree)(tree->attr[0]))->children, extractChild(tree->parent, "<term>", 0, 1)->attr[0]);
       }
       break;
   }
@@ -314,7 +314,7 @@ void visitSyn(Tree tree) {
       insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
     case 24://<rightHandSide> <funCall>
       childList = transformTree(tree, extractChild(tree, "<funCall>", 0, 1)->attr[0],
-                        extractChild(tree, "<funCall>", 0, 1)->attr[0]->children);
+                        ((Tree)(extractChild(tree, "<funCall>", 0, 1)->attr[0]))->children);
       break;
     case 25://<rightHandSide> SIZE ID
       childList = createList();
@@ -325,9 +325,9 @@ void visitSyn(Tree tree) {
     case 26: //<ifStmt> IF OP <booleanExpr> CL <stmt> <stmtProg> <elseStmt>
       tree->attr[0] = tree;
       childList = extractChild(tree, "<stmtProg>", 0, 1)->attr[0];
-      d.value->tree = extractChild(tree, "<stmt>", 0, 1)->attr[0];
+      d.value.tree = extractChild(tree, "<stmt>", 0, 1)->attr[0];
       insertInFront(childList, d);
-      d.value->tree = extractChild(tree, "<booleanExpr>", 0, 1);
+      d.value.tree = extractChild(tree, "<booleanExpr>", 0, 1);
       insertInFront(childList, d);
       insertInList(childList, extractChild(tree, "<elseStmt>", 0, 1));
       childList = transformTree(tree, extractChild(tree, "", IF, 1), childList);
@@ -338,7 +338,7 @@ void visitSyn(Tree tree) {
     break;
     case 27://<elseStmt> ELSE <stmt> <stmtProg> ENDIF SEMICOLON
       childList = extractChild(tree, "<stmtProg>", 0, 1)->attr[0];
-      d.value->tree = extractChild(tree, "<stmt>", 0, 1)->attr[0];
+      d.value.tree = extractChild(tree, "<stmt>", 0, 1)->attr[0];
       insertInFront(childList, d);
       childList = transformTree(tree, NULL, childList);
       insertInList(prunelist, lookupSymbolDictionary("", ELSE));
@@ -383,7 +383,7 @@ void visitSyn(Tree tree) {
       break;
     case 33://<arithmeticExpression> <divMulExpression> <addSubGenerator>
       childList = transformTree(tree, extractChild(tree, "<addSubGenerator>", 0, 1)->attr[0],
-                    extractChild(tree, "<addSubGenerator>", 0, 1)->attr[0]->children);
+                    ((Tree)(extractChild(tree, "<addSubGenerator>", 0, 1)->attr[0]))->children);
       insertInList(prunelist, lookupSymbolDictionary("<divMulExpression>", 0));
       insertInList(prunelist, lookupSymbolDictionary("<addSubGenerator>", 0));
       break;
@@ -400,7 +400,7 @@ void visitSyn(Tree tree) {
       break;
     case 36://<divMulExpression> <term> <divMulGenerator>
       childList = transformTree(tree, extractChild(tree, "<divMulGenerator>", 0, 1)->attr[0],
-                    extractChild(tree, "<divMulGenerator>", 0, 1)->attr[0]->children);
+                    ((Tree)(extractChild(tree, "<divMulGenerator>", 0, 1)->attr[0]))->children);
       insertInList(prunelist, lookupSymbolDictionary("<term>", 0));
       insertInList(prunelist, lookupSymbolDictionary("<divMulGenerator>", 0));
       break;
@@ -452,7 +452,7 @@ void visitSyn(Tree tree) {
       break;
     case 47://<var> ID <matrixElem>
       tree->attr[0] = extractChild(tree, "", ID, 1);
-      appendLists(tree->attr[0]->children, extractChild(tree, "<matrixElem>", 0, 1)->attr[0]);
+      appendLists(((Tree)(tree->attr[0]))->children, extractChild(tree, "<matrixElem>", 0, 1)->attr[0]);
       childList = tree->children;
       break;
     case 48://<var> STR
@@ -469,7 +469,7 @@ void visitSyn(Tree tree) {
       break;
     case 51://<var> SIZE ID
       tree->attr[0] = extractChild(tree, "", SIZE, 1);
-      insertInList(tree->attr[0]->children, extractChild(tree, "", ID, 1));
+      insertInList(((Tree)(tree->attr[0]))->children, extractChild(tree, "", ID, 1));
       childList = tree->children;
       break;
     case 52://<booleanExpr> OP <booleanExpr1> CL <logicalOp> OP <booleanExpr2> CL
