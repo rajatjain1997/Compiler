@@ -35,9 +35,6 @@ struct symbol* extractSymbol(Tree tree) {
 }
 
 void freeTree(Tree tree, int freeAttr) {
-	if(getToken(tree->symbol)!=NULL) {
-		free(tree->symbol->token);
-	}
 	free(tree->symbol);
 	if(freeAttr) {
 		int i = 0;

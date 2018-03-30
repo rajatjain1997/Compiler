@@ -5,7 +5,6 @@
 #include "token.h"
 #include "symbol.h"
 #include "list.h"
-#include "set.h"
 #include "ast.h"
 #include "trie.h"
 
@@ -29,7 +28,7 @@ Symbol* lookupSymbolDictionary(char nonterminal[], int terminal) {
     dictionary = generateSymbolDictionary();
   }
   Symbol* symbol;
-  if(nonterminal[0] == '\0') {
+  if(nonterminal[0] != '\0') {
     symbol = dictionary[0][findInTrie(nonTerminalMapping, nonterminal)];
   } else {
     symbol = dictionary[1][terminal];
@@ -45,6 +44,7 @@ void pruneChildren(List children, List prunelist) {
   Element temp = children->first->next;
   Element todelete = prunelist->first, lastdeleted;
   int index = 0, initialsize = children->size; int i = 0;
+  Tree tree;
 
   prunelist->first = NULL;
   prunelist->last = NULL;
@@ -66,7 +66,11 @@ void pruneChildren(List children, List prunelist) {
       temp=temp->next;
       lastdeleted = todelete;
       todelete = todelete->next;
-      freeTree(temp->prev->data.value.tree, 0);
+      tree = temp->prev->data.value.tree;
+      if(getToken(tree->symbol)!=NULL) {
+    		free(tree->symbol->token);
+    	}
+      freeTree(tree, 0);
       free(lastdeleted);
     }
     if(!(index==0) && !(index==initialsize-1)) {
