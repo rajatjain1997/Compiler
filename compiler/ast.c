@@ -11,11 +11,11 @@
 Symbol*** generateSymbolDictionary() {
   Symbol*** dictionary = (Symbol***) malloc(sizeof(Symbol***) * 2);
   dictionary[0] = (Symbol**) malloc(sizeof(Symbol*) * MAX_GRAMMAR_SIZE);
-  dictionary[1] = (Symbol**) malloc(sizeof(Symbol*) * NE);
+  dictionary[1] = (Symbol**) malloc(sizeof(Symbol*) * (NE+1));
   int i = 0;
   for(;i<MAX_GRAMMAR_SIZE;i++) {
     dictionary[0][i] = generateSymbol(i, 0);
-    if(i<NE) {
+    if(i<=NE) {
       dictionary[1][i] = generateSymbol(i, 1);
     }
   }
@@ -51,36 +51,38 @@ void pruneChildren(List children, List prunelist) {
   prunelist->size = 0;
 
   while(temp!=NULL && todelete!=NULL) {
+    prev=temp;
+    temp=temp->next;
     if(
       (
-        temp->data.value.tree->attr[ATTR_NOS]==NULL &&
-        temp->data.value.tree->symbol->symbolType == todelete->data.value.symbol->symbolType &&
-        isTerminal(temp->data.value.tree->symbol) == isTerminal(todelete->data.value.symbol)
+        prev->data.value.tree->attr[ATTR_NOS]==NULL &&
+        prev->data.value.tree->symbol->symbolType == todelete->data.value.symbol->symbolType &&
+        isTerminal(prev->data.value.tree->symbol) == isTerminal(todelete->data.value.symbol)
       ) ||
       (
-        temp->data.value.tree->attr[ATTR_NOS]!=NULL &&
-        ((Symbol*)(temp->data.value.tree->attr[ATTR_NOS]))->symbolType == todelete->data.value.symbol->symbolType &&
-        isTerminal(((Symbol*)(temp->data.value.tree->attr[ATTR_NOS]))) == isTerminal(todelete->data.value.symbol)
+        prev->data.value.tree->attr[ATTR_NOS]!=NULL &&
+        ((Symbol*)(prev->data.value.tree->attr[ATTR_NOS]))->symbolType == todelete->data.value.symbol->symbolType &&
+        isTerminal(((Symbol*)(prev->data.value.tree->attr[ATTR_NOS]))) == isTerminal(todelete->data.value.symbol)
       )
     ) {
-      prev=temp;
-      temp=temp->next;
       lastdeleted = todelete;
       todelete = todelete->next;
       tree = prev->data.value.tree;
       if(getToken(tree->symbol)!=NULL) {
-    		free(tree->symbol->token);
+    		// free(tree->symbol->token);
     	}
-      freeTree(tree, 0);
-      free(lastdeleted);
+      // freeTree(tree, 0);
+      // free(lastdeleted);
     }
     if(!(index==0) && !(index==initialsize-1)) {
-      free(prev);
+      // free(prev);
     }
     index++;
   }
   deleteFromFront(children);
-  deleteAtEnd(children);
+  if(children->size!=0) {
+    deleteAtEnd(children);
+  }
   children->size = 0;
 }
 
@@ -125,7 +127,7 @@ List transformTree(Tree tree, Tree head, List children) {
   if(head!=NULL) {
     tree->attr[ATTR_NOS] = tree->symbol;
     tree->symbol = head->symbol;
-    free(head);
+    // free(head);
   }
   List oldchildren = tree->children;
   tree->children = children;
@@ -140,14 +142,15 @@ void visitInh(Tree tree) {
   switch(getRuleIndex(getRule(tree->parent->symbol))) {
     case 33://<arithmeticExpression> <divMulExpression> <addSubGenerator>
       if(tree->symbol->symbolType== findInTrie(nonTerminalMapping, "<addSubGenerator>") && !isTerminal(tree->symbol)) {
-        tree->attr[1] = extractChild(tree->parent, "<divMulExpression>", 0, 1)->attr[0];
+        tree->attr[1] = extractChild(tree->parent, "<divMulExpression>", 0, 1);
       }
       break;
     case 34://<addSubGenerator> <addSubOperators> <divMulExpression> <addSubGenerator1>
       if(tree->symbol->symbolType== findInTrie(nonTerminalMapping, "<addSubGenerator>") && !isTerminal(tree->symbol)) {
         tree->attr[1] = createTree(((Tree)(extractChild(tree->parent, "<addSubOperators>", 0, 1)->attr[0]))->symbol);
-        insertInList(((Tree)(tree->attr[0]))->children, tree->parent->attr[1]);
-        insertInList(((Tree)(tree->attr[0]))->children, extractChild(tree->parent, "<divMulExpression>", 0, 1)->attr[0]);
+        ((Tree)(tree->attr[1]))->parent = tree->parent;
+        insertInList(((Tree)(tree->attr[1]))->children, tree->parent->attr[1]);
+        insertInList(((Tree)(tree->attr[1]))->children, extractChild(tree->parent, "<divMulExpression>", 0, 1));
       }
       break;
     case 36://<divMulExpression> <term> <divMulGenerator>
@@ -158,8 +161,9 @@ void visitInh(Tree tree) {
     case 37://<divMulGenerator> <divMulOperators> <term> <divMulGenerator1>
       if(tree->symbol->symbolType== findInTrie(nonTerminalMapping, "<divMulGenerator>") && !isTerminal(tree->symbol)) {
         tree->attr[1] = createTree(((Tree)(extractChild(tree->parent, "<divMulOperators>", 0, 1)->attr[0]))->symbol);
-        insertInList(((Tree)(tree->attr[0]))->children, tree->parent->attr[1]);
-        insertInList(((Tree)(tree->attr[0]))->children, extractChild(tree->parent, "<term>", 0, 1)->attr[0]);
+        ((Tree)(tree->attr[1]))->parent = tree->parent;
+        insertInList(((Tree)(tree->attr[1]))->children, tree->parent->attr[1]);
+        insertInList(((Tree)(tree->attr[1]))->children, extractChild(tree->parent, "<term>", 0, 1)->attr[0]);
       }
       break;
   }
@@ -206,9 +210,8 @@ void visitSyn(Tree tree) {
       insertInList(prunelist, lookupSymbolDictionary("<stmt>", 0));
       break;
     case 5: //<stmtOrFunctionDefn> <functionDefn>
-      tree->attr[0] = extractChild(tree, "<functionDefn>", 0, 1)->attr[0];
+      tree->attr[0] = extractChild(tree, "<functionDefn>", 0, 1);
       childList = tree->children;
-      insertInList(prunelist, lookupSymbolDictionary("<functionDefn>", 0));
       break;
     case 6: //<stmt> <declarationStmt>
       tree->attr[0] = extractChild(tree, "<declarationStmt>", 0, 1)->attr[0];
@@ -278,7 +281,7 @@ void visitSyn(Tree tree) {
       childList = tree->children;
       break;
     case 17://<remainingList> COMMA <parameterList>
-      tree->attr[0] = extractChild(tree, "<parameterList>", 0, 1);
+      tree->attr[0] = extractChild(tree, "<parameterList>", 0, 1)->attr[0];
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("", COMMA));
       break;
@@ -317,9 +320,10 @@ void visitSyn(Tree tree) {
       insertInList(prunelist, lookupSymbolDictionary("<varList>", 0));
       insertInList(prunelist, lookupSymbolDictionary("", SQC));
       insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
+      break;
     case 24://<rightHandSide> <funCall>
-      childList = transformTree(tree, extractChild(tree, "<funCall>", 0, 1)->attr[0],
-                        ((Tree)(extractChild(tree, "<funCall>", 0, 1)->attr[0]))->children);
+      childList = transformTree(tree, extractChild(tree, "<funCall>", 0, 1),
+                        extractChild(tree, "<funCall>", 0, 1)->children);
       break;
     case 25://<rightHandSide> SIZE ID
       childList = createList();
@@ -340,7 +344,7 @@ void visitSyn(Tree tree) {
       insertInList(prunelist, lookupSymbolDictionary("", CL));
       insertInList(prunelist, lookupSymbolDictionary("<stmt>", 0));
       insertInList(prunelist, lookupSymbolDictionary("<stmtProg>", 0));
-    break;
+      break;
     case 27://<elseStmt> ELSE <stmt> <stmtProg> ENDIF SEMICOLON
       childList = extractChild(tree, "<stmtProg>", 0, 1)->attr[0];
       d.value.tree = extractChild(tree, "<stmt>", 0, 1)->attr[0];
@@ -457,7 +461,8 @@ void visitSyn(Tree tree) {
       break;
     case 47://<var> ID <matrixElem>
       tree->attr[0] = extractChild(tree, "", ID, 1);
-      appendLists(((Tree)(tree->attr[0]))->children, extractChild(tree, "<matrixElem>", 0, 1)->attr[0]);
+      // free(((Tree)(tree->attr[0]))->children);
+      ((Tree)(tree->attr[0]))->children = extractChild(tree, "<matrixElem>", 0, 1)->attr[0];
       childList = tree->children;
       break;
     case 48://<var> STR
@@ -563,7 +568,8 @@ void visitSyn(Tree tree) {
       break;
     case 68://<varList> ID <moreIDs>
       tree->attr[0] = extractChild(tree, "<moreIDs>", 0, 1)->attr[0];
-      insertInList(tree->attr[0], extractChild(tree, "", ID, 1));
+      d.value.tree = extractChild(tree, "", ID, 1);
+      insertInFront(tree->attr[0], d);
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<moreIDs>", 0));
       break;
@@ -660,6 +666,7 @@ Tree createAST(Tree tree) {
 		temp = tree->children->first;
 		while(temp!=NULL) {
 			createAST(temp->data.value.tree);
+      temp->data.value.tree->parent = tree;
 			temp = temp->next;
 		}
     visitSyn(tree);

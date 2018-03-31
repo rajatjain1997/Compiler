@@ -28,7 +28,7 @@ void visitInOrder(Tree tree, FILE* fp) {
 	} else if(token!=NULL && token->type==RNUM) {
 		getLexeme(token, buf);
 		fprintf(fp, "%-20s|%-10d|%-10s|%-10f|%-23s|YES|-----------------------\n", buf, token->lineno, tokenTypeToString[token->type], token->value.real, nonTerminalStrings[tree->parent->symbol->symbolType]);
-	} else if(isTerminal(tree->symbol) && token!=NULL) {
+	} else if(isTerminal(tree->symbol) && token!=NULL && tree->parent!=NULL) {
 		getLexeme(token, buf);
 		fprintf(fp,"%-20s|%-10d|%-10s|----------|%-23s|YES|-----------------------\n", buf, token->lineno, tokenTypeToString[token->type], nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol) && tree->parent!=NULL) {
@@ -49,8 +49,8 @@ void inOrderTraversal(Tree tree, FILE* fp) {
 	if(tree->children->size==0) {
 		visitInOrder(tree, fp);
 	} else {
-		inOrderTraversal(tree->children->first->data.value.tree, fp);
 		visitInOrder(tree, fp);
+		inOrderTraversal(tree->children->first->data.value.tree, fp);
 		temp = tree->children->first->next;
 		while(temp!=NULL) {
 			inOrderTraversal(temp->data.value.tree, fp);
