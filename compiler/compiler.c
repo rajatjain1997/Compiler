@@ -144,7 +144,9 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		parsetree = parse(tokenstream, "grammar.txt");
-		parsetree = createAST(parsetree);
+		if(!checkErrorState()) {
+			parsetree = createAST(parsetree);
+		}
 		while(error_testing) {
 			switch(choice) {
 				case 3:
