@@ -131,6 +131,12 @@ List transformTree(Tree tree, Tree head, List children) {
   }
   List oldchildren = tree->children;
   tree->children = children;
+  Element temp;
+  temp = children->first;
+  while(temp!=NULL) {
+    temp->data.value.tree->parent = tree;
+    temp = temp->next;
+  }
   return oldchildren;
 }
 
@@ -666,7 +672,6 @@ Tree createAST(Tree tree) {
 		temp = tree->children->first;
 		while(temp!=NULL) {
 			createAST(temp->data.value.tree);
-      temp->data.value.tree->parent = tree;
 			temp = temp->next;
 		}
     visitSyn(tree);
