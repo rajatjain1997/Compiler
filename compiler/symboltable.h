@@ -2,7 +2,7 @@ struct head;
 struct tree;
 
 struct symboltable {
-  struct head* symboltable;
+  struct head** symboltable;
   int size;
   int lastoffset;
 };
@@ -14,6 +14,8 @@ typedef struct type {
 } Type;
 
 typedef struct symboltable* SymbolTable;
+
+extern int sizeLookup(int type);
 
 SymbolTable createSymbolTable();
 
