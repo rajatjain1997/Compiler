@@ -8,7 +8,6 @@
 #include "symboltable.h"
 
 const int size = 29;
-// Token* parentToken = NULL;
 
 struct idEntry {
   Type* type;
@@ -35,7 +34,7 @@ int hashingFunction(char a[]) {
   int index = 0, i = 0;
   while(a[i]!='\0') {
     index = (index + (a[i]*m)%size)%size;
-    m*=17;
+    m*=37;
   }
 }
 
@@ -48,6 +47,7 @@ SymbolTable createSymbolTable() {
   }
   h->size = size;
   h->lastoffset = 0;
+  h->parent = NULL;
   return h;
 }
 
@@ -85,15 +85,19 @@ int insertSymbol(SymbolTable h,  struct symbolTableEntry* s) {
 
 struct symbolTableEntry* retrieveSymbol(SymbolTable h, Token* token) {
   char buf1[20], buf2[20];
+  SymbolTable tempst = h;
   getLexeme(token, buf2);
   int index = hashingFunction(buf2);
-  Element temp = h->symboltable[index]->first;
-  while(temp!=NULL) {
-    getLexeme(getToken(extractSymbol(temp->data.value.symboltableentry->tokentree)), buf1);
-    if(strcmp(buf1, buf2)==0) {
-      return temp->data.value.symboltableentry;
+  while(tempst!=NULL)
+    Element temp = tempst->symboltable[index]->first;
+    while(temp!=NULL) {
+      getLexeme(getToken(extractSymbol(temp->data.value.symboltableentry->tokentree)), buf1);
+      if(strcmp(buf1, buf2)==0) {
+        return temp->data.value.symboltableentry;
+      }
+      temp = temp->next;
     }
-    temp = temp->next;
+    tempst = tempst->parent;
   }
   return NULL;
 }
@@ -142,35 +146,17 @@ SymbolTable createfunEntry(SymbolTable st, Tree tokentree) {
   if(getToken(extractSymbol(tokentree))->type!=FUNID) {
     return NULL;
   }
-  // static Tree parenttree = NULL;
-  // if(parentToken==NULL) {
-  //   parentToken = tokenize(MAIN, "__", -1);
-  //   Symbol* symbol = generateSymbol(MAIN, 1);
-  //   attachTokenToSymbol(symbol, parentToken);
-  //   parenttree = createTree(symbol);
-  // }
   struct symbolTableEntry* ste = (struct symbolTableEntry*) malloc(sizeof(struct symbolTableEntry));
   ste->value.funentry = (struct funEntry*) malloc(sizeof(struct funEntry));
   ste->tokentree = tokentree;
   ste->value.funentry->scope = createSymbolTable();
-  // struct symbolTableEntry* parentste = (struct symbolTableEntry*) malloc(sizeof(struct symbolTableEntry));
-  // parentste->value.funentry = (struct funEntry*) malloc(sizeof(struct funEntry));
-  // parentste->tokentree = tokentree;
-  // parentste->value.funentry->scope = st;
-  // insertSymbol(ste->value.funentry->scope, parentste);
+  ste->value.funentry->scope->parent = st;
   return ste->value.funentry->scope;
 }
 
-// SymbolTable getParentScope(SymbolTable st) {
-//   if(parentToken==NULL) {
-//     return NULL;
-//   }
-//   struct symbolTableEntry* ste = retrieveSymbol(st, parentToken);
-//   if(ste==NULL) {
-//     return NULL;
-//   }
-//   return ste->value.funentry->scope;
-// }
+SymbolTable getParentScope(SymbolTable st) {
+  return st->parent;
+}
 
 Tree fetchfunDefn(SymbolTable st, Tree tokentree) {
   if(getToken(extractSymbol(tokentree))->type!=FUNID) {

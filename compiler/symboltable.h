@@ -5,6 +5,7 @@ struct symboltable {
   struct head** symboltable;
   int size;
   int lastoffset;
+  struct symboltable* parent;
 };
 
 typedef struct type {
@@ -27,6 +28,6 @@ Type* fetchType(SymbolTable st, Tree tokentree);
 
 SymbolTable createfunEntry(SymbolTable st, Tree tokentree);
 
-// SymbolTable getParentScope(SymbolTable st);
+SymbolTable getParentScope(SymbolTable st);
 
 Tree fetchfunDefn(SymbolTable st, Tree tokentree);
