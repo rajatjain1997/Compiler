@@ -26,7 +26,11 @@ int createidEntry(SymbolTable st, Tree tokentree, int type);
 
 int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int columns);
 
+int updateidDefined(SymbolTable st, Tree tokentree);
+
 Type* fetchType(SymbolTable st, Tree tokentree);
+
+int fetchDefined(SymbolTable st, Tree tokentree);
 
 SymbolTable createfunEntry(SymbolTable st, Tree tokentree);
 

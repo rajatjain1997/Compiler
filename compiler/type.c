@@ -12,9 +12,9 @@
  * LHS type = RHS type
  * Redefined symbols
  * Redefined functions
- * Function call values
  * Symbol table maintainenace
- * All returnvalues must be assigned ina fxn
+ * All returnvalues must be assigned in a fxn
+ * Function call values
  * Any independed funCall must return 0 arguments
  * Boolean Expr must be boolean type
  * Recursion removal
@@ -32,6 +32,14 @@ int sizeLookup(int type) {
 
 int symbolComparatorNT(Symbol* s, char[] str) {
   return symbol->symbolType == lookupSymbolDictionary(str, 0)->symbolType;
+}
+
+void markDefinedVars(SymbolTable st, List vars) {
+  Element temp = vars->first;
+  while(temp->next!=NULL) {
+    updateidDefined(st, temp->data.value.tree);
+    temp = temp->next;
+  }
 }
 
 int typeComparator(Type* type2, Type* type1) {
@@ -191,8 +199,19 @@ void visitSyn(Tree tree) {
             }
           }
         }
+        markDefinedVars(tree->children);
         break;
 
+    }
+  } else {
+    if(symbolComparatorNT(symbol, "<functionDefn>")) {
+      temp = tree->children->first->next->data.value.tree->children->first;
+      while(temp!=NULL) {
+        if(!fetchDefined(scope, temp->data.value.tree->children->first->data.value.tree)) {
+          //Undefined argument error
+        }
+        temp = temp->next;
+      }
     }
   }
 }

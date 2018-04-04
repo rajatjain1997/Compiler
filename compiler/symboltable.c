@@ -13,6 +13,7 @@ struct idEntry {
   Type* type;
   int size;
   int offset;
+  char defined;
 };
 
 struct funEntry {
@@ -124,6 +125,7 @@ int createidEntry(SymbolTable st, Tree tokentree, int type) {
   ste->value.identry->type->columns = 0;
   int size = sizeLookup(type);
   ste->value.identry->size = size;
+  ste->value.identry->defined = 0;
   ste->value.identry->offset = st->lastoffset + size;
   st->lastoffset = ste->value.identry->offset;
   return insertSymbol(st, ste);
@@ -148,12 +150,35 @@ int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int co
   return 1;
 }
 
+int updateidDefined(SymbolTable st, Tree tokentree) {
+  if(getToken(extractSymbol(tokentree))->type!=ID) {
+    return 0;
+  }
+  struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
+  if(ste==NULL) {
+    return 0;
+  }
+  ste->value.identry->defined = (char) 1;
+  return 1;
+}
+
 Type* fetchType(SymbolTable st, Tree tokentree) {
   struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
   if(ste==NULL || getToken(extractSymbol(ste->tokentree))->type!=ID) {
     return NULL;
   }
   return ste->value.identry->type;
+}
+
+int fetchDefined(SymbolTable st, Tree tokentree) {
+  if(getToken(extractSymbol(tokentree))->type!=ID) {
+    return 0;
+  }
+  struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
+  if(ste==NULL) {
+    return 0;
+  }
+  return (int) ste->value.identry->defined;
 }
 
 SymbolTable createfunEntry(SymbolTable st, Tree tokentree) {
