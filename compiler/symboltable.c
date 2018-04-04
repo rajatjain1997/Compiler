@@ -34,6 +34,7 @@ int hashingFunction(char a[]) {
   int index = 0, i = 0;
   while(a[i]!='\0') {
     index = (index + (a[i]*m)%size)%size;
+    i++;
     m*=37;
   }
 }
@@ -49,6 +50,14 @@ SymbolTable createSymbolTable() {
   h->lastoffset = 0;
   h->parent = NULL;
   return h;
+}
+
+Type* createType(int t, int rows, int columns) {
+  Type* type = (Type*) malloc(sizeof(Type));
+  type->type = t;
+  type->rows = rows;
+  type->columns = columns;
+  return type;
 }
 
 // void deleteSymbolTable(SymbolTable h) {
@@ -88,7 +97,7 @@ struct symbolTableEntry* retrieveSymbol(SymbolTable h, Token* token) {
   SymbolTable tempst = h;
   getLexeme(token, buf2);
   int index = hashingFunction(buf2);
-  while(tempst!=NULL)
+  while(tempst!=NULL) {
     Element temp = tempst->symboltable[index]->first;
     while(temp!=NULL) {
       getLexeme(getToken(extractSymbol(temp->data.value.symboltableentry->tokentree)), buf1);
@@ -124,6 +133,11 @@ int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int co
   struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
   if(ste==NULL || ste->value.identry->size!=0 || rows < 1 || columns < 1 || ste->value.identry->type->type!=type) {
     return 0;
+  }
+  if(type==MATRIX) {
+    type = INT;
+  } else {
+    type = STR;
   }
   int size = sizeLookup(type)*rows*columns;
   ste->value.identry->size = size;
@@ -168,3 +182,38 @@ Tree fetchfunDefn(SymbolTable st, Tree tokentree) {
   }
   return ste->tokentree->parent;
 }
+
+/* GDB Only functions */
+
+// void main() {
+//   char buf[] = "abc";
+//   SymbolTable st = createSymbolTable();
+//   initializeTokenizer();
+//   Token* to = tokenize(ID, buf, 0);
+//   Symbol* sy = generateSymbol(ID, 1);
+//   attachTokenToSymbol(sy, to);
+//   Tree t = createTree(sy);
+//   printf("%d\n", createidEntry(st, t, MATRIX));
+//   printf("%d\n", fetchType(st, t)->type);
+//   printf("%d\n", updateidEntrySize(st, t, MATRIX, 5,5));
+//   printf("%d\n", fetchType(st, t)->rows);
+//   char buf2[] = "_abc";
+//   to = tokenize(FUNID, buf, 0);
+//   sy = generateSymbol(FUNID, 1);
+//   attachTokenToSymbol(sy, to);
+//   Tree tr = createTree(sy);
+//   st = createfunEntry(st, tr);
+//   printf("%d\n", fetchType(st, t)->type);
+//   printf("%d\n", updateidEntrySize(st, t, MATRIX, 5,5));
+//   printf("%d\n", fetchType(st, t)->rows);
+//   printf("%d %d\n", st->lastoffset, st->parent->lastoffset);
+// }
+//
+// int sizeLookup(int type) {
+//   switch(type) {
+//     case INT: return 4;
+//     case REAL: return 4;
+//     case STRING: case MATRIX: return 0;
+//     case STR: return 1;
+//   }
+// }

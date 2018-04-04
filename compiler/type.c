@@ -12,6 +12,7 @@ int sizeLookup(int type) {
     case INT: return 4;
     case REAL: return 4;
     case STRING: case MATRIX: return 0;
+    case STR: return 1;
   }
 }
 
@@ -80,7 +81,6 @@ void visitSyn(Tree tree) {
             //Extra RHS
           }
         } else {
-          temp = tree->children->first;
           type1 = (Type*) tree->children->last->data.value.tree->attr[1];
           if(type1->columns==2 && type1->type==INT) {
             if(tree->children->size>2) {
@@ -100,7 +100,7 @@ void visitSyn(Tree tree) {
               }
             }
           } else {
-            type2 = fetchType(scope, temp->data.value.tree);
+            type2 = (Type*) temp->data.value.tree->attr[1];
             if(type1->type==MATRIX || type1->type==STRING) {
               if(!updateidEntrySize(st, temp->data.value.tree, type1->type, type1->rows, type1->columns)) {
                 //Type mismatch
@@ -111,20 +111,36 @@ void visitSyn(Tree tree) {
           }
         }
         break;
+      case NUM:
+        tree->attr[1] = createType(INT, 0, 0);
+        break;
+      case RNUM:
+        tree->attr[1] = createType(REAL, 0, 0);
+        break;
+      case STR:
+        tree->attr[1] = createType(STRING, 0, 0);
+        break;
+      case ID:
+        tree->attr[1] = fetchType(scope, tree);
+        if(tree->attr[1]==NULL) {
+          //Not declared
+        } else if((Type*) tree->attr[1]->type == MATRIX && tree->children->size==2) {
+          tree->attr[1] = createType(INT, 0, 0);
+        }
+        break;
+
     }
   }
 }
 
 Tree typeCheck(Tree tree) {
   Element temp;
-	if(tree->children->size!=0) {
-    visitInh(tree);
-		temp = tree->children->first;
-		while(temp!=NULL) {
-			typeCheck(temp->data.value.tree);
-			temp = temp->next;
-		}
-    visitSyn(tree);
-  }
+  visitInh(tree);
+	temp = tree->children->first;
+	while(temp!=NULL) {
+		typeCheck(temp->data.value.tree);
+		temp = temp->next;
+	}
+  visitSyn(tree);
   return tree;
 }

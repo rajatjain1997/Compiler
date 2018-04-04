@@ -20,6 +20,8 @@ extern int sizeLookup(int type);
 
 SymbolTable createSymbolTable();
 
+Type* createType(int type, int rows, int columns);
+
 int createidEntry(SymbolTable st, Tree tokentree, int type);
 
 int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int columns);
