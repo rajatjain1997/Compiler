@@ -1,5 +1,5 @@
-all: compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o tree.o trie.o ast.o
-	gcc -o stage1exe compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o ast.o
+all: compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o tree.o trie.o ast.o semantic.o
+	gcc -o stage1exe compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o ast.o semantic.o
 
 stage1: compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o tree.o trie.o
 	gcc -o stage1exe compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o
@@ -13,8 +13,11 @@ lexer.o: lexer.h lexer.c list.h token.h error.h
 parser.o: parser.h parser.c set.h grammar.h symbol.h tree.h error.h token.h list.h
 	gcc -c parser.c
 
-ast.o: ast.h ast.c tree.h grammar.h token.h symbol.h list.h trie.h
+ast.o: ast.h ast.c tree.h token.h symbol.h list.h trie.h semantic.h grammar.h
 	gcc -c ast.c
+
+semantic.o:  semantic.h semantic.c tree.h token.h symbol.h list.h trie.h semantic.h grammar.h
+	gcc -c semantic.c
 
 list.o: list.c list.h
 	gcc -c list.c
