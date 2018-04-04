@@ -22,7 +22,7 @@ SymbolTable createSymbolTable();
 
 int createidEntry(SymbolTable st, Tree tokentree, int type);
 
-int updateidEntrySize(SymbolTable st, Tree tokentree, int rows, int columns);
+int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int columns);
 
 Type* fetchType(SymbolTable st, Tree tokentree);
 

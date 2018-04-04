@@ -120,12 +120,12 @@ int createidEntry(SymbolTable st, Tree tokentree, int type) {
   return insertSymbol(st, ste);
 }
 
-int updateidEntrySize(SymbolTable st, Tree tokentree, int rows, int columns) {
+int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int columns) {
   struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
-  if(ste==NULL || ste->value.identry->size!=0 || rows < 1 || columns < 1) {
+  if(ste==NULL || ste->value.identry->size!=0 || rows < 1 || columns < 1 || ste->value.identry->type->type!=type) {
     return 0;
   }
-  int size = rows*columns;
+  int size = sizeLookup(type)*rows*columns;
   ste->value.identry->size = size;
   ste->value.identry->offset = st->lastoffset + size;
   st->lastoffset = ste->value.identry->offset;
@@ -166,5 +166,5 @@ Tree fetchfunDefn(SymbolTable st, Tree tokentree) {
   if(ste==NULL) {
     return NULL;
   }
-  return ste->tokentree;
+  return ste->tokentree->parent;
 }
