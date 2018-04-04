@@ -8,7 +8,7 @@
 #include "symboltable.h"
 
 const int size = 29;
-Token* parentToken = NULL;
+// Token* parentToken = NULL;
 
 struct idEntry {
   Type* type;
@@ -142,35 +142,35 @@ SymbolTable createfunEntry(SymbolTable st, Tree tokentree) {
   if(getToken(extractSymbol(tokentree))->type!=FUNID) {
     return NULL;
   }
-  static Tree parenttree = NULL;
-  if(parentToken==NULL) {
-    parentToken = tokenize(MAIN, "__", -1);
-    Symbol* symbol = generateSymbol(MAIN, 1);
-    attachTokenToSymbol(symbol, parentToken);
-    parenttree = createTree(symbol);
-  }
+  // static Tree parenttree = NULL;
+  // if(parentToken==NULL) {
+  //   parentToken = tokenize(MAIN, "__", -1);
+  //   Symbol* symbol = generateSymbol(MAIN, 1);
+  //   attachTokenToSymbol(symbol, parentToken);
+  //   parenttree = createTree(symbol);
+  // }
   struct symbolTableEntry* ste = (struct symbolTableEntry*) malloc(sizeof(struct symbolTableEntry));
   ste->value.funentry = (struct funEntry*) malloc(sizeof(struct funEntry));
   ste->tokentree = tokentree;
   ste->value.funentry->scope = createSymbolTable();
-  struct symbolTableEntry* parentste = (struct symbolTableEntry*) malloc(sizeof(struct symbolTableEntry));
-  parentste->value.funentry = (struct funEntry*) malloc(sizeof(struct funEntry));
-  parentste->tokentree = tokentree;
-  parentste->value.funentry->scope = st;
-  insertSymbol(ste->value.funentry->scope, parentste);
+  // struct symbolTableEntry* parentste = (struct symbolTableEntry*) malloc(sizeof(struct symbolTableEntry));
+  // parentste->value.funentry = (struct funEntry*) malloc(sizeof(struct funEntry));
+  // parentste->tokentree = tokentree;
+  // parentste->value.funentry->scope = st;
+  // insertSymbol(ste->value.funentry->scope, parentste);
   return ste->value.funentry->scope;
 }
 
-SymbolTable getParentScope(SymbolTable st) {
-  if(parentToken==NULL) {
-    return NULL;
-  }
-  struct symbolTableEntry* ste = retrieveSymbol(st, parentToken);
-  if(ste==NULL) {
-    return NULL;
-  }
-  return ste->value.funentry->scope;
-}
+// SymbolTable getParentScope(SymbolTable st) {
+//   if(parentToken==NULL) {
+//     return NULL;
+//   }
+//   struct symbolTableEntry* ste = retrieveSymbol(st, parentToken);
+//   if(ste==NULL) {
+//     return NULL;
+//   }
+//   return ste->value.funentry->scope;
+// }
 
 Tree fetchfunDefn(SymbolTable st, Tree tokentree) {
   if(getToken(extractSymbol(tokentree))->type!=FUNID) {

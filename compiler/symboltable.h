@@ -27,4 +27,6 @@ Type* fetchType(SymbolTable st, Tree tokentree);
 
 SymbolTable createfunEntry(SymbolTable st, Tree tokentree);
 
-SymbolTable getParentScope(SymbolTable st);
+// SymbolTable getParentScope(SymbolTable st);
+
+Tree fetchfunDefn(SymbolTable st, Tree tokentree);
