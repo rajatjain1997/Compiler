@@ -30,12 +30,12 @@ struct symbolTableEntry {
 };
 
 int hashingFunction(char a[]) {
-  long long int m = 1;
+  int m = 1;
   int index = 0, i = 0;
   while(a[i]!='\0') {
     index = (index + (a[i]*m)%size)%size;
     i++;
-    m*=37;
+    m=(m*37)%size;
   }
 }
 
@@ -181,6 +181,17 @@ Tree fetchfunDefn(SymbolTable st, Tree tokentree) {
     return NULL;
   }
   return ste->tokentree->parent;
+}
+
+SymbolTable fetchfunScope(SymbolTable st, Tree tokentree) {
+  if(getToken(extractSymbol(tokentree))->type!=FUNID) {
+    return NULL;
+  }
+  struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
+  if(ste==NULL) {
+    return NULL;
+  }
+  return ste->value.funentry->scope;
 }
 
 /* GDB Only functions */

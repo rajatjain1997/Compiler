@@ -33,3 +33,5 @@ SymbolTable createfunEntry(SymbolTable st, Tree tokentree);
 SymbolTable getParentScope(SymbolTable st);
 
 Tree fetchfunDefn(SymbolTable st, Tree tokentree);
+
+SymbolTable fetchfunScope(SymbolTable st, Tree tokentree);
