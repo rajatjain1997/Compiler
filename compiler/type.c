@@ -9,6 +9,7 @@
 
 void visitInh(Tree tree) {
   Symbol* symbol = extractSymbol(tree);
+  int flag = 1;
   if(isTerminal(symbol)) {
     switch(symbol->symbolType) {
       case MAIN:
@@ -17,11 +18,23 @@ void visitInh(Tree tree) {
       default:
         tree->attr[0] = tree->parent->attr[0];
     }
+    switch(symbol->symbolType) {
+      case INT: case REAL: case STRING: case MATRIX:
+        Element temp = tree->children->first;
+        while(temp!=NULL) {
+          flag = createidEntry((SymbolTable) tree->attr[0], temp->data.value.tree, symbol->symbolType);
+          if(!flag) {
+            //Redefined symbol
+          }
+          temp = temp->next;
+        }
+        break;
+    }
   } else {
     if(symbol->symbolType == lookupSymbolDictionary("<functionDefn>", 0)->symbolType) {
-      tree->attr[0] = createfunEntry(tree->parent->attr[0], tree->children->first->data.value.tree);
+      tree->attr[0] = createfunEntry((SymbolTable) tree->parent->attr[0], tree->children->first->data.value.tree);
       if(tree->attr[0]==NULL) {
-        //Redifned funid error
+        //Redefined funid error
       }
     } else {
       tree->attr[0] = tree->parent->attr[0];
