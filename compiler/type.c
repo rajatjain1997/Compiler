@@ -122,10 +122,9 @@ void visitInh(Tree tree) {
         if(temptree==NULL) {
           //Not declared
         }
-        temptree = temptree->children->first->next->data.value.tree;
+        temptree = extractChildNumber(temptree, 2);
         if(!temptree->children->size==0 && !temptree->children->size>1) {
-          tree->attr[1] = fetchType(fetchfunScope(scope, tree),
-                                      temptree->children->first->data.value.tree->children->first->data.value.tree);
+          tree->attr[1] = fetchType(fetchfunScope(scope, tree), extractChildNumber(extractChildNumber(temptree,1),1);
         } else {
           tree->attr[1] = createType(FUNID, 0, 0);
         }
@@ -133,7 +132,7 @@ void visitInh(Tree tree) {
     }
   } else {
     if(symbolComparatorNT(symbol, "<functionDefn>")) {
-      tree->attr[0] = createfunEntry((SymbolTable) tree->parent->attr[0], tree->children->first->data.value.tree);
+      tree->attr[0] = createfunEntry((SymbolTable) tree->parent->attr[0], extractChildNumber(tree, 1));
       if(tree->attr[0]==NULL) {
         //Redefined funid error
       }
@@ -141,7 +140,7 @@ void visitInh(Tree tree) {
       tree->attr[0] = tree->parent->attr[0];
     }
     if(symbolComparatorNT(symbol, "<matrix>")) {
-      tree->attr[1] = createType(MATRIX, tree->children->size, tree->children->first->data.value.tree->children->size);
+      tree->attr[1] = createType(MATRIX, tree->children->size, extractChildNumber(tree, 1)->children->size);
     }
   }
 }
@@ -155,12 +154,13 @@ void visitSyn(Tree tree) {
     switch(symbol->symbolType) {
       case ASSIGNOP:
         temp = tree->children->first;
-        temptree = fetchfunDefn(scope, tree->children->last.data.value.tree);
+        temptree = fetchfunDefn(scope, extractChildNumber(tree, tree->children->size));
         if(temptree!=NULL) {
-          temp2 = temptree->children->first->next->data.value.tree->children->first;
+          temp2 = extractChildNumber(temptree, 2)->children->first;
           while(temp->next!=NULL || temp2!=NULL) {
             type1 = fetchType(scope, temp->data.value.tree);
-            type2 = fetchType(fetchfunScope(scope, tree->children->last.data.value.tree), temp2->children->first->data.value.tree);
+            type2 = fetchType(fetchfunScope(scope, extractChildNumber(tree, tree->children->size)),
+                              extractChildNumber(temp2->data.value.tree, 1);
             if(type1==NULL) {
               //Not declared error
             }
@@ -176,7 +176,7 @@ void visitSyn(Tree tree) {
             //Extra RHS
           }
         } else {
-          type1 = (Type*) tree->children->last->data.value.tree->attr[1];
+          type1 = (Type*) extractChildNumber(tree, tree->children->size)->attr[1];
           if(type1->columns==2 && type1->type==INT) {
             if(tree->children->size>2) {
               //Extra LHS
@@ -206,10 +206,11 @@ void visitSyn(Tree tree) {
       case FUNID:
         temp = tree->children->first;
         temptree = fetchfunDefn(scope, tree);
-        temp2 = temptree->children->first->next->next->data.value.tree->children->first;
+        temp2 = extractChildNumber(temptree, 3)->children->first;
         while(temp!=NULL || temp2!=NULL) {
           type1 = fetchType(scope, temp->data.value.tree);
-          type2 = fetchType(fetchfunScope(scope, tree->children->last.data.value.tree), temp2->children->first->data.value.tree);
+          type2 = fetchType(fetchfunScope(scope, extractChildNumber(tree, tree->children->size)),
+                            extractChildNumber(temp2->data.value.tree, 1);
           if(type1==NULL) {
             //Not declared error
           }
@@ -222,14 +223,17 @@ void visitSyn(Tree tree) {
         if(temp!=NULL || temp2!=NULL) {
           // Arguments mismatch
         }
+        if(checkStmt(tree) && extractChildNumber(temptree, 3)->children->size!=0) {
+          //Non-zero arg fxn called without assign
+        }
         break;
 
     }
   } else {
     if(symbolComparatorNT(symbol, "<functionDefn>")) {
-      temp = tree->children->first->next->data.value.tree->children->first;
+      temp = extractChildNumber(tree, 2)->children->first;
       while(temp!=NULL) {
-        if(!fetchDefined(scope, temp->data.value.tree->children->first->data.value.tree)) {
+        if(!fetchDefined(scope, extractChildNumber(temp->data.value.tree, 1)) {
           //Undefined argument error
         }
         temp = temp->next;

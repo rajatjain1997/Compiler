@@ -63,3 +63,18 @@ Tree extractChild(Tree tree ,char nonterminal[], TokenType terminal, int childno
   }
   return NULL;
 }
+
+
+Tree extractChildNumber(Tree tree, int childno) {
+  Symbol* symbol = lookupSymbolDictionary(nonterminal, terminal);
+  List children = tree->children;
+  Element temp = children->first;
+  int index = 0;
+  while(temp!=NULL) {
+    if(++index == childno) {
+      return temp->data.value.tree;
+    }
+    temp = temp->next;
+  }
+  return NULL;
+}
