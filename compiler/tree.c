@@ -45,6 +45,13 @@ void freeTree(Tree tree, int freeAttr) {
 	freeList(tree->children);
 }
 
+void nullifyAttributes(Tree tree) {
+	int i = 0;
+	for(;i<ATTR_NOS;i++) {
+		tree->attr[i] = NULL;
+	}
+}
+
 // void visitBFT(Tree tree) {
 // 	// printf("%s\n", tree->dir_name);
 // }

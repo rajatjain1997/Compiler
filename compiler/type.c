@@ -66,7 +66,8 @@ int checkStmt(Tree tree) {
   return 0;
 }
 
-Type* generateTypeAttribute(Tree tree) {
+void generateTypeAttribute(Tree tree) {
+  nullifyAttributes(tree);
   Symbol* symbol = extractSymbol(tree);
   SymbolTable scope = (SymbolTable) tree->attr[0];
   Tree temptree; Type type1;
@@ -87,14 +88,13 @@ Type* generateTypeAttribute(Tree tree) {
           //Not declared
         }
         break;
-      default:
-        return NULL;
     }
   }
   return (Type*) tree->attr[1];
 }
 
 void visitInh(Tree tree) {
+  nullifyAttributes(tree);
   Symbol* symbol = extractSymbol(tree);
   Element temp;
   int flag = 1;
@@ -169,11 +169,11 @@ void visitSyn(Tree tree) {
         temp = tree->children->first;
         temptree = fetchfunDefn(scope, extractChildNumber(tree, tree->children->size));
         if(temptree!=NULL) {
-          temp2 = extractChildNumber(temptree, 2)->children->first;
+          temp2 = extractChild(temptree, "<parameterList>", 0, 1)->children->first;
           while(temp->next!=NULL || temp2!=NULL) {
             type1 = fetchType(scope, temp->data.value.tree);
             type2 = fetchType(fetchfunScope(scope, extractChildNumber(tree, tree->children->size)),
-                              extractChildNumber(temp2->data.value.tree, 1);
+                              extractChild(temp2->data.value.tree, 0, FUNID, 1);
             if(type1==NULL) {
               //Not declared error
             }
@@ -219,11 +219,11 @@ void visitSyn(Tree tree) {
       case FUNID:
         temp = tree->children->first;
         temptree = fetchfunDefn(scope, tree);
-        temp2 = extractChildNumber(temptree, 3)->children->first;
+        temp2 = extractChild(temptree, "<parameterList>", 0, 2)->children->first;
         while(temp!=NULL || temp2!=NULL) {
           type1 = fetchType(scope, temp->data.value.tree);
           type2 = fetchType(fetchfunScope(scope, extractChildNumber(tree, tree->children->size)),
-                            extractChildNumber(temp2->data.value.tree, 1);
+                            extractChild(temp2->data.value.tree, 0, FUNID, 1);
           if(type1==NULL) {
             //Not declared error
           }
@@ -236,15 +236,57 @@ void visitSyn(Tree tree) {
         if(temp!=NULL || temp2!=NULL) {
           // Arguments mismatch
         }
-        if(checkStmt(tree) && extractChildNumber(temptree, 3)->children->size!=0) {
+        if(checkStmt(tree) && extractChild(temptree, "<parameterList>", 0, 2)->children->size!=0) {
           //Non-zero arg fxn called without assign
         }
         break;
-
+      case IF:
+        type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
+        if(type==NULL || type1->type!=AND) {
+          //Non boolean if condn
+        }
+      case AND: case OR:
+        temptree = extractChildNumber(tree, 1);
+        type1 = ((Type*) extractChildNumber(tree, 2)->attr[1]);
+        if(type1==NULL || temptree->attr[1] == NULL) {
+          //Type mismatch error
+        }
+        if(((Type*) temptree->attr[1])->type == AND && type1->type == AND) {
+          tree->attr[1] = temptree->attr[1];
+        } else {
+          //Non-Boolean Expr
+        }
+        break;
+      case NOT:
+        temptree = extractChildNumber(tree, 1);
+        if(temptree->attr[1] == NULL) {
+          //Type mismatch error
+        }
+        if(((Type*) temptree->attr[1])->type == AND) {
+          tree->attr[1] = temptree->attr[1];
+        } else {
+          //Non-Boolean Expr
+        }
+        break;
+      case LT: case LE: case EQ: case GT: case GE: case NE:
+        type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
+        type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
+        if(type1==NULL || type1==NULL) {
+          //Type mismatch error
+        }
+        if(
+            (type1->type == INT || type1->type == REAL) && type1->rows == 0 && type1->columns == 0 &&
+            (type2->type == INT || type2->type == REAL) && type2->rows == 0 && type2->columns == 0
+          ) {
+          tree->attr[1] = createType(AND, 0, 0);
+        } else {
+          //Non-Boolean Expr
+        }
+        break;
     }
   } else {
     if(symbolComparatorNT(symbol, "<functionDefn>")) {
-      temp = extractChildNumber(tree, 2)->children->first;
+      temp = extractChildNumber(tree, "<parameterList>", 0, 1)->children->first;
       while(temp!=NULL) {
         if(!fetchDefined(scope, extractChildNumber(temp->data.value.tree, 1)) {
           //Undefined argument error
