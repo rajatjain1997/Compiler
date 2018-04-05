@@ -17,8 +17,8 @@
  * Function call values
  * Any independed funCall must return 0 arguments
  * Boolean Expr must be boolean type
- * Recursion removal
  * Arithmetic type generation
+ * Recursion removal
  */
 
 int sizeLookup(int type) {
@@ -30,8 +30,8 @@ int sizeLookup(int type) {
   }
 }
 
-int symbolComparatorNT(Symbol* s, char[] str) {
-  return symbol->symbolType == lookupSymbolDictionary(str, 0)->symbolType;
+int symbolComparatorNT(Symbol* s, char str[]) {
+  return s->symbolType == lookupSymbolDictionary(str, 0)->symbolType;
 }
 
 void markDefinedVars(SymbolTable st, List vars) {
@@ -42,9 +42,9 @@ void markDefinedVars(SymbolTable st, List vars) {
   }
 }
 
-int typeComparator(Type* type2, Type* type1) {
+int typeComparator(SymbolTable st, Tree identifier, Type* type2, Type* type1) {
   if(type1->type==MATRIX || type1->type==STRING) {
-    if(!updateidEntrySize(st, temp->data.value.tree, type1->type, type1->rows, type1->columns)) {
+    if(!updateidEntrySize(st, identifier, type1->type, type1->rows, type1->columns)) {
       return 0;
     }
   } else if(type1->type!=type2->type || type1->rows!=type2->rows || type1->columns!=type2->columns) {
@@ -54,7 +54,7 @@ int typeComparator(Type* type2, Type* type1) {
 }
 
 int checkStmt(Tree tree) {
-  Symbol sy = extractSymbol(tree->parent);
+  Symbol* sy = extractSymbol(tree->parent);
   if(
       sy->symbolType == lookupSymbolDictionary("<functionDefn>", 0)->symbolType && isTerminal(sy) == 0||
       sy->symbolType == MAIN && isTerminal(sy) == 1 ||
@@ -90,13 +90,13 @@ void generateTypeAttribute(Tree tree) {
         break;
     }
   }
-  return (Type*) tree->attr[1];
 }
 
 void visitInh(Tree tree) {
   nullifyAttributes(tree);
   Symbol* symbol = extractSymbol(tree);
-  Element temp;
+  Element temp; SymbolTable scope;
+  Type *type1, *type2; Tree temptree;
   int flag = 1;
   if(isTerminal(symbol)) {
     switch(symbol->symbolType) {
@@ -106,6 +106,7 @@ void visitInh(Tree tree) {
       default:
         tree->attr[0] = tree->parent->attr[0];
     }
+    scope = (SymbolTable) tree->attr[0];
     switch(symbol->symbolType) {
       case INT: case REAL: case STRING: case MATRIX:
         temp = tree->children->first;
@@ -119,7 +120,7 @@ void visitInh(Tree tree) {
         break;
       case ID:
         tree->attr[1] = fetchType(scope, tree);
-        if((Type*) tree->attr[1]->type == MATRIX && tree->children->size==2) {
+        if(((Type*) tree->attr[1])->type == MATRIX && tree->children->size==2) {
           tree->attr[1] = createType(INT, 0, 0);
         }
       case SIZE:
@@ -137,9 +138,7 @@ void visitInh(Tree tree) {
         }
         temptree = extractChildNumber(temptree, 2);
         if(!temptree->children->size==0 && !temptree->children->size>1) {
-          tree->attr[1] = fetchType(fetchfunScope(scope, tree), extractChildNumber(extractChildNumber(temptree,1),1);
-        } else {
-          tree->attr[1] = createType(FUNID, 0, 0);
+          tree->attr[1] = fetchType(fetchfunScope(scope, tree), extractChildNumber(extractChildNumber(temptree,1),1));
         }
         break;
     }
@@ -161,7 +160,7 @@ void visitInh(Tree tree) {
 void visitSyn(Tree tree) {
   Symbol* symbol = extractSymbol(tree);
   SymbolTable scope = (SymbolTable) tree->attr[0];
-  Element temp, temp2; Tree temptree; Type* type1, type2;
+  Element temp, temp2; Tree temptree; Type *type1, *type2;
   int flag = 1;
   if(isTerminal(symbol)) {
     switch(symbol->symbolType) {
@@ -173,11 +172,11 @@ void visitSyn(Tree tree) {
           while(temp->next!=NULL || temp2!=NULL) {
             type1 = fetchType(scope, temp->data.value.tree);
             type2 = fetchType(fetchfunScope(scope, extractChildNumber(tree, tree->children->size)),
-                              extractChild(temp2->data.value.tree, 0, FUNID, 1);
+                              extractChildNumber(temp2->data.value.tree, 1));
             if(type1==NULL) {
               //Not declared error
             }
-            if(!typeComparator(type1, type2)) {
+            if(!typeComparator(scope, temp->data.value.tree, type1, type2)) {
               //Type mismatch error
             }
             temp = temp->next;
@@ -209,12 +208,12 @@ void visitSyn(Tree tree) {
             }
           } else {
             type2 = (Type*) temp->data.value.tree->attr[1];
-            if(!typeComparator(type2, type1)) {
+            if(!typeComparator(scope, temp->data.value.tree, type2, type1)) {
               //Type mismatch
             }
           }
         }
-        markDefinedVars(tree->children);
+        markDefinedVars(scope, tree->children);
         break;
       case FUNID:
         temp = tree->children->first;
@@ -223,11 +222,11 @@ void visitSyn(Tree tree) {
         while(temp!=NULL || temp2!=NULL) {
           type1 = fetchType(scope, temp->data.value.tree);
           type2 = fetchType(fetchfunScope(scope, extractChildNumber(tree, tree->children->size)),
-                            extractChild(temp2->data.value.tree, 0, FUNID, 1);
+                            extractChildNumber(temp2->data.value.tree, 1));
           if(type1==NULL) {
             //Not declared error
           }
-          if(!typeComparator(type2, type1)) {
+          if(!typeComparator(scope, extractChildNumber(temp2->data.value.tree, 1), type2, type1)) {
             //Type mismatch error
           }
           temp = temp->next;
@@ -242,7 +241,7 @@ void visitSyn(Tree tree) {
         break;
       case IF:
         type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
-        if(type==NULL || type1->type!=AND) {
+        if(type1==NULL || type1->type!=AND) {
           //Non boolean if condn
         }
       case AND: case OR:
@@ -283,12 +282,81 @@ void visitSyn(Tree tree) {
           //Non-Boolean Expr
         }
         break;
+      case PLUS:
+        type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
+        type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
+        if(type1==NULL || type1==NULL) {
+          //Type mismatch error
+        }
+        if(
+            (type1->type == INT) && type1->rows == 0 && type1->columns == 0 &&
+            (type2->type == INT) && type2->rows == 0 && type2->columns == 0
+          ) {
+          tree->attr[1] = type2;
+        } else if (
+              (type1->type == REAL) && type1->rows == 0 && type1->columns == 0 &&
+              (type2->type == REAL) && type2->rows == 0 && type2->columns == 0
+          ) {
+          tree->attr[1] = type1;
+        } else if (
+              (type1->type == MATRIX) &&
+              (type2->type == MATRIX)
+          ) {
+          if(type1->rows==type2->rows && type1->columns==type2->columns) {
+            tree->attr[1] = type1;
+          } else {
+            //Matrix dimensions not matching
+          }
+        } else if (
+              (type1->type == STRING) &&
+              (type2->type == STRING)
+          ) {
+          tree->attr[1] = createType(STRING, 0, type1->columns + type2->columns);
+        } else {
+          //Operator mismatch
+        }
+        break;
+      case MINUS: case MUL:
+        type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
+        type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
+        if(type1==NULL || type1==NULL) {
+          //Type mismatch error
+        }
+        if(
+            (type1->type == INT) && type1->rows == 0 && type1->columns == 0 &&
+            (type2->type == INT) && type2->rows == 0 && type2->columns == 0
+          ) {
+          tree->attr[1] = type2;
+        } else if (
+              (type1->type == REAL) && type1->rows == 0 && type1->columns == 0 &&
+              (type2->type == REAL) && type2->rows == 0 && type2->columns == 0
+          ) {
+          tree->attr[1] = type1;
+        } else {
+          //Operator mismatch
+        }
+        break;
+      case DIV:
+        type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
+        type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
+        if(type1==NULL || type1==NULL) {
+          //Type mismatch error
+        }
+        if(
+            (type1->type == INT || type1->type == REAL) && type1->rows == 0 && type1->columns == 0 &&
+            (type2->type == INT || type2->type == REAL) && type2->rows == 0 && type2->columns == 0
+          ) {
+          tree->attr[1] = createType(REAL, 0, 0);
+        } else {
+          //Operator mismatch
+        }
+        break;
     }
   } else {
     if(symbolComparatorNT(symbol, "<functionDefn>")) {
-      temp = extractChildNumber(tree, "<parameterList>", 0, 1)->children->first;
+      temp = extractChild(tree, "<parameterList>", 0, 1)->children->first;
       while(temp!=NULL) {
-        if(!fetchDefined(scope, extractChildNumber(temp->data.value.tree, 1)) {
+        if(!fetchDefined(scope, extractChildNumber(temp->data.value.tree, 1))) {
           //Undefined argument error
         }
         temp = temp->next;
