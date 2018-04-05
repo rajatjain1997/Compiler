@@ -36,8 +36,9 @@ int hashingFunction(char a[]) {
   while(a[i]!='\0') {
     index = (index + (a[i]*m)%size)%size;
     i++;
-    m=(m*37)%size;
+    m=(m*5)%size;
   }
+  return index;
 }
 
 SymbolTable createSymbolTable() {
@@ -133,7 +134,7 @@ int createidEntry(SymbolTable st, Tree tokentree, int type) {
 
 int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int columns) {
   struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
-  if(ste==NULL || ste->value.identry->size!=0 || rows < 1 || columns < 1 || ste->value.identry->type->type!=type) {
+  if(ste==NULL || ste->value.identry->size!=0 || (rows < 1 && columns < 1) || ste->value.identry->type->type!=type) {
     return 0;
   }
   if(type==MATRIX) {
@@ -188,6 +189,9 @@ SymbolTable createfunEntry(SymbolTable st, Tree tokentree) {
   struct symbolTableEntry* ste = (struct symbolTableEntry*) malloc(sizeof(struct symbolTableEntry));
   ste->value.funentry = (struct funEntry*) malloc(sizeof(struct funEntry));
   ste->tokentree = tokentree;
+  if(insertSymbol(st, ste) == 0) {
+    return NULL;
+  }
   ste->value.funentry->scope = createSymbolTable();
   ste->value.funentry->scope->parent = st;
   return ste->value.funentry->scope;

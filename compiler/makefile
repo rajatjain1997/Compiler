@@ -1,5 +1,5 @@
-all: compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o tree.o trie.o ast.o semantic.o
-	gcc -o stage1exe compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o ast.o semantic.o
+all: compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o tree.o trie.o ast.o semantic.o symboltable.o type.o
+	gcc -o stage1exe compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o ast.o semantic.o symboltable.o type.o
 
 stage1: compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o tree.o trie.o
 	gcc -o stage1exe compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o
@@ -15,6 +15,12 @@ parser.o: parser.h parser.c set.h grammar.h symbol.h tree.h error.h token.h list
 
 ast.o: ast.h ast.c tree.h token.h symbol.h list.h trie.h semantic.h grammar.h
 	gcc -c ast.c
+
+symboltable.o: symboltable.c symboltable.h list.h token.h symbol.h tree.h
+	gcc -c symboltable.c
+
+type.o: type.c type.h tree.h symbol.h token.h list.h semantic.h symboltable.h
+	gcc -c type.c
 
 semantic.o:  semantic.h semantic.c tree.h token.h symbol.h list.h trie.h semantic.h grammar.h
 	gcc -c semantic.c

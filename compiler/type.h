@@ -1,0 +1,1 @@
+void typeCheck(Tree tree);

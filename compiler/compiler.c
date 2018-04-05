@@ -12,6 +12,7 @@
 #include "token.h"
 #include "grammar.h"
 #include "ast.h"
+#include "type.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -146,6 +147,7 @@ int main(int argc, char* argv[]) {
 		parsetree = parse(tokenstream, "grammar.txt");
 		if(!checkErrorState()) {
 			parsetree = createAST(parsetree);
+			typeCheck(parsetree);
 		}
 		while(error_testing) {
 			switch(choice) {

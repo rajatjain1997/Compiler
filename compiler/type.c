@@ -69,7 +69,7 @@ int checkStmt(Tree tree) {
 void generateTypeAttribute(Tree tree) {
   nullifyAttributes(tree);
   Symbol* symbol = extractSymbol(tree);
-  SymbolTable scope = (SymbolTable) tree->attr[0];
+  SymbolTable scope = (SymbolTable) tree->parent->attr[0];
   Tree temptree; Type type1;
   if(isTerminal(symbol)) {
     switch(symbol->symbolType) {
@@ -86,13 +86,14 @@ void generateTypeAttribute(Tree tree) {
         tree->attr[1] = fetchType(scope, tree);
         if(tree->attr[1]==NULL) {
           //Not declared
+          break;
         }
         break;
     }
   }
 }
 
-void visitInh(Tree tree) {
+void visitInhType(Tree tree) {
   nullifyAttributes(tree);
   Symbol* symbol = extractSymbol(tree);
   Element temp; SymbolTable scope;
@@ -114,6 +115,7 @@ void visitInh(Tree tree) {
           flag = createidEntry((SymbolTable) tree->attr[0], temp->data.value.tree, symbol->symbolType);
           if(!flag) {
             //Redefined symbol
+            break;
           }
           temp = temp->next;
         }
@@ -135,6 +137,7 @@ void visitInh(Tree tree) {
         temptree = fetchfunDefn(scope, tree);
         if(temptree==NULL) {
           //Not declared
+          break;
         }
         temptree = extractChildNumber(temptree, 2);
         if(!temptree->children->size==0 && !temptree->children->size>1) {
@@ -157,7 +160,7 @@ void visitInh(Tree tree) {
   }
 }
 
-void visitSyn(Tree tree) {
+void visitSynType(Tree tree) {
   Symbol* symbol = extractSymbol(tree);
   SymbolTable scope = (SymbolTable) tree->attr[0];
   Element temp, temp2; Tree temptree; Type *type1, *type2;
@@ -175,6 +178,7 @@ void visitSyn(Tree tree) {
                               extractChildNumber(temp2->data.value.tree, 1));
             if(type1==NULL) {
               //Not declared error
+              break;
             }
             if(!typeComparator(scope, temp->data.value.tree, type1, type2)) {
               //Type mismatch error
@@ -184,24 +188,34 @@ void visitSyn(Tree tree) {
           }
           if(temp->next!=NULL) {
             //Extra LHS
+            break;
           } else if(temp2!=NULL) {
             //Extra RHS
+            break;
           }
         } else {
           type1 = (Type*) extractChildNumber(tree, tree->children->size)->attr[1];
+          if(type1==NULL) {
+            //Error type
+            break;
+          }
           if(type1->columns==2 && type1->type==INT) {
             if(tree->children->size>2) {
               //Extra LHS
+              break;
             } else if(tree->children->size<2) {
               //Extra RHS
+              break;
             } else {
               while(temp!=NULL) {
                 type2 = fetchType(scope, temp->data.value.tree);
                 if(type2==NULL) {
                   //Not declared error
+                  break;
                 }
                 if(type2->type!=INT) {
                   //type mismatch
+                  break;
                 }
                 temp = temp->next;
               }
@@ -210,6 +224,7 @@ void visitSyn(Tree tree) {
             type2 = (Type*) temp->data.value.tree->attr[1];
             if(!typeComparator(scope, temp->data.value.tree, type2, type1)) {
               //Type mismatch
+              break;
             }
           }
         }
@@ -218,6 +233,9 @@ void visitSyn(Tree tree) {
       case FUNID:
         temp = tree->children->first;
         temptree = fetchfunDefn(scope, tree);
+        if(temptree==NULL) {
+          //Function not defined
+        }
         temp2 = extractChild(temptree, "<parameterList>", 0, 2)->children->first;
         while(temp!=NULL || temp2!=NULL) {
           type1 = fetchType(scope, temp->data.value.tree);
@@ -225,46 +243,55 @@ void visitSyn(Tree tree) {
                             extractChildNumber(temp2->data.value.tree, 1));
           if(type1==NULL) {
             //Not declared error
+            break;
           }
           if(!typeComparator(scope, extractChildNumber(temp2->data.value.tree, 1), type2, type1)) {
             //Type mismatch error
+            break;
           }
           temp = temp->next;
           temp2 = temp2->next;
         }
         if(temp!=NULL || temp2!=NULL) {
           // Arguments mismatch
+          break;
         }
         if(checkStmt(tree) && extractChild(temptree, "<parameterList>", 0, 2)->children->size!=0) {
           //Non-zero arg fxn called without assign
+          break;
         }
         break;
       case IF:
         type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
         if(type1==NULL || type1->type!=AND) {
           //Non boolean if condn
+          break;
         }
       case AND: case OR:
         temptree = extractChildNumber(tree, 1);
         type1 = ((Type*) extractChildNumber(tree, 2)->attr[1]);
         if(type1==NULL || temptree->attr[1] == NULL) {
           //Type mismatch error
+          break;
         }
         if(((Type*) temptree->attr[1])->type == AND && type1->type == AND) {
           tree->attr[1] = temptree->attr[1];
         } else {
           //Non-Boolean Expr
+          break;
         }
         break;
       case NOT:
         temptree = extractChildNumber(tree, 1);
         if(temptree->attr[1] == NULL) {
           //Type mismatch error
+          break;
         }
         if(((Type*) temptree->attr[1])->type == AND) {
           tree->attr[1] = temptree->attr[1];
         } else {
           //Non-Boolean Expr
+          break;
         }
         break;
       case LT: case LE: case EQ: case GT: case GE: case NE:
@@ -272,6 +299,7 @@ void visitSyn(Tree tree) {
         type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
         if(type1==NULL || type1==NULL) {
           //Type mismatch error
+          break;
         }
         if(
             (type1->type == INT || type1->type == REAL) && type1->rows == 0 && type1->columns == 0 &&
@@ -280,6 +308,7 @@ void visitSyn(Tree tree) {
           tree->attr[1] = createType(AND, 0, 0);
         } else {
           //Non-Boolean Expr
+          break;
         }
         break;
       case PLUS:
@@ -287,6 +316,7 @@ void visitSyn(Tree tree) {
         type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
         if(type1==NULL || type1==NULL) {
           //Type mismatch error
+          break;
         }
         if(
             (type1->type == INT) && type1->rows == 0 && type1->columns == 0 &&
@@ -306,6 +336,7 @@ void visitSyn(Tree tree) {
             tree->attr[1] = type1;
           } else {
             //Matrix dimensions not matching
+            break;
           }
         } else if (
               (type1->type == STRING) &&
@@ -314,6 +345,7 @@ void visitSyn(Tree tree) {
           tree->attr[1] = createType(STRING, 0, type1->columns + type2->columns);
         } else {
           //Operator mismatch
+          break;
         }
         break;
       case MINUS: case MUL:
@@ -321,6 +353,7 @@ void visitSyn(Tree tree) {
         type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
         if(type1==NULL || type1==NULL) {
           //Type mismatch error
+          break;
         }
         if(
             (type1->type == INT) && type1->rows == 0 && type1->columns == 0 &&
@@ -334,6 +367,7 @@ void visitSyn(Tree tree) {
           tree->attr[1] = type1;
         } else {
           //Operator mismatch
+          break;
         }
         break;
       case DIV:
@@ -341,6 +375,7 @@ void visitSyn(Tree tree) {
         type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
         if(type1==NULL || type1==NULL) {
           //Type mismatch error
+          break;
         }
         if(
             (type1->type == INT || type1->type == REAL) && type1->rows == 0 && type1->columns == 0 &&
@@ -349,6 +384,7 @@ void visitSyn(Tree tree) {
           tree->attr[1] = createType(REAL, 0, 0);
         } else {
           //Operator mismatch
+          break;
         }
         break;
     }
@@ -358,6 +394,7 @@ void visitSyn(Tree tree) {
       while(temp!=NULL) {
         if(!fetchDefined(scope, extractChildNumber(temp->data.value.tree, 1))) {
           //Undefined argument error
+          break;
         }
         temp = temp->next;
       }
@@ -368,13 +405,13 @@ void visitSyn(Tree tree) {
 void typeCheck(Tree tree) {
   Element temp;
   if(tree->children->size!=0) {
-    visitInh(tree);
+    visitInhType(tree);
   	temp = tree->children->first;
   	while(temp!=NULL) {
   		typeCheck(temp->data.value.tree);
   		temp = temp->next;
   	}
-    visitSyn(tree);
+    visitSynType(tree);
   } else {
     generateTypeAttribute(tree);
   }
