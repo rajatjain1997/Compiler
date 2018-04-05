@@ -66,43 +66,16 @@ Type* generateTypeAttribute(Tree tree) {
         tree->attr[1] = createType(REAL, 0, 0);
         break;
       case STR:
-        tree->attr[1] = createType(STRING, getToken(extractSymbol(tree))->value.string->size, 0);
+        tree->attr[1] = createType(STRING, 0, getToken(extractSymbol(tree))->value.string->size);
         break;
       case ID:
         tree->attr[1] = fetchType(scope, tree);
         if(tree->attr[1]==NULL) {
           //Not declared
-        } else if((Type*) tree->attr[1]->type == MATRIX && tree->children->size==2) {
-          tree->attr[1] = createType(INT, 0, 0);
         }
-        break;
-      case SIZE:
-        type1 = fetchType(scope, tree->children->first->data.value.tree);
-        if(type1->rows>1 || type2->columns>1) {
-          //Size mismatch
-        }
-        tree->attr[1] = createType(INT, 0, 0);
-        break;
-      case FUNID:
-        temptree = fetchfunDefn(scope, tree);
-        if(temptree==NULL) {
-          //Not declared
-        }
-        temptree = temptree->children->first->next->data.value.tree;
-        if(temptree->children->size==0 || temptree->children->size>1) {
-          //Type mismatch
-        }
-        tree->attr[0] = fetchType(fetchfunScope(scope, tree),
-                                    temptree->children->first->data.value.tree->children->first->data.value.tree);
         break;
       default:
         return NULL;
-    }
-  } else {
-    if(symbolComparatorNT(symbol, "<matrix>")) {
-      tree->attr[1] = createType(MATRIX, tree->children->size, tree->children->first->data.value.tree->children->size);
-    } else {
-      return NULL;
     }
   }
   return (Type*) tree->attr[1];
@@ -131,6 +104,32 @@ void visitInh(Tree tree) {
           temp = temp->next;
         }
         break;
+      case ID:
+        tree->attr[1] = fetchType(scope, tree);
+        if((Type*) tree->attr[1]->type == MATRIX && tree->children->size==2) {
+          tree->attr[1] = createType(INT, 0, 0);
+        }
+      case SIZE:
+        type1 = fetchType(scope, tree->children->first->data.value.tree);
+        if(type1->type==MATRIX) {
+          tree->attr[1] = createType(INT, 0, 2);
+        } else {
+          tree->attr[1] = createType(INT, 0, 0);
+        }
+        break;
+      case FUNID:
+        temptree = fetchfunDefn(scope, tree);
+        if(temptree==NULL) {
+          //Not declared
+        }
+        temptree = temptree->children->first->next->data.value.tree;
+        if(!temptree->children->size==0 && !temptree->children->size>1) {
+          tree->attr[1] = fetchType(fetchfunScope(scope, tree),
+                                      temptree->children->first->data.value.tree->children->first->data.value.tree);
+        } else {
+          tree->attr[1] = createType(FUNID, 0, 0);
+        }
+        break;
     }
   } else {
     if(symbolComparatorNT(symbol, "<functionDefn>")) {
@@ -140,6 +139,9 @@ void visitInh(Tree tree) {
       }
     } else {
       tree->attr[0] = tree->parent->attr[0];
+    }
+    if(symbolComparatorNT(symbol, "<matrix>")) {
+      tree->attr[1] = createType(MATRIX, tree->children->size, tree->children->first->data.value.tree->children->size);
     }
   }
 }
@@ -157,12 +159,12 @@ void visitSyn(Tree tree) {
         if(temptree!=NULL) {
           temp2 = temptree->children->first->next->data.value.tree->children->first;
           while(temp->next!=NULL || temp2!=NULL) {
-            type1 = fetchType(scope, temp1->data.value.tree);
+            type1 = fetchType(scope, temp->data.value.tree);
             type2 = fetchType(fetchfunScope(scope, tree->children->last.data.value.tree), temp2->children->first->data.value.tree);
             if(type1==NULL) {
               //Not declared error
             }
-            if(!typeComparator(type2, type1)) {
+            if(!typeComparator(type1, type2)) {
               //Type mismatch error
             }
             temp = temp->next;
@@ -201,6 +203,26 @@ void visitSyn(Tree tree) {
         }
         markDefinedVars(tree->children);
         break;
+      case FUNID:
+        temp = tree->children->first;
+        temptree = fetchfunDefn(scope, tree);
+        temp2 = temptree->children->first->next->next->data.value.tree->children->first;
+        while(temp!=NULL || temp2!=NULL) {
+          type1 = fetchType(scope, temp->data.value.tree);
+          type2 = fetchType(fetchfunScope(scope, tree->children->last.data.value.tree), temp2->children->first->data.value.tree);
+          if(type1==NULL) {
+            //Not declared error
+          }
+          if(!typeComparator(type2, type1)) {
+            //Type mismatch error
+          }
+          temp = temp->next;
+          temp2 = temp2->next;
+        }
+        if(temp!=NULL || temp2!=NULL) {
+          // Arguments mismatch
+        }
+        break;
 
     }
   } else {
@@ -226,5 +248,7 @@ void typeCheck(Tree tree) {
   		temp = temp->next;
   	}
     visitSyn(tree);
+  } else {
+    generateTypeAttribute(tree);
   }
 }
