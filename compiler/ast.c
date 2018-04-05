@@ -300,8 +300,7 @@ void visitSyn(Tree tree) {
       childList = extractChild(tree, "<stmtProg>", 0, 1)->attr[0];
       d.value.tree = extractChild(tree, "<stmt>", 0, 1)->attr[0];
       insertInFront(childList, d);
-      childList = transformTree(tree, NULL, childList);
-      insertInList(prunelist, lookupSymbolDictionary("", ELSE));
+      childList = transformTree(tree, extractChild(tree, "", ELSE, 1), childList);
       insertInList(prunelist, lookupSymbolDictionary("<stmt>", 0));
       insertInList(prunelist, lookupSymbolDictionary("<stmtProg>", 0));
       insertInList(prunelist, lookupSymbolDictionary("", ENDIF));

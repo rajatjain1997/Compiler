@@ -53,6 +53,19 @@ int typeComparator(Type* type2, Type* type1) {
   return 1;
 }
 
+int checkStmt(Tree tree) {
+  Symbol sy = extractSymbol(tree->parent);
+  if(
+      sy->symbolType == lookupSymbolDictionary("<functionDefn>", 0)->symbolType && isTerminal(sy) == 0||
+      sy->symbolType == MAIN && isTerminal(sy) == 1 ||
+      sy->symbolType == IF && isTerminal(sy) == 1 ||
+      sy->symbolType == ELSE && isTerminal(sy) == 1
+    ) {
+    return 1;
+  }
+  return 0;
+}
+
 Type* generateTypeAttribute(Tree tree) {
   Symbol* symbol = extractSymbol(tree);
   SymbolTable scope = (SymbolTable) tree->attr[0];
