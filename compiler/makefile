@@ -19,7 +19,7 @@ ast.o: ast.h ast.c tree.h token.h symbol.h list.h trie.h semantic.h grammar.h
 symboltable.o: symboltable.c symboltable.h list.h token.h symbol.h tree.h
 	gcc -c symboltable.c
 
-type.o: type.c type.h tree.h symbol.h token.h list.h semantic.h symboltable.h
+type.o: type.c type.h tree.h symbol.h token.h list.h semantic.h symboltable.h error.h
 	gcc -c type.c
 
 semantic.o:  semantic.h semantic.c tree.h token.h symbol.h list.h trie.h semantic.h grammar.h

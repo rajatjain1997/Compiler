@@ -6,6 +6,7 @@
 #include "list.h"
 #include "semantic.h"
 #include "symboltable.h"
+#include "error.h"
 
 /*
  * Checkings reqd:
@@ -18,8 +19,130 @@
  * Any independed funCall must return 0 arguments
  * Boolean Expr must be boolean type
  * Arithmetic type generation
- * Recursion removal
+ * Recursion removal (Not done yet)
  */
+
+ Type* errorType = NULL;
+
+ char* typeLookup(Type* type, char* buf) {
+   if(type==NULL) {
+     sprintf(buf, "ERROR");
+     return buf;
+   }
+   switch(type->type) {
+     case REAL: sprintf(buf, "REAL"); break;
+     case STRING: sprintf(buf, "STRING(%d)", type->columns); break;
+     case MATRIX: sprintf(buf, "MATRIX(%d, %d)", type->rows, type->columns); break;
+     case AND: sprintf(buf, "BOOLEAN");
+     case INT:
+      if(type->columns==0) {
+        sprintf(buf, "INT");
+      } else {
+        sprintf(buf, "TYPE");
+      }
+      break;
+      default: sprintf(buf, "ERROR");
+   }
+   return buf;
+ }
+
+void raiseNotDeclaredException(Tree tree) {
+  char msg[256], buf[20];
+  Token* token = getToken(extractSymbol(tree));
+ 	ErrorType e = ERROR;
+  getLexeme(token, buf);
+ 	sprintf(msg, "SEMANTIC ERROR: %s has not been declared before use.", buf);
+ 	error(msg, e, token->lineno);
+  tree->attr[1] = errorType;
+}
+
+void raiseReDefinedException(Tree tree) {
+  char msg[256], buf[20];
+  Token* token = getToken(extractSymbol(tree));
+ 	ErrorType e = ERROR;
+  getLexeme(token, buf);
+ 	sprintf(msg, "SEMANTIC ERROR: %s has already been defined earlier", buf);
+ 	error(msg, e, token->lineno);
+  tree->attr[1] = errorType;
+}
+
+void raiseTypeMismatchError(Tree identifier, Type* expectedType, Type* actualType, char strtype[]) {
+  char msg[256], buf1[20], buf2[20], buf3[20];
+  Token* token = getToken(extractSymbol(identifier));
+ 	ErrorType e = ERROR;
+  getLexeme(token, buf1);
+  if(expectedType!=NULL) {
+ 	  sprintf(msg, "SEMANTIC ERROR: %s has type %s but expected type is %s", buf1, typeLookup(actualType, buf2), typeLookup(expectedType, buf3));
+  } else {
+    sprintf(msg, "SEMANTIC ERROR: %s has type %s but expected type is %s", buf1, typeLookup(actualType, buf2), strtype);
+  }
+ 	error(msg, e, token->lineno);
+  identifier->attr[1] = errorType;
+  //If you later need to assign an error type for all later occurances you can do it in ASSIGNOP after this call.
+}
+
+void raiseInsufficientLHS(Tree tree) {
+  char msg[256];
+  Token* token = getToken(extractSymbol(tree));
+ 	ErrorType e = ERROR;
+ 	sprintf(msg, "SEMANTIC ERROR: LHS of = doesn't have enough identifiers");
+ 	error(msg, e, token->lineno);
+}
+
+void raiseInsufficientRHS(Tree tree) {
+  char msg[256];
+  Token* token = getToken(extractSymbol(tree));
+ 	ErrorType e = ERROR;
+ 	sprintf(msg, "SEMANTIC ERROR: RHS of = doesn't have enough return values");
+ 	error(msg, e, token->lineno);
+}
+
+void raiseUntypedError(Tree tree) {
+  char msg[256], buf[20];
+  Token* token = getToken(extractSymbol(tree));
+ 	ErrorType e = ERROR;
+  getLexeme(token, buf);
+ 	sprintf(msg, "SEMANTIC ERROR: %s is not a typed object", buf);
+ 	error(msg, e, token->lineno);
+  tree->attr[1] = errorType;
+}
+
+void raiseBadFunctionCall(Tree tree) {
+  char msg[256], buf[20];
+  Token* token = getToken(extractSymbol(tree));
+  getLexeme(token, buf);
+ 	ErrorType e = ERROR;
+ 	sprintf(msg, "SEMANTIC ERROR: Function call for %s has wrong number of parameters.", buf);
+ 	error(msg, e, token->lineno);
+}
+
+void raiseNonZeroRetFunction(Tree tree) {
+  char msg[256], buf[20];
+  Token* token = getToken(extractSymbol(tree));
+  getLexeme(token, buf);
+ 	ErrorType e = ERROR;
+ 	sprintf(msg, "SEMANTIC ERROR: Function call for %s has returns some values but is called as a statement.", buf);
+ 	error(msg, e, token->lineno);
+}
+
+void raiseErronousIfCondn(Tree tree) {
+  char msg[256];
+  Token* token = getToken(extractSymbol(tree));
+ 	ErrorType e = ERROR;
+ 	sprintf(msg, "SEMANTIC ERROR: If has a non boolean check condition");
+ 	error(msg, e, token->lineno);
+}
+
+void raiseUnAssignedRet(Tree tree, Tree fundef) {
+  char msg[256], buf[20], buf2[20];
+  Token* token = getToken(extractSymbol(tree));
+  getLexeme(token, buf);
+  token = getToken(extractSymbol(fundef));
+  getLexeme(token, buf2);
+ 	ErrorType e = ERROR;
+ 	sprintf(msg, "SEMANTIC ERROR: %s has been not been assigned a return value in the function %s.", buf, buf2);
+ 	error(msg, e, token->lineno);
+}
 
 int sizeLookup(int type) {
   switch(type) {
@@ -85,8 +208,7 @@ void generateTypeAttribute(Tree tree) {
       case ID:
         tree->attr[1] = fetchType(scope, tree);
         if(tree->attr[1]==NULL) {
-          //Not declared
-          break;
+          raiseNotDeclaredException(tree);
         }
         break;
     }
@@ -102,6 +224,7 @@ void visitInhType(Tree tree) {
   if(isTerminal(symbol)) {
     switch(symbol->symbolType) {
       case MAIN:
+        errorType = createType(MAIN, -1, -1);
         tree->attr[0] = createSymbolTable();
         break;
       default:
@@ -114,8 +237,7 @@ void visitInhType(Tree tree) {
         while(temp!=NULL) {
           flag = createidEntry((SymbolTable) tree->attr[0], temp->data.value.tree, symbol->symbolType);
           if(!flag) {
-            //Redefined symbol
-            break;
+            raiseReDefinedException(tree);
           }
           temp = temp->next;
         }
@@ -136,7 +258,7 @@ void visitInhType(Tree tree) {
       case FUNID:
         temptree = fetchfunDefn(scope, tree);
         if(temptree==NULL) {
-          //Not declared
+          raiseNotDeclaredException(tree);
           break;
         }
         temptree = extractChildNumber(temptree, 2);
@@ -149,7 +271,7 @@ void visitInhType(Tree tree) {
     if(symbolComparatorNT(symbol, "<functionDefn>")) {
       tree->attr[0] = createfunEntry((SymbolTable) tree->parent->attr[0], extractChildNumber(tree, 1));
       if(tree->attr[0]==NULL) {
-        //Redefined funid error
+        raiseReDefinedException(tree);
       }
     } else {
       tree->attr[0] = tree->parent->attr[0];
@@ -169,7 +291,11 @@ void visitSynType(Tree tree) {
     switch(symbol->symbolType) {
       case ASSIGNOP:
         temp = tree->children->first;
-        temptree = fetchfunDefn(scope, extractChildNumber(tree, tree->children->size));
+        temptree = extractChildNumber(tree, tree->children->size);
+        if(temptree->attr[1] == errorType) {
+          break;
+        }
+        temptree = fetchfunDefn(scope, temptree);
         if(temptree!=NULL) {
           temp2 = extractChild(temptree, "<parameterList>", 0, 1)->children->first;
           while(temp->next!=NULL || temp2!=NULL) {
@@ -177,45 +303,45 @@ void visitSynType(Tree tree) {
             type2 = fetchType(fetchfunScope(scope, extractChildNumber(tree, tree->children->size)),
                               extractChildNumber(temp2->data.value.tree, 1));
             if(type1==NULL) {
-              //Not declared error
-              break;
+              raiseNotDeclaredException(temp->data.value.tree);
             }
             if(!typeComparator(scope, temp->data.value.tree, type1, type2)) {
-              //Type mismatch error
+              raiseTypeMismatchError(temp->data.value.tree, type2, type1, "");
             }
             temp = temp->next;
             temp2 = temp2->next;
           }
           if(temp->next!=NULL) {
-            //Extra LHS
+            raiseInsufficientRHS(tree);
+            markDefinedVars(scope, tree->children);
             break;
           } else if(temp2!=NULL) {
-            //Extra RHS
+            raiseInsufficientLHS(tree);
+            markDefinedVars(scope, tree->children);
             break;
           }
         } else {
           type1 = (Type*) extractChildNumber(tree, tree->children->size)->attr[1];
           if(type1==NULL) {
-            //Error type
+            raiseUntypedError(extractChildNumber(tree, tree->children->size));
             break;
           }
           if(type1->columns==2 && type1->type==INT) {
             if(tree->children->size>2) {
-              //Extra LHS
+              raiseInsufficientRHS(tree);
+              markDefinedVars(scope, tree->children);
               break;
             } else if(tree->children->size<2) {
-              //Extra RHS
+              raiseInsufficientLHS(tree);
+              markDefinedVars(scope, tree->children);
               break;
             } else {
               while(temp!=NULL) {
                 type2 = fetchType(scope, temp->data.value.tree);
                 if(type2==NULL) {
-                  //Not declared error
-                  break;
-                }
-                if(type2->type!=INT) {
-                  //type mismatch
-                  break;
+                  raiseNotDeclaredException(temp->data.value.tree);
+                } else if(type2->type!=INT) {
+                  raiseTypeMismatchError(temp->data.value.tree, NULL, type2, "INT");
                 }
                 temp = temp->next;
               }
@@ -223,8 +349,7 @@ void visitSynType(Tree tree) {
           } else {
             type2 = (Type*) temp->data.value.tree->attr[1];
             if(!typeComparator(scope, temp->data.value.tree, type2, type1)) {
-              //Type mismatch
-              break;
+              raiseTypeMismatchError(temp->data.value.tree, type1, type2, "");
             }
           }
         }
@@ -234,71 +359,76 @@ void visitSynType(Tree tree) {
         temp = tree->children->first;
         temptree = fetchfunDefn(scope, tree);
         if(temptree==NULL) {
-          //Function not defined
+          raiseNotDeclaredException(temptree);
+          break;
         }
         temp2 = extractChild(temptree, "<parameterList>", 0, 2)->children->first;
         while(temp!=NULL || temp2!=NULL) {
           type1 = fetchType(scope, temp->data.value.tree);
-          type2 = fetchType(fetchfunScope(scope, extractChildNumber(tree, tree->children->size)),
+          type2 = fetchType(fetchfunScope(scope, tree),
                             extractChildNumber(temp2->data.value.tree, 1));
           if(type1==NULL) {
-            //Not declared error
-            break;
-          }
-          if(!typeComparator(scope, extractChildNumber(temp2->data.value.tree, 1), type2, type1)) {
-            //Type mismatch error
-            break;
+            raiseNotDeclaredException(temp->data.value.tree);
+          } else if(!typeComparator(scope, extractChildNumber(temp2->data.value.tree, 1), type2, type1)) {
+            raiseTypeMismatchError(extractChildNumber(temp2->data.value.tree, 1), type1, type2, "");
           }
           temp = temp->next;
           temp2 = temp2->next;
         }
         if(temp!=NULL || temp2!=NULL) {
-          // Arguments mismatch
-          break;
-        }
-        if(checkStmt(tree) && extractChild(temptree, "<parameterList>", 0, 2)->children->size!=0) {
-          //Non-zero arg fxn called without assign
-          break;
+          raiseBadFunctionCall(tree);
+        } else if(checkStmt(tree) && extractChild(temptree, "<parameterList>", 0, 2)->children->size!=0) {
+          raiseNonZeroRetFunction(tree);
         }
         break;
       case IF:
         type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
         if(type1==NULL || type1->type!=AND) {
-          //Non boolean if condn
-          break;
+          raiseErronousIfCondn(tree);
         }
+        break;
       case AND: case OR:
         temptree = extractChildNumber(tree, 1);
         type1 = ((Type*) extractChildNumber(tree, 2)->attr[1]);
-        if(type1==NULL || temptree->attr[1] == NULL) {
-          //Type mismatch error
+        if(tree->attr[1]==NULL) {
+          raiseUntypedError(temptree);
+          break;
+        } else if(type1 == NULL) {
+          raiseUntypedError(extractChildNumber(tree, 2));
           break;
         }
         if(((Type*) temptree->attr[1])->type == AND && type1->type == AND) {
           tree->attr[1] = temptree->attr[1];
-        } else {
-          //Non-Boolean Expr
-          break;
+        } else if (((Type*) temptree->attr[1])->type != AND){
+          raiseTypeMismatchError(temptree, NULL, (Type*) temptree->attr[1], "BOOLEAN");
+          tree->attr[1] = errorType;
+        } else if(type1->type != AND) {
+          raiseTypeMismatchError(extractChildNumber(tree, 2), NULL, type1, "BOOLEAN");
+          tree->attr[1] = errorType;
         }
         break;
       case NOT:
         temptree = extractChildNumber(tree, 1);
         if(temptree->attr[1] == NULL) {
-          //Type mismatch error
+          raiseUntypedError(temptree);
           break;
         }
         if(((Type*) temptree->attr[1])->type == AND) {
           tree->attr[1] = temptree->attr[1];
         } else {
-          //Non-Boolean Expr
+          raiseTypeMismatchError(temptree, NULL, (Type*) temptree->attr[1], "BOOLEAN");
+          tree->attr[1] = errorType;
           break;
         }
         break;
       case LT: case LE: case EQ: case GT: case GE: case NE:
         type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
         type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
-        if(type1==NULL || type1==NULL) {
-          //Type mismatch error
+        if(type1==NULL) {
+          raiseUntypedError(extractChildNumber(tree, 1));
+          break;
+        } else if(type2==NULL) {
+          raiseUntypedError(extractChildNumber(tree, 2));
           break;
         }
         if(
@@ -307,15 +437,17 @@ void visitSynType(Tree tree) {
           ) {
           tree->attr[1] = createType(AND, 0, 0);
         } else {
-          //Non-Boolean Expr
-          break;
+          tree->attr[1] = errorType;
         }
         break;
       case PLUS:
         type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
         type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
-        if(type1==NULL || type1==NULL) {
-          //Type mismatch error
+        if(type1==NULL) {
+          raiseUntypedError(extractChildNumber(tree, 1));
+          break;
+        } else if(type2==NULL) {
+          raiseUntypedError(extractChildNumber(tree, 2));
           break;
         }
         if(
@@ -335,8 +467,8 @@ void visitSynType(Tree tree) {
           if(type1->rows==type2->rows && type1->columns==type2->columns) {
             tree->attr[1] = type1;
           } else {
-            //Matrix dimensions not matching
-            break;
+            raiseTypeMismatchError(extractChildNumber(tree, 1), type2, type1, "");
+            tree->attr[1] = errorType;
           }
         } else if (
               (type1->type == STRING) &&
@@ -344,15 +476,18 @@ void visitSynType(Tree tree) {
           ) {
           tree->attr[1] = createType(STRING, 0, type1->columns + type2->columns);
         } else {
-          //Operator mismatch
+          tree->attr[1] = errorType;
           break;
         }
         break;
       case MINUS: case MUL:
         type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
         type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
-        if(type1==NULL || type1==NULL) {
-          //Type mismatch error
+        if(type1==NULL) {
+          raiseUntypedError(extractChildNumber(tree, 1));
+          break;
+        } else if(type2==NULL) {
+          raiseUntypedError(extractChildNumber(tree, 2));
           break;
         }
         if(
@@ -366,15 +501,18 @@ void visitSynType(Tree tree) {
           ) {
           tree->attr[1] = type1;
         } else {
-          //Operator mismatch
+          tree->attr[1] = errorType;
           break;
         }
         break;
       case DIV:
         type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
         type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
-        if(type1==NULL || type1==NULL) {
-          //Type mismatch error
+        if(type1==NULL) {
+          raiseUntypedError(extractChildNumber(tree, 1));
+          break;
+        } else if(type2==NULL) {
+          raiseUntypedError(extractChildNumber(tree, 2));
           break;
         }
         if(
@@ -383,7 +521,7 @@ void visitSynType(Tree tree) {
           ) {
           tree->attr[1] = createType(REAL, 0, 0);
         } else {
-          //Operator mismatch
+          tree->attr[1] = errorType;
           break;
         }
         break;
@@ -393,7 +531,7 @@ void visitSynType(Tree tree) {
       temp = extractChild(tree, "<parameterList>", 0, 1)->children->first;
       while(temp!=NULL) {
         if(!fetchDefined(scope, extractChildNumber(temp->data.value.tree, 1))) {
-          //Undefined argument error
+          raiseUnAssignedRet(extractChildNumber(temp->data.value.tree, 1), extractChild(tree, "", FUNID, 1));
           break;
         }
         temp = temp->next;
