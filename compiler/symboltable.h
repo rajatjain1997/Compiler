@@ -18,7 +18,7 @@ typedef struct symboltable* SymbolTable;
 
 extern int sizeLookup(int type);
 
-SymbolTable createSymbolTable();
+SymbolTable createSymbolTable(SymbolTable parent);
 
 Type* createType(int type, int rows, int columns);
 

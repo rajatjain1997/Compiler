@@ -20,6 +20,7 @@
  * Boolean Expr must be boolean type
  * Arithmetic type generation
  * Recursion removal (Not done yet)
+ * Matrices should be rectangular (not done yet)
  */
 
  Type* errorType = NULL;
@@ -225,7 +226,7 @@ void visitInhType(Tree tree) {
     switch(symbol->symbolType) {
       case MAIN:
         errorType = createType(MAIN, -1, -1);
-        tree->attr[0] = createSymbolTable();
+        tree->attr[0] = createSymbolTable(NULL);
         break;
       default:
         tree->attr[0] = tree->parent->attr[0];
@@ -244,11 +245,20 @@ void visitInhType(Tree tree) {
         break;
       case ID:
         tree->attr[1] = fetchType(scope, tree);
+        if(tree->attr[1]==NULL) {
+          raiseNotDeclaredException(tree);
+          break;
+        }
         if(((Type*) tree->attr[1])->type == MATRIX && tree->children->size==2) {
           tree->attr[1] = createType(INT, 0, 0);
         }
+        break;
       case SIZE:
         type1 = fetchType(scope, tree->children->first->data.value.tree);
+        if(type1==NULL) {
+          raiseNotDeclaredException(tree->children->first->data.value.tree);
+          break;
+        }
         if(type1->type==MATRIX) {
           tree->attr[1] = createType(INT, 0, 2);
         } else {
@@ -271,7 +281,8 @@ void visitInhType(Tree tree) {
     if(symbolComparatorNT(symbol, "<functionDefn>")) {
       tree->attr[0] = createfunEntry((SymbolTable) tree->parent->attr[0], extractChildNumber(tree, 1));
       if(tree->attr[0]==NULL) {
-        raiseReDefinedException(tree);
+        tree->attr[0] = createSymbolTable(tree->parent->attr[0]);
+        raiseReDefinedException(extractChild(tree, "", FUNID, 1));
       }
     } else {
       tree->attr[0] = tree->parent->attr[0];
@@ -298,7 +309,7 @@ void visitSynType(Tree tree) {
         temptree = fetchfunDefn(scope, temptree);
         if(temptree!=NULL) {
           temp2 = extractChild(temptree, "<parameterList>", 0, 1)->children->first;
-          while(temp->next!=NULL || temp2!=NULL) {
+          while(temp->next!=NULL && temp2!=NULL) {
             type1 = fetchType(scope, temp->data.value.tree);
             type2 = fetchType(fetchfunScope(scope, extractChildNumber(tree, tree->children->size)),
                               extractChildNumber(temp2->data.value.tree, 1));
@@ -363,7 +374,7 @@ void visitSynType(Tree tree) {
           break;
         }
         temp2 = extractChild(temptree, "<parameterList>", 0, 2)->children->first;
-        while(temp!=NULL || temp2!=NULL) {
+        while(temp!=NULL && temp2!=NULL) {
           type1 = fetchType(scope, temp->data.value.tree);
           type2 = fetchType(fetchfunScope(scope, tree),
                             extractChildNumber(temp2->data.value.tree, 1));
@@ -467,7 +478,7 @@ void visitSynType(Tree tree) {
           if(type1->rows==type2->rows && type1->columns==type2->columns) {
             tree->attr[1] = type1;
           } else {
-            raiseTypeMismatchError(extractChildNumber(tree, 1), type2, type1, "");
+            raiseTypeMismatchError(tree, type2, type1, "");
             tree->attr[1] = errorType;
           }
         } else if (

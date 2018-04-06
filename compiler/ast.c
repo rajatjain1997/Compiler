@@ -99,7 +99,8 @@ void visitInh(Tree tree) {
     case 34://<addSubGenerator> <addSubOperators> <divMulExpression> <addSubGenerator1>
       if(tree->symbol->symbolType== findInTrie(nonTerminalMapping, "<addSubGenerator>") && !isTerminal(tree->symbol)) {
         tree->attr[1] = createTree(((Tree)(extractChild(tree->parent, "<addSubOperators>", 0, 1)->attr[0]))->symbol);
-        ((Tree)(tree->attr[1]))->parent = tree->parent;
+        ((Tree)(tree->parent->attr[1]))->parent = tree->attr[1];
+        extractChild(tree->parent, "<divMulExpression>", 0, 1)->parent = tree->attr[1];
         insertInList(((Tree)(tree->attr[1]))->children, tree->parent->attr[1]);
         insertInList(((Tree)(tree->attr[1]))->children, extractChild(tree->parent, "<divMulExpression>", 0, 1));
       }
@@ -112,7 +113,8 @@ void visitInh(Tree tree) {
     case 37://<divMulGenerator> <divMulOperators> <term> <divMulGenerator1>
       if(tree->symbol->symbolType== findInTrie(nonTerminalMapping, "<divMulGenerator>") && !isTerminal(tree->symbol)) {
         tree->attr[1] = createTree(((Tree)(extractChild(tree->parent, "<divMulOperators>", 0, 1)->attr[0]))->symbol);
-        ((Tree)(tree->attr[1]))->parent = tree->parent;
+        ((Tree)(tree->parent->attr[1]))->parent = tree->attr[1];
+        ((Tree)(extractChild(tree->parent, "<term>", 0, 1)->attr[0]))->parent = tree->attr[1];
         insertInList(((Tree)(tree->attr[1]))->children, tree->parent->attr[1]);
         insertInList(((Tree)(tree->attr[1]))->children, extractChild(tree->parent, "<term>", 0, 1)->attr[0]);
       }
@@ -305,6 +307,7 @@ void visitSyn(Tree tree) {
       insertInList(prunelist, lookupSymbolDictionary("<stmtProg>", 0));
       insertInList(prunelist, lookupSymbolDictionary("", ENDIF));
       insertInList(prunelist, lookupSymbolDictionary("", SEMICOLON));
+      break;
     case 28://<elseStmt> ENDIF SEMICOLON
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("", ENDIF));

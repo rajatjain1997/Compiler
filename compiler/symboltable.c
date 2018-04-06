@@ -32,7 +32,7 @@ struct symbolTableEntry {
 
 int hashingFunction(char a[]) {
   int m = 1;
-  int index = 0, i = 0;
+  unsigned int index = 0, i = 0;
   while(a[i]!='\0') {
     index = (index + (a[i]*m)%size)%size;
     i++;
@@ -41,7 +41,7 @@ int hashingFunction(char a[]) {
   return index;
 }
 
-SymbolTable createSymbolTable() {
+SymbolTable createSymbolTable(SymbolTable parent) {
   SymbolTable h = (SymbolTable) malloc(sizeof(struct symboltable));
   h->symboltable = (List*) malloc(sizeof(List)* size);
   int i;
@@ -50,7 +50,7 @@ SymbolTable createSymbolTable() {
   }
   h->size = size;
   h->lastoffset = 0;
-  h->parent = NULL;
+  h->parent = parent;
   return h;
 }
 
@@ -114,7 +114,7 @@ struct symbolTableEntry* retrieveSymbol(SymbolTable h, Token* token) {
 }
 
 int createidEntry(SymbolTable st, Tree tokentree, int type) {
-  if(getToken(extractSymbol(tokentree))->type!=ID) {
+  if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=ID) {
     return 0;
   }
   struct symbolTableEntry* ste = (struct symbolTableEntry*) malloc(sizeof(struct symbolTableEntry));
@@ -133,6 +133,9 @@ int createidEntry(SymbolTable st, Tree tokentree, int type) {
 }
 
 int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int columns) {
+  if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=ID) {
+    return 0;
+  }
   struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
   if(ste==NULL || ste->value.identry->size!=0 || (rows < 1 && columns < 1) || ste->value.identry->type->type!=type) {
     return 0;
@@ -152,7 +155,7 @@ int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int co
 }
 
 int updateidDefined(SymbolTable st, Tree tokentree) {
-  if(getToken(extractSymbol(tokentree))->type!=ID) {
+  if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=ID) {
     return 0;
   }
   struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
@@ -164,15 +167,18 @@ int updateidDefined(SymbolTable st, Tree tokentree) {
 }
 
 Type* fetchType(SymbolTable st, Tree tokentree) {
+  if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=ID) {
+    return 0;
+  }
   struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
-  if(ste==NULL || getToken(extractSymbol(ste->tokentree))->type!=ID) {
-    return NULL;
+  if(ste==NULL) {
+    return 0;
   }
   return ste->value.identry->type;
 }
 
 int fetchDefined(SymbolTable st, Tree tokentree) {
-  if(getToken(extractSymbol(tokentree))->type!=ID) {
+  if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=ID) {
     return 0;
   }
   struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
@@ -183,7 +189,7 @@ int fetchDefined(SymbolTable st, Tree tokentree) {
 }
 
 SymbolTable createfunEntry(SymbolTable st, Tree tokentree) {
-  if(getToken(extractSymbol(tokentree))->type!=FUNID) {
+  if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=FUNID) {
     return NULL;
   }
   struct symbolTableEntry* ste = (struct symbolTableEntry*) malloc(sizeof(struct symbolTableEntry));
@@ -192,8 +198,7 @@ SymbolTable createfunEntry(SymbolTable st, Tree tokentree) {
   if(insertSymbol(st, ste) == 0) {
     return NULL;
   }
-  ste->value.funentry->scope = createSymbolTable();
-  ste->value.funentry->scope->parent = st;
+  ste->value.funentry->scope = createSymbolTable(st);
   return ste->value.funentry->scope;
 }
 
@@ -202,7 +207,7 @@ SymbolTable getParentScope(SymbolTable st) {
 }
 
 Tree fetchfunDefn(SymbolTable st, Tree tokentree) {
-  if(getToken(extractSymbol(tokentree))->type!=FUNID) {
+  if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=FUNID) {
     return NULL;
   }
   struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
@@ -213,7 +218,7 @@ Tree fetchfunDefn(SymbolTable st, Tree tokentree) {
 }
 
 SymbolTable fetchfunScope(SymbolTable st, Tree tokentree) {
-  if(getToken(extractSymbol(tokentree))->type!=FUNID) {
+  if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=FUNID) {
     return NULL;
   }
   struct symbolTableEntry* ste = retrieveSymbol(st, getToken(extractSymbol(tokentree)));
