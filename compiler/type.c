@@ -20,7 +20,7 @@
  * Boolean Expr must be boolean type
  * Arithmetic type generation
  * Recursion removal (Not done yet)
- * Matrices should be rectangular (not done yet)
+ * Matrices should be rectangular
  */
 
  Type* errorType = NULL;
@@ -145,6 +145,14 @@ void raiseUnAssignedRet(Tree tree, Tree fundef) {
  	error(msg, e, token->lineno);
 }
 
+void raiseNonRectangularMatrix(Tree tree) {
+  char msg[256], buf[20];
+ 	ErrorType e = ERROR;
+ 	sprintf(msg, "SEMANTIC ERROR: Matrix is non-rectangular.");
+ 	error(msg, e, getToken(extractSymbol(extractChildNumber(extractChildNumber(tree, 1), 1)))->lineno);
+  tree->attr[1] = errorType;
+}
+
 int sizeLookup(int type) {
   switch(type) {
     case INT: return 4;
@@ -238,7 +246,7 @@ void visitInhType(Tree tree) {
         while(temp!=NULL) {
           flag = createidEntry((SymbolTable) tree->attr[0], temp->data.value.tree, symbol->symbolType);
           if(!flag) {
-            raiseReDefinedException(tree);
+            raiseReDefinedException(temp->data.value.tree);
           }
           temp = temp->next;
         }
@@ -288,7 +296,20 @@ void visitInhType(Tree tree) {
       tree->attr[0] = tree->parent->attr[0];
     }
     if(symbolComparatorNT(symbol, "<matrix>")) {
-      tree->attr[1] = createType(MATRIX, tree->children->size, extractChildNumber(tree, 1)->children->size);
+      temp = tree->children->first;
+      flag = extractChildNumber(tree, 1)->children->size;
+      while(temp!=NULL) {
+        if(flag!=temp->data.value.tree->children->size) {
+          flag = -1;
+          break;
+        }
+        temp = temp->next;
+      }
+      if(flag!=-1) {
+        tree->attr[1] = createType(MATRIX, tree->children->size, flag);
+      } else {
+        raiseNonRectangularMatrix(tree);
+      }
     }
   }
 }
@@ -370,16 +391,16 @@ void visitSynType(Tree tree) {
         temp = tree->children->first;
         temptree = fetchfunDefn(scope, tree);
         if(temptree==NULL) {
-          raiseNotDeclaredException(temptree);
+          raiseNotDeclaredException(tree);
           break;
         }
         temp2 = extractChild(temptree, "<parameterList>", 0, 2)->children->first;
         while(temp!=NULL && temp2!=NULL) {
-          type1 = fetchType(scope, temp->data.value.tree);
+          type1 = (Type*) tree->attr[1];
           type2 = fetchType(fetchfunScope(scope, tree),
                             extractChildNumber(temp2->data.value.tree, 1));
           if(type1==NULL) {
-            raiseNotDeclaredException(temp->data.value.tree);
+
           } else if(!typeComparator(scope, extractChildNumber(temp2->data.value.tree, 1), type2, type1)) {
             raiseTypeMismatchError(extractChildNumber(temp2->data.value.tree, 1), type1, type2, "");
           }
@@ -401,7 +422,7 @@ void visitSynType(Tree tree) {
       case AND: case OR:
         temptree = extractChildNumber(tree, 1);
         type1 = ((Type*) extractChildNumber(tree, 2)->attr[1]);
-        if(tree->attr[1]==NULL) {
+        if(temptree->attr[1]==NULL) {
           raiseUntypedError(temptree);
           break;
         } else if(type1 == NULL) {

@@ -591,11 +591,12 @@ void visitSyn(Tree tree) {
       tree->attr[0] = tree->children;
       childList = tree->children;
       break;
-    case 80://<argListN> <arithmeticExpression> <moreArgs>
+    case 80://<argListN> <var> <moreArgs>
       tree->attr[0] = extractChild(tree, "<moreArgs>", 0, 1)->attr[0];
-      d.value.tree = extractChild(tree, "<arithmeticExpression>", 0, 1);
+      d.value.tree = extractChild(tree, "<var>", 0, 1);
       insertInFront(tree->attr[0], d);
       childList = tree->children;
+      insertInList(prunelist, lookupSymbolDictionary("<var>", 0));
       insertInList(prunelist, lookupSymbolDictionary("<moreArgs>", 0));
       break;
     case 81://<moreArgs> COMMA <argListN>

@@ -78,6 +78,6 @@
 <funCall> FUNID OP <argList> CL
 <argList> <argListN>
 <argList> $
-<argListN> <arithmeticExpression> <moreArgs>
+<argListN> <var> <moreArgs>
 <moreArgs> COMMA <argListN>
 <moreArgs> $
