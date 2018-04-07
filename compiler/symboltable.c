@@ -41,7 +41,7 @@ int hashingFunction(char a[]) {
   return index;
 }
 
-SymbolTable createSymbolTable(SymbolTable parent) {
+SymbolTable createSymbolTable(SymbolTable parent, Tree func) {
   SymbolTable h = (SymbolTable) malloc(sizeof(struct symboltable));
   h->symboltable = (List*) malloc(sizeof(List)* size);
   int i;
@@ -51,6 +51,7 @@ SymbolTable createSymbolTable(SymbolTable parent) {
   h->size = size;
   h->lastoffset = 0;
   h->parent = parent;
+  h->func = func;
   return h;
 }
 
@@ -60,6 +61,17 @@ Type* createType(int t, int rows, int columns) {
   type->rows = rows;
   type->columns = columns;
   return type;
+}
+
+int checkRecursion(SymbolTable st, Tree tokentree) {
+  SymbolTable temp = st;
+  while(temp!=NULL) {
+    if(temp->func==tokentree) {
+      return 1;
+    }
+    temp = temp->parent;
+  }
+  return 0;
 }
 
 // void deleteSymbolTable(SymbolTable h) {
@@ -96,6 +108,9 @@ int insertSymbol(SymbolTable h,  struct symbolTableEntry* s) {
 
 struct symbolTableEntry* retrieveSymbol(SymbolTable h, Token* token) {
   char buf1[20], buf2[20];
+  if(token->type!=ID && token->type!=FUNID) {
+    return NULL;
+  }
   SymbolTable tempst = h;
   getLexeme(token, buf2);
   int index = hashingFunction(buf2);
@@ -104,6 +119,9 @@ struct symbolTableEntry* retrieveSymbol(SymbolTable h, Token* token) {
     while(temp!=NULL) {
       getLexeme(getToken(extractSymbol(temp->data.value.symboltableentry->tokentree)), buf1);
       if(strcmp(buf1, buf2)==0) {
+        if(token->type==FUNID && checkRecursion(h, temp->data.value.symboltableentry->tokentree)) {
+          return NULL;
+        }
         return temp->data.value.symboltableentry;
       }
       temp = temp->next;
@@ -198,7 +216,7 @@ SymbolTable createfunEntry(SymbolTable st, Tree tokentree) {
   if(insertSymbol(st, ste) == 0) {
     return NULL;
   }
-  ste->value.funentry->scope = createSymbolTable(st);
+  ste->value.funentry->scope = createSymbolTable(st, tokentree);
   return ste->value.funentry->scope;
 }
 

@@ -19,7 +19,7 @@
  * Any independed funCall must return 0 arguments
  * Boolean Expr must be boolean type
  * Arithmetic type generation
- * Recursion removal (Not done yet)
+ * Recursion removal
  * Matrices should be rectangular
  */
 
@@ -234,7 +234,7 @@ void visitInhType(Tree tree) {
     switch(symbol->symbolType) {
       case MAIN:
         errorType = createType(MAIN, -1, -1);
-        tree->attr[0] = createSymbolTable(NULL);
+        tree->attr[0] = createSymbolTable(NULL, NULL);
         break;
       default:
         tree->attr[0] = tree->parent->attr[0];
@@ -289,7 +289,7 @@ void visitInhType(Tree tree) {
     if(symbolComparatorNT(symbol, "<functionDefn>")) {
       tree->attr[0] = createfunEntry((SymbolTable) tree->parent->attr[0], extractChildNumber(tree, 1));
       if(tree->attr[0]==NULL) {
-        tree->attr[0] = createSymbolTable(tree->parent->attr[0]);
+        tree->attr[0] = createSymbolTable(tree->parent->attr[0], extractChildNumber(tree, 1));
         raiseReDefinedException(extractChild(tree, "", FUNID, 1));
       }
     } else {
@@ -391,7 +391,6 @@ void visitSynType(Tree tree) {
         temp = tree->children->first;
         temptree = fetchfunDefn(scope, tree);
         if(temptree==NULL) {
-          raiseNotDeclaredException(tree);
           break;
         }
         temp2 = extractChild(temptree, "<parameterList>", 0, 2)->children->first;

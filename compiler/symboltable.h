@@ -6,6 +6,7 @@ struct symboltable {
   int size;
   int lastoffset;
   struct symboltable* parent;
+  struct tree* func;
 };
 
 typedef struct type {
@@ -18,7 +19,7 @@ typedef struct symboltable* SymbolTable;
 
 extern int sizeLookup(int type);
 
-SymbolTable createSymbolTable(SymbolTable parent);
+SymbolTable createSymbolTable(SymbolTable parent, struct tree* func);
 
 Type* createType(int type, int rows, int columns);
 
