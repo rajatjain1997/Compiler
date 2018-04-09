@@ -175,7 +175,7 @@ void markDefinedVars(SymbolTable st, List vars) {
 }
 
 int typeComparator(SymbolTable st, Tree identifier, Type* type2, Type* type1) {
-  if(type1->type==MATRIX || type1->type==STRING) {
+  if((type1->type==MATRIX || type1->type==STRING) && type2->rows==0 && type2->columns==0) {
     if(!updateidEntrySize(st, identifier, type1->type, type1->rows, type1->columns)) {
       return 0;
     }
@@ -336,8 +336,7 @@ void visitSynType(Tree tree) {
                               extractChildNumber(temp2->data.value.tree, 1));
             if(type1==NULL) {
               raiseNotDeclaredException(temp->data.value.tree);
-            }
-            if(!typeComparator(scope, temp->data.value.tree, type1, type2)) {
+            } else if(!typeComparator(scope, temp->data.value.tree, type1, type2)) {
               raiseTypeMismatchError(temp->data.value.tree, type2, type1, "");
             }
             temp = temp->next;
@@ -359,16 +358,16 @@ void visitSynType(Tree tree) {
             break;
           }
           if(type1->columns==2 && type1->type==INT) {
-            if(tree->children->size>2) {
+            if(tree->children->size>3) {
               raiseInsufficientRHS(tree);
               markDefinedVars(scope, tree->children);
               break;
-            } else if(tree->children->size<2) {
+            } else if(tree->children->size<3) {
               raiseInsufficientLHS(tree);
               markDefinedVars(scope, tree->children);
               break;
             } else {
-              while(temp!=NULL) {
+              while(temp->next!=NULL) {
                 type2 = fetchType(scope, temp->data.value.tree);
                 if(type2==NULL) {
                   raiseNotDeclaredException(temp->data.value.tree);
@@ -395,7 +394,7 @@ void visitSynType(Tree tree) {
         }
         temp2 = extractChild(temptree, "<parameterList>", 0, 2)->children->first;
         while(temp!=NULL && temp2!=NULL) {
-          type1 = (Type*) tree->attr[1];
+          type1 = (Type*) temp->data.value.tree->attr[1];
           type2 = fetchType(fetchfunScope(scope, tree),
                             extractChildNumber(temp2->data.value.tree, 1));
           if(type1==NULL) {

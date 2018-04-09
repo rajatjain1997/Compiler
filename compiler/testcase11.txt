@@ -1,0 +1,6 @@
+_main[]
+  function [string a, string g] = _lolfun[string b, string c]
+    a = b + c;
+    g = a;
+  end;
+end
