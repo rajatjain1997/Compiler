@@ -117,6 +117,23 @@ void printList(Head* h) {
 	printf("\n");
 }
 
+void insertAtEndFast(List list, void* element) {
+  if(element==NULL) {
+    return;
+  }
+  Data d;
+  d.value.tree = (Tree) element;
+  insertAtEnd(list, d);
+}
+
+void insertInFrontFast(List list, void* element) {
+  if(element==NULL) {
+    return;
+  }
+  Data d;
+  d.value.tree = (Tree) element;
+  insertInFront(list, d);
+}
 
 Data deleteAtEnd(Head* h) {
 	if(h->size==0) {

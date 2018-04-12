@@ -13,6 +13,7 @@ struct occurance;
 struct errorMessage;
 struct rule;
 struct symbolTableEntry;
+struct quadruple;
 
 typedef union {
 	struct tree* tree;
@@ -22,6 +23,7 @@ typedef union {
 	struct errorMessage* errorMessage;
 	struct rule* rule;
 	struct symbolTableEntry* symboltableentry;
+	struct quadruple* quadruple;
 } LinkedDataItems;
 
 typedef struct {
@@ -116,6 +118,10 @@ void insertInFront(Head*, Data);
 void insertAtEnd(Head*, Data);
 
 void insertAtIndex(Head*, Data, int);
+
+void insertAtEndFast(List list, void* element);
+
+void insertInFrontFast(List list, void* element);
 
 Data deleteFromFront(Head*);
 

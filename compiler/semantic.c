@@ -77,3 +77,16 @@ Tree extractChildNumber(Tree tree, int childno) {
   }
   return NULL;
 }
+
+int sizeLookup(int type) {
+  switch(type) {
+    case INT: return 4;
+    case REAL: return 4;
+    case STRING: case MATRIX: return 0;
+    case STR: return 1;
+  }
+}
+
+int symbolComparatorNT(Symbol* s, char str[]) {
+  return s->symbolType == lookupSymbolDictionary(str, 0)->symbolType;
+}

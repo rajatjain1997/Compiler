@@ -1,7 +1,5 @@
 struct symbolTableEntry;
 
-const unsigned int CONSTANT_OP1 = 1, CONSTANT_OP2 = 2, CONSTANT_OP3 = 4;
-
 typedef enum {
   OP_PLUS,
   OP_MINUS,
@@ -20,12 +18,20 @@ typedef enum {
   OP_CALL
 } Operator;
 
-struct address {
+typedef struct address {
   void* address;
   int isConstant;
-};
+} Address;
 
 typedef struct quadruple {
   Operator operator;
   struct address* op[3];
 } Quadruple;
+
+Address* makeAddress(void* address, int isConstant);
+
+Quadruple* makeCode(Operator op, Address* op1, Address* op2, Address* op3);
+
+struct symbolTableEntry* generateTemporary(SymbolTable st, Type type);
+
+char* generateLabel();

@@ -153,19 +153,6 @@ void raiseNonRectangularMatrix(Tree tree) {
   tree->attr[1] = errorType;
 }
 
-int sizeLookup(int type) {
-  switch(type) {
-    case INT: return 4;
-    case REAL: return 4;
-    case STRING: case MATRIX: return 0;
-    case STR: return 1;
-  }
-}
-
-int symbolComparatorNT(Symbol* s, char str[]) {
-  return s->symbolType == lookupSymbolDictionary(str, 0)->symbolType;
-}
-
 void markDefinedVars(SymbolTable st, List vars) {
   Element temp = vars->first;
   while(temp->next!=NULL) {
