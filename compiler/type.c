@@ -570,7 +570,7 @@ void visitSynType(Tree tree) {
   }
 }
 
-void typeCheck(Tree tree) {
+SymbolTable typeCheck(Tree tree) {
   Element temp;
   if(tree->children->size!=0) {
     visitInhType(tree);
@@ -583,4 +583,5 @@ void typeCheck(Tree tree) {
   } else {
     generateTypeAttribute(tree);
   }
+  return tree->attr[0];
 }

@@ -15,6 +15,28 @@ typedef struct type {
     int columns;
 } Type;
 
+
+struct idEntry {
+  Type* type;
+  int size;
+  int offset;
+  char defined;
+};
+
+struct funEntry {
+  SymbolTable scope;
+};
+
+union symbolTableEntryElements {
+  struct idEntry* identry;
+  struct funEntry* funentry;
+};
+
+struct symbolTableEntry {
+  Tree tokentree;
+  union symbolTableEntryElements value;
+};
+
 typedef struct symboltable* SymbolTable;
 
 extern int sizeLookup(int type);
@@ -40,3 +62,5 @@ SymbolTable getParentScope(SymbolTable st);
 Tree fetchfunDefn(SymbolTable st, Tree tokentree);
 
 SymbolTable fetchfunScope(SymbolTable st, Tree tokentree);
+
+struct symbolTableEntry* retrieveSymbol(SymbolTable h, Token* token);

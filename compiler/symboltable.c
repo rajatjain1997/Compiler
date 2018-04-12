@@ -9,27 +9,6 @@
 
 const int size = 29;
 
-struct idEntry {
-  Type* type;
-  int size;
-  int offset;
-  char defined;
-};
-
-struct funEntry {
-  SymbolTable scope;
-};
-
-union symbolTableEntryElements {
-  struct idEntry* identry;
-  struct funEntry* funentry;
-};
-
-struct symbolTableEntry {
-  Tree tokentree;
-  union symbolTableEntryElements value;
-};
-
 int hashingFunction(char a[]) {
   int m = 1;
   unsigned int index = 0, i = 0;
