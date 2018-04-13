@@ -9,6 +9,8 @@ struct symboltable {
   struct tree* func;
 };
 
+typedef struct symboltable* SymbolTable;
+
 typedef struct type {
     int type;
     int rows;
@@ -36,8 +38,6 @@ struct symbolTableEntry {
   Tree tokentree;
   union symbolTableEntryElements value;
 };
-
-typedef struct symboltable* SymbolTable;
 
 extern int sizeLookup(int type);
 

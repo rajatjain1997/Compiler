@@ -12,10 +12,18 @@ typedef enum {
 	OP_GE,
 	OP_NE,
   OP_PARAM,
+  OP_RETURNPARAM,
+  OP_MOV,
   OP_GOTO,
   OP_IF,
   OP_IFFALSE,
-  OP_CALL
+  OP_CALL,
+  OP_PUSH,
+  OP_POP,
+  OP_ADDR,
+  OP_ADDRPLUS //Add with second argument as address
+  OP_DEFINE,
+  OP_RET
 } Operator;
 
 typedef struct address {

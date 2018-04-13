@@ -24,6 +24,7 @@ typedef union {
 	struct rule* rule;
 	struct symbolTableEntry* symboltableentry;
 	struct quadruple* quadruple;
+	struct address* address;
 } LinkedDataItems;
 
 typedef struct {

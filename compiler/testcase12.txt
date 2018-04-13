@@ -1,0 +1,7 @@
+_main[]
+  function [int c] = _add[int a, int b]
+    c = a+b;
+  end;
+  int c;
+  c = 3 + _add(1, 2);
+end

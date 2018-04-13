@@ -267,7 +267,7 @@ void visitInhType(Tree tree) {
           break;
         }
         temptree = extractChildNumber(temptree, 2);
-        if(!temptree->children->size==0 && !temptree->children->size>1) {
+        if(temptree->children->size==1) {
           tree->attr[1] = fetchType(fetchfunScope(scope, tree), extractChildNumber(extractChildNumber(temptree,1),1));
         }
         break;

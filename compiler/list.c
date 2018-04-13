@@ -122,7 +122,7 @@ void insertAtEndFast(List list, void* element) {
     return;
   }
   Data d;
-  d.value.tree = (Tree) element;
+  d.value.tree = (List) element;
   insertAtEnd(list, d);
 }
 
@@ -131,7 +131,7 @@ void insertInFrontFast(List list, void* element) {
     return;
   }
   Data d;
-  d.value.tree = (Tree) element;
+  d.value.tree = (List) element;
   insertInFront(list, d);
 }
 
