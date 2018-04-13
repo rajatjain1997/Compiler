@@ -21,7 +21,7 @@ Quadruple* makeCode(Operator op, Address* op1, Address* op2, Address* op3) {
   return quad;
 }
 
-Address* generateTemporary(SymbolTable st, Type type) {
+Address* generateTemporary(SymbolTable st, Type* type) {
   static char* tempstring = NULL; int number;
   if(tempstring==NULL) {
     tempstring = (char*) malloc(sizeof(char)*20);
@@ -35,16 +35,17 @@ Address* generateTemporary(SymbolTable st, Type type) {
       sprintf(tempstring, "%c0%d", tempstring[0], number);
     }
   }
+  char buf[20];
   Token* to = tokenize(ID, buf, 0);
   Symbol* sy = generateSymbol(ID, 1);
   attachTokenToSymbol(sy, to);
   Tree t = createTree(sy);
   createidEntry(st, t, type->type);
-  if(!(rows < 1 && columns < 1)) {
+  if(!(type->rows < 1 && type->columns < 1)) {
     updateidEntrySize(st, t, type->type, type->rows, type->columns);
   }
-  updateidDefined(st, tree);
-  tree->attr[0] = st;
+  updateidDefined(st, t);
+  t->attr[0] = st;
   return makeAddress(retrieveSymbol(st, to), 0);
 }
 

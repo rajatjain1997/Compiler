@@ -1,4 +1,6 @@
 struct symbolTableEntry;
+struct symboltable;
+struct type;
 
 typedef enum {
   OP_PLUS,
@@ -21,7 +23,7 @@ typedef enum {
   OP_PUSH,
   OP_POP,
   OP_ADDR,
-  OP_ADDRPLUS //Add with second argument as address
+  OP_ADDRPLUS, //Add with second argument as address
   OP_DEFINE,
   OP_RET
 } Operator;
@@ -40,6 +42,6 @@ Address* makeAddress(void* address, int isConstant);
 
 Quadruple* makeCode(Operator op, Address* op1, Address* op2, Address* op3);
 
-struct symbolTableEntry* generateTemporary(SymbolTable st, Type type);
+Address* generateTemporary(struct symboltable* st, struct type* type);
 
 char* generateLabel();

@@ -228,6 +228,13 @@ int checkCircular(Head* h) {
 }
 
 List appendLists(List list1, List list2) {
+	if(list1->size==0) {
+		free(list1);
+		return list2;
+	} else if(list2->size==0) {
+		free(list2);
+		return list1;
+	}
 	list1->last->next = list2->first;
 	list2->first->prev = list1->last;
 	list1->last = list2->last;

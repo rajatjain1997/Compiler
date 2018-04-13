@@ -66,6 +66,9 @@ Tree extractChild(Tree tree ,char nonterminal[], TokenType terminal, int childno
 
 
 Tree extractChildNumber(Tree tree, int childno) {
+  if(childno==tree->children->size) {
+    return tree->children->last->data.value.tree;
+  }
   List children = tree->children;
   Element temp = children->first;
   int index = 0;
