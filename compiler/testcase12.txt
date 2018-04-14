@@ -4,4 +4,9 @@ _main[]
   end;
   int c;
   c = 3 + _add(1, 2);
+  if((c>3).and.(1=/=2))
+    print(c);
+  else
+    read(c);
+  endif;
 end

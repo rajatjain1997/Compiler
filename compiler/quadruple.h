@@ -7,12 +7,15 @@ typedef enum {
   OP_MINUS,
   OP_DIV,
   OP_MUL,
-  OP_LT,
-	OP_LE,
-	OP_EQ,
-	OP_GT,
-	OP_GE,
-	OP_NE,
+  OP_JLT,
+	OP_JLE,
+	OP_JEQ,
+	OP_JGT,
+	OP_JGE,
+	OP_JNE,
+  OP_CMP,
+  OP_JMP,
+  OP_LABEL,
   OP_PARAM,
   OP_RETURNPARAM,
   OP_MOV,
@@ -25,7 +28,9 @@ typedef enum {
   OP_ADDR,
   OP_ADDRPLUS, //Add with second argument as address
   OP_DEFINE,
-  OP_RET
+  OP_RET,
+  OP_READ,
+  OP_PRINT
 } Operator;
 
 union addresselem {
@@ -50,4 +55,4 @@ Quadruple* makeCode(Operator op, Address* op1, Address* op2, Address* op3);
 
 Address* generateTemporary(struct symboltable* st, struct type* type);
 
-char* generateLabel();
+Address* generateLabel();

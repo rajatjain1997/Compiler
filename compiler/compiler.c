@@ -37,6 +37,7 @@ void printQuadruples(List code) {
 				case STRING: printf("%-20s|", ((String*) quad->op[i]->address.entry)->value); break;
 				case MATRIX: printf("MATRIX"); break;
 				case FUNID: printf("%-20s|", ((Tree) quad->op[i]->address.entry)->symbol->token->value.lexeme); break;
+				case IF: printf("%-20s|", (char*) quad->op[i]->address.entry); break;
 				default: printf("%-20s|", ((struct symbolTableEntry*) quad->op[i]->address.entry)->tokentree->symbol->token->value.lexeme);
 			}
 		}

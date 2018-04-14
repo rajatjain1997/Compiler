@@ -55,7 +55,7 @@ Address* generateTemporary(SymbolTable st, Type* type) {
   return makeAddress(retrieveSymbol(st, to), 0, 0, 0);
 }
 
-char* generateLabel() {
+Address* generateLabel() {
   static char* tempstring = NULL; int number;
   if(tempstring==NULL) {
     tempstring = (char*) malloc(sizeof(char)*20);
@@ -71,5 +71,5 @@ char* generateLabel() {
   }
   char* label = (char*) malloc(sizeof(char)*20);
   strcpy(label, tempstring);
-  return label;
+  return makeAddress(label, 0, 0, IF);
 }

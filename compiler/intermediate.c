@@ -9,7 +9,6 @@
 #include"list.h"
 
 void generateLabelAttribute(Tree tree) {
-  nullifyAttributes(tree);
   Symbol* symbol = extractSymbol(tree);
   SymbolTable scope = (SymbolTable) tree->parent->attr[0];
   Tree temptree; Type type1;
@@ -17,20 +16,58 @@ void generateLabelAttribute(Tree tree) {
   if(isTerminal(symbol)) {
     switch(symbol->symbolType) {
         case ID:
-          tree->attr[1] = makeAddress(retrieveSymbol(scope, getToken(extractSymbol(tree))), 0, 0, 0);
+          tree->attr[1] = makeAddress(retrieveSymbol(scope, getToken(symbol)), 0, 0, 0);
           break;
         case NUM:
-          tree->attr[1] = makeAddress(NULL, getToken(extractSymbol(tree))->value.integer, 0, INT);
+          tree->attr[1] = makeAddress(NULL, getToken(symbol)->value.integer, 0, INT);
           break;
         case RNUM:
-          tree->attr[1] = makeAddress(NULL, 0, getToken(extractSymbol(tree))->value.real, REAL);
+          tree->attr[1] = makeAddress(NULL, 0, getToken(symbol)->value.real, REAL);
           break;
         case STR:
-          tree->attr[1] = makeAddress(getToken(extractSymbol(tree))->value.string, 0, 0, STRING);
+          tree->attr[1] = makeAddress(getToken(symbol)->value.string, 0, 0, STRING);
           break;
     }
   }
 }
+
+void visitInhCode(Tree tree) {
+  Symbol* symbol = extractSymbol(tree);
+  Tree temptree; Type type1;
+  if(isTerminal(symbol)) {
+    switch(symbol->symbolType) {
+      case IF:
+        tree->attr[1] = generateLabel();
+        tree->attr[2] = generateLabel();
+        temptree = extractChildNumber(tree, 1);
+        temptree->attr[1] = tree->attr[1];
+        temptree->attr[2] = tree->attr[2];
+      break;
+      case AND:
+        temptree = extractChildNumber(tree, 1);
+        temptree->attr[1] = generateLabel();
+        temptree->attr[2] = tree->attr[2];
+        temptree = extractChildNumber(tree, 2);
+        temptree->attr[1] = tree->attr[1];
+        temptree->attr[2] = tree->attr[2];
+      break;
+      case OR:
+        temptree = extractChildNumber(tree, 1);
+        temptree->attr[1] = tree->attr[1];
+        temptree->attr[2] = generateLabel();
+        temptree = extractChildNumber(tree, 2);
+        temptree->attr[1] = tree->attr[1];
+        temptree->attr[2] = tree->attr[2];
+      break;
+      case NOT:
+        temptree = extractChildNumber(tree, 1);
+        temptree->attr[1] = tree->attr[2];
+        temptree->attr[2] = tree->attr[1];
+      break;
+    }
+  }
+}
+
 void visitSynCode(Tree tree) {
   Symbol* symbol = extractSymbol(tree);
   SymbolTable scope = (SymbolTable) tree->attr[0];
@@ -135,6 +172,185 @@ void visitSynCode(Tree tree) {
         tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[0], codelist);
         tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[0], tree->attr[0]);
       break;
+      case LT:
+        insertAtEndFast(codelist,
+          makeCode(OP_CMP,
+            extractChildNumber(tree, 1)->attr[1],
+            extractChildNumber(tree, 2)->attr[1],
+            NULL
+          ));
+        insertAtEndFast(codelist,
+          makeCode(OP_JLT,
+            tree->attr[1],
+            NULL,
+            NULL
+          ));
+        insertAtEndFast(codelist,
+          makeCode(OP_JMP,
+            tree->attr[2],
+            NULL,
+            NULL));
+        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[0], codelist);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[0], tree->attr[0]);
+      break;
+      case LE:
+        insertAtEndFast(codelist,
+          makeCode(OP_CMP,
+            extractChildNumber(tree, 1)->attr[1],
+            extractChildNumber(tree, 2)->attr[1],
+            NULL
+          ));
+        insertAtEndFast(codelist,
+          makeCode(OP_JLE,
+            tree->attr[1],
+            NULL,
+            NULL
+          ));
+        insertAtEndFast(codelist,
+          makeCode(OP_JMP,
+            tree->attr[2],
+            NULL,
+            NULL));
+        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[0], codelist);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[0], tree->attr[0]);
+      break;
+      case EQ:
+        insertAtEndFast(codelist,
+          makeCode(OP_CMP,
+            extractChildNumber(tree, 1)->attr[1],
+            extractChildNumber(tree, 2)->attr[1],
+            NULL
+          ));
+        insertAtEndFast(codelist,
+          makeCode(OP_JEQ,
+            tree->attr[1],
+            NULL,
+            NULL
+          ));
+        insertAtEndFast(codelist,
+          makeCode(OP_JMP,
+            tree->attr[2],
+            NULL,
+            NULL));
+        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[0], codelist);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[0], tree->attr[0]);
+      break;
+      case GT:
+        insertAtEndFast(codelist,
+          makeCode(OP_CMP,
+            extractChildNumber(tree, 1)->attr[1],
+            extractChildNumber(tree, 2)->attr[1],
+            NULL
+          ));
+        insertAtEndFast(codelist,
+          makeCode(OP_JGT,
+            tree->attr[1],
+            NULL,
+            NULL
+          ));
+        insertAtEndFast(codelist,
+          makeCode(OP_JMP,
+            tree->attr[2],
+            NULL,
+            NULL));
+        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[0], codelist);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[0], tree->attr[0]);
+      break;
+      case GE:
+        insertAtEndFast(codelist,
+          makeCode(OP_CMP,
+            extractChildNumber(tree, 1)->attr[1],
+            extractChildNumber(tree, 2)->attr[1],
+            NULL
+          ));
+        insertAtEndFast(codelist,
+          makeCode(OP_JGE,
+            tree->attr[1],
+            NULL,
+            NULL
+          ));
+        insertAtEndFast(codelist,
+          makeCode(OP_JMP,
+            tree->attr[2],
+            NULL,
+            NULL));
+        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[0], codelist);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[0], tree->attr[0]);
+      break;
+      case NE:
+        insertAtEndFast(codelist,
+          makeCode(OP_CMP,
+            extractChildNumber(tree, 1)->attr[1],
+            extractChildNumber(tree, 2)->attr[1],
+            NULL
+          ));
+        insertAtEndFast(codelist,
+          makeCode(OP_JNE,
+            tree->attr[1],
+            NULL,
+            NULL
+          ));
+        insertAtEndFast(codelist,
+          makeCode(OP_JMP,
+            tree->attr[2],
+            NULL,
+            NULL));
+        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[0], codelist);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[0], tree->attr[0]);
+      break;
+      case AND:
+        tree->attr[0] = appendLists(tree->attr[0], extractChildNumber(tree, 1)->attr[0]);
+        insertAtEndFast(tree->attr[0],
+          makeCode(OP_LABEL,
+            extractChildNumber(tree, 1)->attr[1],
+            NULL,
+            NULL));
+        tree->attr[0] = appendLists(tree->attr[0], extractChildNumber(tree, 2)->attr[0]);
+      break;
+      case OR:
+        tree->attr[0] = appendLists(tree->attr[0], extractChildNumber(tree, 1)->attr[0]);
+        insertAtEndFast(tree->attr[0],
+          makeCode(OP_LABEL,
+            extractChildNumber(tree, 1)->attr[2],
+            NULL,
+            NULL));
+        tree->attr[0] = appendLists(tree->attr[0], extractChildNumber(tree, 2)->attr[0]);
+      break;
+      case NOT:
+        tree->attr[0] = appendLists(tree->attr[0], extractChildNumber(tree, 1)->attr[0]);
+      break;
+      case IF:
+        tree->attr[0] = appendLists(tree->attr[0], extractChildNumber(tree, 1)->attr[0]);
+        insertAtEndFast(tree->attr[0],
+          makeCode(OP_LABEL,
+            tree->attr[1],
+            NULL,
+            NULL));
+        temp = tree->children->first->next;
+        codelist = tree->attr[0];
+        while(temp->next!=NULL) {
+          tree->attr[0] = appendLists(codelist, temp->data.value.tree->attr[0]);
+          codelist = tree->attr[0];
+          temp = temp->next;
+        }
+        if(extractSymbol(temp->data.value.tree)->symbolType == ELSE) {
+          tempAddress1 = generateLabel();
+          insertAtEndFast(codelist, makeCode(OP_JMP, tempAddress1, NULL, NULL));
+          insertAtEndFast(codelist, makeCode(OP_LABEL, tree->attr[2], NULL, NULL));
+          tree->attr[0] = appendLists(tree->attr[0], temp->data.value.tree->attr[0]);
+          insertAtEndFast(tree->attr[0], makeCode(OP_LABEL, tempAddress1, NULL, NULL));
+        } else {
+          insertAtEndFast(codelist, makeCode(OP_LABEL, tree->attr[2], NULL, NULL));
+        }
+        break;
+      case ELSE:
+        temp = tree->children->first;
+        while(temp!=NULL) {
+          tree->attr[0] = appendLists(codelist, temp->data.value.tree->attr[0]);
+          codelist = tree->attr[0];
+          temp = temp->next;
+        }
+        break;
       case ID:
         tree->attr[1] = generateTemporary(scope, type);
         tempAddress1 = generateTemporary(scope, type);
@@ -152,7 +368,7 @@ void visitSynCode(Tree tree) {
         insertAtEndFast(codelist,
         makeCode(OP_ADDRPLUS,
           tempAddress2,
-          makeAddress(retrieveSymbol(scope, getToken(extractSymbol(tree))), 0, 0, 0),
+          makeAddress(retrieveSymbol(scope, getToken(symbol)), 0, 0, 0),
           tree->attr[1]));
       break;
       case SIZE:
@@ -178,7 +394,7 @@ void visitSynCode(Tree tree) {
           temp = temp->next;
         }
         temptree = fetchfunDefn(scope, tree);
-        if(extractChild(temptree, "<parameterList>", 0, 1)->children->size==1) {
+        if(extractChildNumber(temptree, 2)->children->size==1) {
           tree->attr[1] = generateTemporary(scope, tree->attr[1]);
           insertAtEndFast(codelist,
             makeCode(OP_PUSH,
@@ -187,7 +403,7 @@ void visitSynCode(Tree tree) {
               NULL));
         } else {
           tree->attr[1] = createList();
-          temp = extractChild(temptree, "<parameterList>", 0, 1)->children->first;
+          temp = extractChildNumber(temptree, 2)->children->first;
           while(temp!=NULL) {
             tempAddress1 = generateTemporary(scope, fetchType(fetchfunScope(scope, tree),
                                               extractChildNumber(temp->data.value.tree, 1)));
@@ -202,10 +418,16 @@ void visitSynCode(Tree tree) {
         }
         insertAtEndFast(codelist,
           makeCode(OP_CALL,
-            makeAddress(extractChild(temptree, "", FUNID, 1), 0, 0, FUNID),
+            makeAddress(extractChildNumber(temptree, 1), 0, 0, FUNID),
             makeAddress(NULL, tree->children->size, 0, INT),
-            makeAddress(NULL, extractChild(temptree, "<parameterList>", 0, 1)->children->size, 0, INT)));
+            makeAddress(NULL, extractChildNumber(temptree, 2)->children->size, 0, INT)));
         break;
+      case READ:
+        insertAtEndFast(codelist, makeCode(OP_READ, extractChildNumber(tree, 1)->attr[1], NULL, NULL));
+      break;
+      case PRINT:
+        insertAtEndFast(codelist, makeCode(OP_PRINT, extractChildNumber(tree, 1)->attr[1], NULL, NULL));
+      break;
     }
   } else {
     if(symbolComparatorNT(symbol, "<matrix>")) {
@@ -214,7 +436,7 @@ void visitSynCode(Tree tree) {
       temp = tree->children->first;
       insertAtEndFast(codelist,
         makeCode(OP_DEFINE,
-          makeAddress(extractChild(tree, "", FUNID, 1), 0, 0, FUNID),
+          makeAddress(extractChildNumber(tree, 1), 0, 0, FUNID),
           NULL,
           NULL));
       temp = temp->next;
@@ -225,7 +447,7 @@ void visitSynCode(Tree tree) {
       }
       insertAtEndFast(codelist,
         makeCode(OP_RET,
-          makeAddress(NULL, extractChild(tree, "<parameterList>", 0, 1)->children->size, 0, INT),
+          makeAddress(NULL, extractChildNumber(tree, 2)->children->size, 0, INT),
           NULL,
           NULL));
     } else if(symbolComparatorNT(symbol, "<parameterList>")) {
@@ -242,6 +464,7 @@ void visitSynCode(Tree tree) {
 List generateCode(Tree tree) {
   Element temp;
   if(tree->children->size!=0) {
+      visitInhCode(tree);
   	temp = tree->children->first;
   	while(temp!=NULL) {
   		generateCode(temp->data.value.tree);
