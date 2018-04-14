@@ -387,7 +387,7 @@ void visitSynType(Tree tree) {
           if(type1==NULL) {
 
           } else if(!typeComparator(scope, extractChildNumber(temp2->data.value.tree, 1), type2, type1)) {
-            raiseTypeMismatchError(extractChildNumber(temp2->data.value.tree, 1), type1, type2, "");
+            raiseTypeMismatchError(extractChildNumber(temp2->data.value.tree, 1), type2, type1, "");
           }
           temp = temp->next;
           temp2 = temp2->next;

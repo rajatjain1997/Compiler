@@ -593,7 +593,7 @@ void visitSyn(Tree tree) {
       break;
     case 80://<argListN> <var> <moreArgs>
       tree->attr[0] = extractChild(tree, "<moreArgs>", 0, 1)->attr[0];
-      d.value.tree = extractChild(tree, "<var>", 0, 1);
+      d.value.tree = extractChild(tree, "<var>", 0, 1)->attr[0];
       insertInFront(tree->attr[0], d);
       childList = tree->children;
       insertInList(prunelist, lookupSymbolDictionary("<var>", 0));

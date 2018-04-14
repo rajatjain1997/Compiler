@@ -6,8 +6,9 @@
 #include"quadruple.h"
 #include"symboltable.h"
 #include"semantic.h"
+#include"list.h"
 
-void generateTypeAttribute(Tree tree) {
+void generateLabelAttribute(Tree tree) {
   nullifyAttributes(tree);
   Symbol* symbol = extractSymbol(tree);
   SymbolTable scope = (SymbolTable) tree->parent->attr[0];
@@ -16,16 +17,16 @@ void generateTypeAttribute(Tree tree) {
   if(isTerminal(symbol)) {
     switch(symbol->symbolType) {
         case ID:
-          tree->attr[1] = makeAddress(retrieveSymbol(scope, getToken(extractSymbol(tree))), 0);
+          tree->attr[1] = makeAddress(retrieveSymbol(scope, getToken(extractSymbol(tree))), 0, 0, 0);
           break;
-        case INT:
-          tree->attr[1] = makeAddress(getToken(extractChild(tree))->value.integer, 1);
+        case NUM:
+          tree->attr[1] = makeAddress(NULL, getToken(extractSymbol(tree))->value.integer, 0, INT);
           break;
-        case REAL:
-          tree->attr[1] = makeAddress(getToken(extractChild(tree))->value.real, 1);
+        case RNUM:
+          tree->attr[1] = makeAddress(NULL, 0, getToken(extractSymbol(tree))->value.real, REAL);
           break;
-        case STRING:
-          tree->attr[1] = makeAddress(getToken(extractChild(tree))->value.string, 1);
+        case STR:
+          tree->attr[1] = makeAddress(getToken(extractSymbol(tree))->value.string, 0, 0, STRING);
           break;
     }
   }
@@ -33,9 +34,10 @@ void generateTypeAttribute(Tree tree) {
 void visitSynCode(Tree tree) {
   Symbol* symbol = extractSymbol(tree);
   SymbolTable scope = (SymbolTable) tree->attr[0];
-  Quadruple newCode; List codelist; Address* tempAddress1, temoAddress2;
+  Quadruple newCode; List codelist; Address* tempAddress1, *tempAddress2;
   Type* temptype;
-  Element temp;
+  Element temp, temp2;
+  Tree temptree;
   static Type* type = NULL;
   codelist = createList();
   tree->attr[0] = codelist;
@@ -45,16 +47,60 @@ void visitSynCode(Tree tree) {
   int flag = 1;
   if(isTerminal(symbol)) {
     switch(symbol->symbolType) {
+      case MAIN:
+        temp = tree->children->first;
+        while(temp!=NULL) {
+          tree->attr[0] = appendLists(codelist, temp->data.value.tree->attr[0]);
+          codelist = tree->attr[0];
+          temp = temp->next;
+        }
+      break;
+      case INT: case REAL: case STRING: case MATRIX:
+        temp = tree->children->first;
+        while(temp!=NULL) {
+          insertAtEndFast(codelist,
+            makeCode(OP_PUSH,
+            temp->data.value.tree->attr[1],
+            NULL,
+            NULL
+          ));
+          temp = temp->next;
+        }
+        break;
+      case ASSIGNOP:
+        tree->attr[0] = appendLists(codelist, extractChildNumber(tree, tree->children->size)->attr[0]);
+        codelist = tree->attr[0];
+        if(tree->children->size==2) {
+          insertAtEndFast(codelist,
+            makeCode(OP_MOV,
+              extractChildNumber(tree, 1)->attr[1],
+              extractChildNumber(tree, 2)->attr[1],
+              NULL
+            ));
+        } else {
+          temp = tree->children->first;
+          temp2 = ((List) extractChildNumber(tree, tree->children->size)->attr[1])->first;
+          while(temp2!=NULL) {
+            insertAtEndFast(codelist,
+              makeCode(OP_MOV,
+                temp->data.value.tree->attr[1],
+                temp2->data.value.address,
+                NULL));
+            temp = temp->next;
+            temp2 = temp2->next;
+          }
+        }
+        break;
       case PLUS:
-        tree->attr[1] = generateTemporary((SymbolTable*) tree->attr[0], tree->attr[1]);
+        tree->attr[1] = generateTemporary(scope, tree->attr[1]);
         insertAtEndFast(codelist,
           makeCode(OP_PLUS,
             extractChildNumber(tree, 1)->attr[1],
             extractChildNumber(tree, 2)->attr[1],
             tree->attr[1]
           ));
-        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[2], codelist);
-        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[2], tree->attr[2]);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[0], codelist);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[0], tree->attr[0]);
       break;
       case MINUS:
         tree->attr[1] = generateTemporary(scope, tree->attr[1]);
@@ -64,8 +110,8 @@ void visitSynCode(Tree tree) {
             extractChildNumber(tree, 2)->attr[1],
             tree->attr[1]
           ));
-        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[2], codelist);
-        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[2], tree->attr[2]);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[0], codelist);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[0], tree->attr[0]);
       break;
       case MUL:
         tree->attr[1] = generateTemporary(scope, tree->attr[1]);
@@ -75,8 +121,8 @@ void visitSynCode(Tree tree) {
             extractChildNumber(tree, 2)->attr[1],
             tree->attr[1]
           ));
-        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[2], codelist);
-        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[2], tree->attr[2]);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[0], codelist);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[0], tree->attr[0]);
       break;
       case DIV:
         tree->attr[1] = generateTemporary(scope, tree->attr[1]);
@@ -86,39 +132,39 @@ void visitSynCode(Tree tree) {
             extractChildNumber(tree, 2)->attr[1],
             tree->attr[1]
           ));
-        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[2], codelist);
-        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[2], tree->attr[2]);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 2)->attr[0], codelist);
+        tree->attr[0] = appendLists(extractChildNumber(tree, 1)->attr[0], tree->attr[0]);
       break;
       case ID:
         tree->attr[1] = generateTemporary(scope, type);
         tempAddress1 = generateTemporary(scope, type);
         insertAtEndFast(codelist,
           makeCode(OP_MUL,
-            makeAddress(sizeLookup(INT), 1),
-            makeAddress(getToken(extractSymbol(extractChildNumber(tree, 2)))->value.integer, 1),
+            makeAddress(NULL, sizeLookup(INT), 0, INT),
+            makeAddress(NULL, getToken(extractSymbol(extractChildNumber(tree, 2)))->value.integer, 0, INT),
             tempAddress1));
         tempAddress2 = generateTemporary(scope, type);
         insertAtEndFast(codelist,
           makeCode(OP_PLUS,
             tempAddress1,
-            makeAddress(getToken(extractSymbol(extractChildNumber(tree, 1)))->value.integer, 1),
+            makeAddress(NULL, getToken(extractSymbol(extractChildNumber(tree, 1)))->value.integer, 0, INT),
             tempAddress2));
         insertAtEndFast(codelist,
         makeCode(OP_ADDRPLUS,
           tempAddress2,
-          makeAddress(retrieveSymbol(scope, getToken(extractSymbol(tree))), 0),
+          makeAddress(retrieveSymbol(scope, getToken(extractSymbol(tree))), 0, 0, 0),
           tree->attr[1]));
       break;
       case SIZE:
         temptype = fetchType(scope, extractChildNumber(tree, 1));
         if(temptype->type==INT || temptype->type==REAL) {
-          tree->attr[1] = makeAddress(sizeLookup(temptype->type), 1);
+          tree->attr[1] = makeAddress(NULL, sizeLookup(temptype->type), 0, INT);
         } else if(temptype->type==STRING) {
-          tree->attr[1] = makeAddress(temptype->columns, 1);
+          tree->attr[1] = makeAddress(NULL, temptype->columns, 0, INT);
         } else {
           tree->attr[1] = createList();
-          insertAtEndFast(tree->attr[1], makeAddress(temptype->rows, 1));
-          insertAtEndFast(tree->attr[1], makeAddress(temptype->columns, 1));
+          insertAtEndFast(tree->attr[1], makeAddress(NULL, temptype->rows, 0, INT));
+          insertAtEndFast(tree->attr[1], makeAddress(NULL, temptype->columns, 0, INT));
         }
       break;
       case FUNID:
@@ -134,26 +180,61 @@ void visitSynCode(Tree tree) {
         temptree = fetchfunDefn(scope, tree);
         if(extractChild(temptree, "<parameterList>", 0, 1)->children->size==1) {
           tree->attr[1] = generateTemporary(scope, tree->attr[1]);
+          insertAtEndFast(codelist,
+            makeCode(OP_PUSH,
+              tree->attr[1],
+              NULL,
+              NULL));
         } else {
           tree->attr[1] = createList();
           temp = extractChild(temptree, "<parameterList>", 0, 1)->children->first;
           while(temp!=NULL) {
             tempAddress1 = generateTemporary(scope, fetchType(fetchfunScope(scope, tree),
                                               extractChildNumber(temp->data.value.tree, 1)));
-            insertAtEndFast(temp->attr[1], tempAddress1);
+            insertAtEndFast(tree->attr[1], tempAddress1);
+            insertAtEndFast(codelist,
+              makeCode(OP_PUSH,
+                tempAddress1,
+                NULL,
+                NULL));
             temp = temp->next;
           }
         }
         insertAtEndFast(codelist,
           makeCode(OP_CALL,
-            makeAddress(temptree, 0),
-            makeAddress(tree->children->size, 1),
-            makeAddress(extractChild(temptree, "<parameterList>", 0, 1)->children->size, 1)));
+            makeAddress(extractChild(temptree, "", FUNID, 1), 0, 0, FUNID),
+            makeAddress(NULL, tree->children->size, 0, INT),
+            makeAddress(NULL, extractChild(temptree, "<parameterList>", 0, 1)->children->size, 0, INT)));
         break;
     }
   } else {
     if(symbolComparatorNT(symbol, "<matrix>")) {
-      tree->attr[1] = makeAddress(tree, 1);
+      tree->attr[1] = makeAddress(tree, 0, 0, MATRIX);
+    } else if(symbolComparatorNT(symbol, "<functionDefn>")) {
+      temp = tree->children->first;
+      insertAtEndFast(codelist,
+        makeCode(OP_DEFINE,
+          makeAddress(extractChild(tree, "", FUNID, 1), 0, 0, FUNID),
+          NULL,
+          NULL));
+      temp = temp->next;
+      while(temp!=NULL) {
+        tree->attr[0] = appendLists(codelist, temp->data.value.tree->attr[0]);
+        codelist = tree->attr[0];
+        temp = temp->next;
+      }
+      insertAtEndFast(codelist,
+        makeCode(OP_RET,
+          makeAddress(NULL, extractChild(tree, "<parameterList>", 0, 1)->children->size, 0, INT),
+          NULL,
+          NULL));
+    } else if(symbolComparatorNT(symbol, "<parameterList>")) {
+      temp = tree->children->first;
+      while(temp!=NULL) {
+        tree->attr[0] = appendLists(codelist, temp->data.value.tree->attr[0]);
+        codelist = tree->attr[0];
+        temp = temp->next;
+      }
     }
   }
 }
@@ -170,5 +251,5 @@ List generateCode(Tree tree) {
   } else {
     generateLabelAttribute(tree);
   }
-  return tree->attr[2];
+  return tree->attr[0];
 }

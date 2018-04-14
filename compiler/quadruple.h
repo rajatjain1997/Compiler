@@ -28,9 +28,15 @@ typedef enum {
   OP_RET
 } Operator;
 
+union addresselem {
+  void* entry;
+  int integer;
+  float real;
+};
+
 typedef struct address {
-  void* address;
-  int isConstant;
+  union addresselem address;
+  int type;
 } Address;
 
 typedef struct quadruple {
@@ -38,7 +44,7 @@ typedef struct quadruple {
   struct address* op[3];
 } Quadruple;
 
-Address* makeAddress(void* address, int isConstant);
+Address* makeAddress(void* entry, int integer, float real, int type);
 
 Quadruple* makeCode(Operator op, Address* op1, Address* op2, Address* op3);
 

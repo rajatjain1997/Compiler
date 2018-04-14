@@ -13,8 +13,37 @@
 #include "grammar.h"
 #include "ast.h"
 #include "type.h"
+#include "intermediate.h"
+#include "symboltable.h"
+#include "quadruple.h"
 #include <stdio.h>
 #include <string.h>
+
+
+void printQuadruples(List code) {
+	Element temp = code->first;
+	Quadruple* quad; int i;
+	while(temp!=NULL) {
+		quad = temp->data.value.quadruple;
+		printf("%-5d|", quad->operator);
+		for(i=0; i<3;i++) {
+			if(quad->op[i]==NULL) {
+				printf("||");
+				continue;
+			}
+			switch(quad->op[i]->type) {
+				case INT: printf("%-5d|", quad->op[i]->address.integer); break;
+				case REAL: printf("%-5f|", quad->op[i]->address.real); break;
+				case STRING: printf("%-20s|", ((String*) quad->op[i]->address.entry)->value); break;
+				case MATRIX: printf("MATRIX"); break;
+				case FUNID: printf("%-20s|", ((Tree) quad->op[i]->address.entry)->symbol->token->value.lexeme); break;
+				default: printf("%-20s|", ((struct symbolTableEntry*) quad->op[i]->address.entry)->tokentree->symbol->token->value.lexeme);
+			}
+		}
+		printf("\n");
+		temp = temp->next;
+	}
+}
 
 /*
  * void visitInOrder(Tree tree, FILE* fp): Used to print each node of the parse tree in order.
@@ -114,7 +143,7 @@ int main(int argc, char* argv[]) {
 	//Compiler always prints cleaned code to console.
 	strcpy(cleanDest,"1");
 	initializeError(argv[1], !testing);
-	Queue tokenstream; Tree parsetree;
+	Queue tokenstream; Tree parsetree; List intercode;
 
 	printf("a) Lexer and Parser are implemented.\n");
 	printf("b) First and follow sets are automated.\n");
@@ -148,6 +177,10 @@ int main(int argc, char* argv[]) {
 		if(!checkErrorState()) {
 			parsetree = createAST(parsetree);
 			typeCheck(parsetree);
+			if(!checkErrorState()) {
+				intercode = generateCode(parsetree);
+				printQuadruples(intercode);
+			}
 		}
 		while(error_testing) {
 			switch(choice) {

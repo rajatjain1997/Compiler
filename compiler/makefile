@@ -1,5 +1,5 @@
-all: compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o tree.o trie.o ast.o semantic.o symboltable.o type.o
-	gcc -o stage1exe compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o ast.o semantic.o symboltable.o type.o
+all: compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o tree.o trie.o ast.o semantic.o symboltable.o type.o quadruple.o intermediate.o
+	gcc -o stage1exe compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o ast.o semantic.o symboltable.o type.o intermediate.o quadruple.o
 
 stage1: compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o tree.o trie.o
 	gcc -o stage1exe compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o
@@ -21,6 +21,12 @@ symboltable.o: symboltable.c symboltable.h list.h token.h symbol.h tree.h
 
 type.o: type.c type.h tree.h symbol.h token.h list.h semantic.h symboltable.h error.h
 	gcc -c type.c
+
+quadruple.o: quadruple.c quadruple.h
+	gcc -c quadruple.c
+
+intermediate.o: intermediate.c intermediate.h
+	gcc -c intermediate.c
 
 semantic.o:  semantic.h semantic.c tree.h token.h symbol.h list.h trie.h semantic.h grammar.h
 	gcc -c semantic.c

@@ -7,14 +7,21 @@
 #include"tree.h"
 #include"symboltable.h"
 
-Address* makeAddress(void* address, int isConstant) {
+Address* makeAddress(void* entry, int integer, float real, int type) {
   Address* addr = (struct address*) malloc(sizeof(struct address));
-  addr->address = address;
-  addr->isConstant = isConstant;
+  if(entry!=NULL) {
+    addr->address.entry = entry;
+  } else if(type==INT) {
+    addr->address.integer = integer;
+  } else if(type==REAL) {
+    addr->address.real = real;
+  }
+  addr->type = type;
 }
 
 Quadruple* makeCode(Operator op, Address* op1, Address* op2, Address* op3) {
   Quadruple* quad = (Quadruple*) malloc(sizeof(Quadruple));
+  quad->operator = op;
   quad->op[0] = op1;
   quad->op[1] = op2;
   quad->op[2] = op3;
@@ -35,8 +42,7 @@ Address* generateTemporary(SymbolTable st, Type* type) {
       sprintf(tempstring, "%c0%d", tempstring[0], number);
     }
   }
-  char buf[20];
-  Token* to = tokenize(ID, buf, 0);
+  Token* to = tokenize(ID, tempstring, 0);
   Symbol* sy = generateSymbol(ID, 1);
   attachTokenToSymbol(sy, to);
   Tree t = createTree(sy);
@@ -46,7 +52,7 @@ Address* generateTemporary(SymbolTable st, Type* type) {
   }
   updateidDefined(st, t);
   t->attr[0] = st;
-  return makeAddress(retrieveSymbol(st, to), 0);
+  return makeAddress(retrieveSymbol(st, to), 0, 0, 0);
 }
 
 char* generateLabel() {
