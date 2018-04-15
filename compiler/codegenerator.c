@@ -108,7 +108,7 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
   addr3 = code->op[2];
   switch(code->operator) {
     case OP_PLUS:
-      switch(((struct symbolTableEntry*)addr1->address.entry)->value.identry->type->type) {
+      switch(((struct symbolTableEntry*)addr3->address.entry)->value.identry->type->type) {
         case INT:
           convertToRegister(fp, addr1, "ax");
           convertToRegister(fp, addr2, "bx");
@@ -126,7 +126,7 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
       }
     break;
     case OP_MINUS:
-      switch(((struct symbolTableEntry*)addr1->address.entry)->value.identry->type->type) {
+      switch(((struct symbolTableEntry*)addr3->address.entry)->value.identry->type->type) {
         case INT:
         convertToRegister(fp, addr1, "ax");
         convertToRegister(fp, addr2, "bx");
@@ -138,8 +138,28 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
       }
     break;
     case OP_DIV:
+      switch(((struct symbolTableEntry*)addr3->address.entry)->value.identry->type->type) {
+        case INT:
+        convertToRegister(fp, addr1, "ax");
+        convertToRegister(fp, addr2, "bx");
+        fprintf(fp, "idiv bx\n");
+        convertToMemory(fp, addr3, "ax");
+        break;
+        case REAL:
+        break;
+      }
     break;
     case OP_MUL:
+      switch(((struct symbolTableEntry*)addr3->address.entry)->value.identry->type->type) {
+        case INT:
+          convertToRegister(fp, addr1, "ax");
+          convertToRegister(fp, addr2, "bx");
+          fprintf(fp, "imul bx\n");
+          convertToMemory(fp, addr3, "ax");
+        break;
+        case REAL:
+        break;
+      }
     break;
     case OP_JLT:
       fprintf(fp, "jl %s\n", ((char*) addr1->address.entry));
