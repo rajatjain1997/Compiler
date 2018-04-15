@@ -20,23 +20,24 @@ void writebase(FILE* fp) {
   fprintf(fp, "tempmat2\tRESW\t100\n");
   fprintf(fp, "section .text\n");
   fprintf(fp, "global _start\n");
-  fprintf(fp, "\tmov esp, stackbase\n");
-  fprintf(fp, "mov ebp, esp\n");
-  fprintf(fp, "def:\n");
-  fprintf(fp, "\tpop edx\n");
-  fprintf(fp, "\tpusher:\n");
-  fprintf(fp, "\t\tpush cl\n");
-  fprintf(fp, "\tloope pusher\n");
-  fprintf(fp, "\tpush edx\n");
-  fprintf(fp, "ret\n");
-  fprintf(fp, "quit:\n");
-  fprintf(fp, "\tmov bx, 0\n");
-  fprintf(fp, "\tmov ax, 1\n");
-  fprintf(fp, "\tint 80h\n");
+  fprintf(fp, "_start:\n");
+  // fprintf(fp, "mov esp, stackbase\n");
+  // fprintf(fp, "mov ebp, esp\n");
+  // fprintf(fp, "def:\n");
+  // fprintf(fp, "\tpop edx\n");
+  // fprintf(fp, "\tpusher:\n");
+  // fprintf(fp, "\t\tpush cx\n");
+  // fprintf(fp, "\tloope pusher\n");
+  // fprintf(fp, "\tpush edx\n");
+  // fprintf(fp, "ret\n");
 }
 
 void writeend(FILE* fp) {
   fprintf(fp, "call quit\n");
+  fprintf(fp, "quit:\n");
+  fprintf(fp, "\tmov bx, 0\n");
+  fprintf(fp, "\tmov ax, 1\n");
+  fprintf(fp, "\tint 80h\n");
 }
 
 int getMatrixElement(Tree matrix, int i) {
@@ -79,16 +80,17 @@ void convertToRegister(FILE* fp, Address* addr, char reg[]) {
       break;
     case MATRIX:
       if(!matrixtoggle) {
-        strcpy(tempstring, "temp1");
+        strcpy(tempstring, "tempmat1");
         matrixtoggle++;
       } else {
-        strcpy(tempstring, "temp2");
+        strcpy(tempstring, "tempmat2");
         matrixtoggle--;
       }
       temptree = addr->address.entry;
       fprintf(fp, "mov %s, %s\n", reg, tempstring);
       for(i=0; i<temptree->children->size*extractChildNumber(temptree, 1)->children->size; i++) {
-        fprintf(fp, "mov [%s + %i], %d\n", reg, sizeLookup(INT)*i, getMatrixElement(temptree, i));
+        fprintf(fp, "mov dx, %d\n", getMatrixElement(temptree, i));
+        fprintf(fp, "mov [%s + %i], dx\n", reg, sizeLookup(INT)*i);
       }
       break;
   }
@@ -197,10 +199,10 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
       fprintf(fp, "%s:\n", ((char*) addr1->address.entry));
     break;
     case OP_MOV:
-      convertToRegister(fp, addr2, "ebx");
       switch(((struct symbolTableEntry*)addr1->address.entry)->value.identry->type->type) {
         case INT:
-          convertToMemory(fp, addr1, "ebx");
+          convertToRegister(fp, addr2, "bx");
+          convertToMemory(fp, addr1, "bx");
         break;
         case REAL:
         break;
@@ -213,8 +215,8 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
       }
     break;
     case OP_PUSH:
-      fprintf(fp, "mov cx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->size);
-      fprintf(fp, "call def\n");
+      // fprintf(fp, "mov cx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->size);
+      // fprintf(fp, "call def\n");
     break;
     case OP_ADDRPLUS:
       convertToRegister(fp, addr1, "eax");
