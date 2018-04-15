@@ -1,0 +1,7 @@
+_main[]
+  int a;
+  read(a);
+  matrix b;
+  read(b);
+  print(b);
+end

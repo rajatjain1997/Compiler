@@ -21,6 +21,7 @@
  * Arithmetic type generation
  * Recursion removal
  * Matrices should be rectangular
+ * Read does not allow strings or matrices to be read
  */
 
  Type* errorType = NULL;
@@ -151,6 +152,14 @@ void raiseNonRectangularMatrix(Tree tree) {
  	sprintf(msg, "SEMANTIC ERROR: Matrix is non-rectangular.");
  	error(msg, e, getToken(extractSymbol(extractChildNumber(extractChildNumber(tree, 1), 1)))->lineno);
   tree->attr[1] = errorType;
+}
+
+void raiseInvalidRead(Tree tree, Type* type) {
+  char msg[256], buf[20];
+  Token* token = getToken(extractSymbol(tree));
+ 	ErrorType e = ERROR;
+ 	sprintf(msg, "SEMANTIC ERROR: Read does not support %s type", typeLookup(type, buf));
+ 	error(msg, e, token->lineno);
 }
 
 void markDefinedVars(SymbolTable st, List vars) {
@@ -542,6 +551,12 @@ void visitSynType(Tree tree) {
           break;
         }
         break;
+      case READ:
+        type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
+        if(type1->type==STRING || type1->type==MATRIX) {
+          raiseInvalidRead(tree, type1);
+        }
+      break;
     }
   } else {
     if(symbolComparatorNT(symbol, "<functionDefn>")) {

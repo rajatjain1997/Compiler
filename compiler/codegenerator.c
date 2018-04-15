@@ -57,8 +57,10 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
     case OP_CMP:
     break;
     case OP_JMP:
+      fprintf(fp, "jmp %s", ((char*) addr1.entry));
     break;
     case OP_LABEL:
+      fprintf(fp, "%s:\n", ((char*) addr1.entry));
     break;
     case OP_MOV:
     //Remember to differentaiate between moves for strings and matrices.
