@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 #include"quadruple.h"
 #include"list.h"
 #include"symboltable.h"
@@ -28,6 +29,24 @@ void writeend(FILE* fp) {
   fprintf(fp, "call quit\n");
 }
 
+void convertToRegister(FILE* fp, Address* addr, char reg[]) {
+  struct symbolTableEntry* tempentree;
+  switch (address->type) {
+    case 0:
+      tempentree = addr->address.entry;
+      if(tempentree->value.identry->type==INT || tempentree->value.identry->type==REAL)
+        fprintf(fp, "mov %s, [ebp + %d]", reg, tempentree->value.identry->offset);
+      else {
+        fprintf(fp, "mov %s, ebp", reg);
+        fprintf(fp, "add %s, %d", reg, tempentree->value.identry->offset);
+      }
+    break;
+    case INT:
+      fprintf(fp, "mov %s, %d", reg, addr->address.integer);
+    break;
+  }
+}
+
 void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
   Address *addr1, *addr2, *addr3;
   addr1 = code->op[0]->address;
@@ -43,16 +62,22 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
     case OP_MUL:
     break;
     case OP_JLT:
+      fprintf(fp, "jl %s", ((char*) addr1.entry));
     break;
     case OP_JLE:
+      fprintf(fp, "jle %s", ((char*) addr1.entry));
     break;
     case OP_JEQ:
+      fprintf(fp, "je %s", ((char*) addr1.entry));
     break;
     case OP_JGT:
+      fprintf(fp, "jg %s", ((char*) addr1.entry));
     break;
     case OP_JGE:
+      fprintf(fp, "jge %s", ((char*) addr1.entry));
     break;
     case OP_JNE:
+      fprintf(fp, "jne %s", ((char*) addr1.entry));
     break;
     case OP_CMP:
     break;
@@ -85,6 +110,11 @@ void generateCode(FILE* fp, List code, SymbolTable st) {
   Element temp;
   temp = code->first;
   while(temp!=NULL) {
+    if(temp->data.value.quadruple->operator==OP_DEFINE) {
+      while(temp->data.value.quadruple->operator!=OP_RET) {
+        temp = temp->next;
+      }
+    }
     writeCode(fp, temp->data.value.quadruple, st);
     temp = temp->next;
   }
