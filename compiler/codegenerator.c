@@ -8,6 +8,9 @@
 void writebase(FILE* fp) {
   fprintf(fp, "section .data\n");
   fprintf(fp, "stackbase db 0\n");
+  fprintf(fp, "section .bss\n");
+  fprintf(fp, "temp1\tRESB\t20\n");
+  fprintf(fp, "temp2\tRESB\t20\n");
   fprintf(fp, "section .text\n");
   fprintf(fp, "global _start\n");
   fprintf(fp, "\tmov esp, stackbase\n");
@@ -62,27 +65,27 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
     case OP_MUL:
     break;
     case OP_JLT:
-      fprintf(fp, "jl %s", ((char*) addr1.entry));
+      fprintf(fp, "jl %s\n", ((char*) addr1.entry));
     break;
     case OP_JLE:
-      fprintf(fp, "jle %s", ((char*) addr1.entry));
+      fprintf(fp, "jle %s\n", ((char*) addr1.entry));
     break;
     case OP_JEQ:
-      fprintf(fp, "je %s", ((char*) addr1.entry));
+      fprintf(fp, "je %s\n", ((char*) addr1.entry));
     break;
     case OP_JGT:
-      fprintf(fp, "jg %s", ((char*) addr1.entry));
+      fprintf(fp, "jg %s\n", ((char*) addr1.entry));
     break;
     case OP_JGE:
-      fprintf(fp, "jge %s", ((char*) addr1.entry));
+      fprintf(fp, "jge %s\n", ((char*) addr1.entry));
     break;
     case OP_JNE:
-      fprintf(fp, "jne %s", ((char*) addr1.entry));
+      fprintf(fp, "jne %s\n", ((char*) addr1.entry));
     break;
     case OP_CMP:
     break;
     case OP_JMP:
-      fprintf(fp, "jmp %s", ((char*) addr1.entry));
+      fprintf(fp, "jmp %s\n", ((char*) addr1.entry));
     break;
     case OP_LABEL:
       fprintf(fp, "%s:\n", ((char*) addr1.entry));
@@ -92,13 +95,25 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
     break;
     case OP_PUSH:
       fprintf(fp, "mov cx, %d\n", ((struct symbolTableEntry*) addr1.entry)->value.identry->size);
-      fprintf(fp, "call def");
+      fprintf(fp, "call def\n");
     break;
     case OP_ADDRPLUS:
     break;
     case OP_READ:
+      fprintf(fp, "mov edx, %d\n", ((struct symbolTableEntry*) addr1.entry)->value.identry->size);
+      fprintf(fp, "mov ecx, ebp\n");
+      fprintf(fp, "add ecx, %d\n", ((struct symbolTableEntry*) addr1.entry)->value.identry->offset);
+      fprintf(fp, "mov ebx, 0\n");
+      fprintf(fp, "mov eax, 3\n");
+      fprintf(fp, "int 80h\n");
     break;
     case OP_PRINT:
+      fprintf(fp, "mov edx, %d\n", ((struct symbolTableEntry*) addr1.entry)->value.identry->size);
+      fprintf(fp, "mov ecx, ebp\n");
+      fprintf(fp, "add ecx, %d\n", ((struct symbolTableEntry*) addr1.entry)->value.identry->offset);
+      fprintf(fp, "mov ebx, 1\n");
+      fprintf(fp, "mov eax, 4\n");
+      fprintf(fp, "int 80h\n");
     break;
     default:
       fprintf(fp, ";Code Generation Skipped for operator %d", code->operator);
