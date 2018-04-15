@@ -1,9 +1,12 @@
-Symbol* lookupSymbolDictionary(char nonterminal[], int terminal);
+struct tree;
+struct symbol;
 
-Tree extractChild(Tree tree ,char nonterminal[], TokenType terminal, int childno);
+struct symbol* lookupSymbolDictionary(char nonterminal[], int terminal);
 
-Tree extractChildNumber(Tree tree, int childno);
+struct tree* extractChild(struct tree* tree ,char nonterminal[], TokenType terminal, int childno);
+
+struct tree* extractChildNumber(struct tree* tree, int childno);
 
 int sizeLookup(int type);
 
-int symbolComparatorNT(Symbol* s, char str[]);
+int symbolComparatorNT(struct symbol* s, char str[]);

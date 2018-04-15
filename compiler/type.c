@@ -312,9 +312,7 @@ void visitInhType(Tree tree) {
       if(flag>10 || tree->children->size>10) {
         raiseLargeMatrix(tree);
         tree->attr[1] = errorType;
-        break;
-      }
-      if(flag!=-1) {
+      } else if(flag!=-1) {
         tree->attr[1] = createType(MATRIX, tree->children->size, flag);
       } else {
         raiseNonRectangularMatrix(tree);

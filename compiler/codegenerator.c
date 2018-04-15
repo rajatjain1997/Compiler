@@ -7,6 +7,8 @@
 #include"symboltable.h"
 #include"codegenerator.h"
 #include"token.h"
+#include"symbol.h"
+#include"semantic.h"
 
 void writebase(FILE* fp) {
   fprintf(fp, "section .data\n");
@@ -14,6 +16,8 @@ void writebase(FILE* fp) {
   fprintf(fp, "section .bss\n");
   fprintf(fp, "temp1\tRESB\t20\n");
   fprintf(fp, "temp2\tRESB\t20\n");
+  fprintf(fp, "tempmat1\tRESW\t100\n");
+  fprintf(fp, "tempmat2\tRESW\t100\n");
   fprintf(fp, "section .text\n");
   fprintf(fp, "global _start\n");
   fprintf(fp, "\tmov esp, stackbase\n");
@@ -21,7 +25,7 @@ void writebase(FILE* fp) {
   fprintf(fp, "def:\n");
   fprintf(fp, "\tpop edx\n");
   fprintf(fp, "\tpusher:\n");
-  fprintf(fp, "\t\tpush cx\n");
+  fprintf(fp, "\t\tpush cl\n");
   fprintf(fp, "\tloope pusher\n");
   fprintf(fp, "\tpush edx\n");
   fprintf(fp, "ret\n");
@@ -35,8 +39,18 @@ void writeend(FILE* fp) {
   fprintf(fp, "call quit\n");
 }
 
+int getMatrixElement(Tree matrix, int i) {
+  int column = i/(matrix->children->size);
+  int row = i%(matrix->children->size);
+  matrix = extractChildNumber(matrix, row+1);
+  matrix = extractChildNumber(matrix, column+1);
+  return getToken(extractSymbol(matrix))->value.integer;
+}
+
 void convertToRegister(FILE* fp, Address* addr, char reg[]) {
   struct symbolTableEntry* tempentree;
+  char tempstring[20]; int i;
+  int stringtoggle = 0, matrixtoggle = 0; Tree temptree;
   switch (addr->type) {
     case 0:
       tempentree = addr->address.entry;
@@ -50,6 +64,33 @@ void convertToRegister(FILE* fp, Address* addr, char reg[]) {
     case INT:
       fprintf(fp, "mov %s, %d\n", reg, addr->address.integer);
     break;
+    case STRING:
+      if(!stringtoggle) {
+        strcpy(tempstring, "temp1");
+        stringtoggle++;
+      } else {
+        strcpy(tempstring, "temp2");
+        stringtoggle--;
+      }
+      fprintf(fp, "mov %s, %s\n", reg, tempstring);
+      for(i=0; i<((String*)addr->address.entry)->size;i++) {
+        fprintf(fp, "mov [%s + %d], %c\n", reg, i, ((String*)addr->address.entry)->value[i]);
+      }
+      break;
+    case MATRIX:
+      if(!matrixtoggle) {
+        strcpy(tempstring, "temp1");
+        matrixtoggle++;
+      } else {
+        strcpy(tempstring, "temp2");
+        matrixtoggle--;
+      }
+      temptree = addr->address.entry;
+      fprintf(fp, "mov %s, %s\n", reg, tempstring);
+      for(i=0; i<temptree->children->size*extractChildNumber(temptree, 1)->children->size; i++) {
+        fprintf(fp, "mov [%s + %i], %d\n", reg, sizeLookup(INT)*i, getMatrixElement(temptree, i));
+      }
+      break;
   }
 }
 
@@ -67,8 +108,34 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
   addr3 = code->op[2];
   switch(code->operator) {
     case OP_PLUS:
+      switch(((struct symbolTableEntry*)addr1->address.entry)->value.identry->type->type) {
+        case INT:
+          convertToRegister(fp, addr1, "ax");
+          convertToRegister(fp, addr2, "bx");
+          fprintf(fp, "add ax, bx\n");
+          convertToMemory(fp, addr3, "ax");
+        break;
+        case REAL:
+        break;
+        case STRING:
+        //Call strcopy twice
+        break;
+        case MATRIX:
+        //Call adder twice
+        break;
+      }
     break;
     case OP_MINUS:
+      switch(((struct symbolTableEntry*)addr1->address.entry)->value.identry->type->type) {
+        case INT:
+        convertToRegister(fp, addr1, "ax");
+        convertToRegister(fp, addr2, "bx");
+          fprintf(fp, "sub ax, bx\n");
+          convertToMemory(fp, addr3, "ax");
+        break;
+        case REAL:
+        break;
+      }
     break;
     case OP_DIV:
     break;
@@ -93,9 +160,15 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
       fprintf(fp, "jne %s\n", ((char*) addr1->address.entry));
     break;
     case OP_CMP:
-      convertToRegister(fp, addr1, "eax");
-      convertToRegister(fp, addr2, "ebx");
-      fprintf(fp, "cmp eax, ebx\n");
+      switch(((struct symbolTableEntry*)addr1->address.entry)->value.identry->type->type) {
+        case INT:
+          convertToRegister(fp, addr1, "ax");
+          convertToRegister(fp, addr2, "bx");
+          fprintf(fp, "cmp ax, bx\n");
+        break;
+        case REAL:
+        break;
+      }
     break;
     case OP_JMP:
       fprintf(fp, "jmp %s\n", ((char*) addr1->address.entry));
@@ -104,7 +177,20 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
       fprintf(fp, "%s:\n", ((char*) addr1->address.entry));
     break;
     case OP_MOV:
-    //Remember to differentaiate between moves for strings and matrices.
+      convertToRegister(fp, addr2, "ebx");
+      switch(((struct symbolTableEntry*)addr1->address.entry)->value.identry->type->type) {
+        case INT:
+          convertToMemory(fp, addr1, "ebx");
+        break;
+        case REAL:
+        break;
+        case MATRIX:
+        //call strcopy
+        break;
+        case STRING:
+        //call strcopy once
+        break;
+      }
     break;
     case OP_PUSH:
       fprintf(fp, "mov cx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->size);
