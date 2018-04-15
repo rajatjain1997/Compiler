@@ -154,6 +154,14 @@ void raiseNonRectangularMatrix(Tree tree) {
   tree->attr[1] = errorType;
 }
 
+void raiseLargeMatrix(Tree tree) {
+  char msg[256], buf[20];
+ 	ErrorType e = ERROR;
+ 	sprintf(msg, "SEMANTIC ERROR: Matrix is larger than 10x10.");
+ 	error(msg, e, getToken(extractSymbol(extractChildNumber(extractChildNumber(tree, 1), 1)))->lineno);
+  tree->attr[1] = errorType;
+}
+
 void raiseInvalidRead(Tree tree, Type* type) {
   char msg[256], buf[20];
   Token* token = getToken(extractSymbol(tree));
@@ -301,10 +309,16 @@ void visitInhType(Tree tree) {
         }
         temp = temp->next;
       }
+      if(flag>10 || tree->children->size>10) {
+        raiseLargeMatrix(tree);
+        tree->attr[1] = errorType;
+        break;
+      }
       if(flag!=-1) {
         tree->attr[1] = createType(MATRIX, tree->children->size, flag);
       } else {
         raiseNonRectangularMatrix(tree);
+        tree->attr[1] = errorType;
       }
     }
   }
