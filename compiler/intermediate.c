@@ -461,13 +461,13 @@ void visitSynCode(Tree tree) {
   }
 }
 
-List generateCode(Tree tree) {
+List generateIntermediateCode(Tree tree) {
   Element temp;
   if(tree->children->size!=0) {
       visitInhCode(tree);
   	temp = tree->children->first;
   	while(temp!=NULL) {
-  		generateCode(temp->data.value.tree);
+  		generateIntermediateCode(temp->data.value.tree);
   		temp = temp->next;
   	}
     visitSynCode(tree);

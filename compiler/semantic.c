@@ -83,7 +83,7 @@ Tree extractChildNumber(Tree tree, int childno) {
 
 int sizeLookup(int type) {
   switch(type) {
-    case INT: return 4;
+    case INT: return 2;
     case REAL: return 4;
     case STRING: case MATRIX: return 0;
     case STR: return 1;

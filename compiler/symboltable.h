@@ -1,5 +1,6 @@
 struct head;
 struct tree;
+struct token;
 
 struct symboltable {
   struct head** symboltable;
@@ -45,22 +46,22 @@ SymbolTable createSymbolTable(SymbolTable parent, struct tree* func);
 
 Type* createType(int type, int rows, int columns);
 
-int createidEntry(SymbolTable st, Tree tokentree, int type);
+int createidEntry(SymbolTable st, struct tree* tokentree, int type);
 
-int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int columns);
+int updateidEntrySize(SymbolTable st, struct tree* tokentree, int type, int rows, int columns);
 
-int updateidDefined(SymbolTable st, Tree tokentree);
+int updateidDefined(SymbolTable st, struct tree* tokentree);
 
-Type* fetchType(SymbolTable st, Tree tokentree);
+Type* fetchType(SymbolTable st, struct tree* tokentree);
 
-int fetchDefined(SymbolTable st, Tree tokentree);
+int fetchDefined(SymbolTable st, struct tree* tokentree);
 
-SymbolTable createfunEntry(SymbolTable st, Tree tokentree);
+SymbolTable createfunEntry(SymbolTable st, struct tree* tokentree);
 
 SymbolTable getParentScope(SymbolTable st);
 
-Tree fetchfunDefn(SymbolTable st, Tree tokentree);
+struct tree* fetchfunDefn(SymbolTable st, struct tree* tokentree);
 
-SymbolTable fetchfunScope(SymbolTable st, Tree tokentree);
+SymbolTable fetchfunScope(SymbolTable st, struct tree* tokentree);
 
-struct symbolTableEntry* retrieveSymbol(SymbolTable h, Token* token);
+struct symbolTableEntry* retrieveSymbol(SymbolTable h, struct Token* token);

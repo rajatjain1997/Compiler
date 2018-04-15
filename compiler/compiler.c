@@ -16,6 +16,7 @@
 #include "intermediate.h"
 #include "symboltable.h"
 #include "quadruple.h"
+#include "codegenerator.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -179,8 +180,13 @@ int main(int argc, char* argv[]) {
 			parsetree = createAST(parsetree);
 			typeCheck(parsetree);
 			if(!checkErrorState()) {
-				intercode = generateCode(parsetree);
+				SymbolTable st = parsetree->attr[0];
+				intercode = generateIntermediateCode(parsetree);
 				printQuadruples(intercode);
+				fflush(stdout);
+				if(argc==3) {
+					generateCode(argv[2], intercode, st);
+				}
 			}
 		}
 		while(error_testing) {
@@ -193,11 +199,7 @@ int main(int argc, char* argv[]) {
 					}
 					break;
 				case 4:
-						if(argc==3) {
-							parseTreeOut = fopen(argv[2], "w");
-						} else {
-							parseTreeOut = stdout;
-						}
+						parseTreeOut = stdout;
 						printTree(parsetree, parseTreeOut);
 						break;
 				case 5: case 1: case 2: outerLoop = 1;

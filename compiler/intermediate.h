@@ -1,1 +1,1 @@
-List generateCode(Tree tree);
+List generateIntermediateCode(Tree tree);
