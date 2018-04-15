@@ -61,3 +61,4 @@ trie.o: trie.c trie.h
 remove: all
 	rm *.o
 	rm stage1exe
+	rm *.asm

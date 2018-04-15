@@ -124,8 +124,8 @@ int createidEntry(SymbolTable st, Tree tokentree, int type) {
   int size = sizeLookup(type);
   ste->value.identry->size = size;
   ste->value.identry->defined = 0;
-  ste->value.identry->offset = st->lastoffset + size;
-  st->lastoffset = ste->value.identry->offset;
+  ste->value.identry->offset = st->lastoffset;
+  st->lastoffset = ste->value.identry->offset + size;
   return insertSymbol(st, ste);
 }
 

@@ -139,12 +139,19 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
 
 void generateCode(char* filename, List code, SymbolTable st) {
   FILE* fp = fopen(filename, "w");
+  int define = 0;
   writebase(fp);
   Element temp;
   temp = code->first;
   while(temp!=NULL) {
     if(temp->data.value.quadruple->operator==OP_DEFINE) {
-      while(temp->data.value.quadruple->operator!=OP_RET) {
+      define = 1;
+      while(define!=0) {
+        if(temp->data.value.quadruple->operator==OP_RET) {
+          define--;
+        } else if(temp->data.value.quadruple->operator==OP_DEFINE) {
+          define++;
+        }
         temp = temp->next;
       }
     }
