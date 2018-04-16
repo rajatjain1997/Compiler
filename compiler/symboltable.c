@@ -137,12 +137,14 @@ int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int co
   if(ste==NULL || ste->value.identry->size!=0 || (rows < 1 && columns < 1) || ste->value.identry->type->type!=type) {
     return 0;
   }
+  int size;
   if(type==MATRIX) {
     type = INT;
+    size = sizeLookup(type)*rows*columns;
   } else {
     type = STR;
+    size = sizeLookup(type)*columns;
   }
-  int size = sizeLookup(type)*rows*columns;
   ste->value.identry->size = size;
   ste->value.identry->offset = st->lastoffset;
   st->lastoffset = ste->value.identry->offset + size;

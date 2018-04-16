@@ -11,6 +11,7 @@
 #include"semantic.h"
 
 void writebase(FILE* fp) {
+  fprintf(fp, "%%include \'functions.asm\'\n");
   fprintf(fp, "section .data\n");
   fprintf(fp, "stackbase db 0\n");
   fprintf(fp, "section .bss\n");
@@ -21,94 +22,11 @@ void writebase(FILE* fp) {
   fprintf(fp, "section .text\n");
   fprintf(fp, "global _start\n");
   fprintf(fp, "_start:\n");
-  // fprintf(fp, "mov esp, stackbase\n");
   fprintf(fp, "mov ebp, stackbase\n");
-  // fprintf(fp, "def:\n");
-  // fprintf(fp, "\tpop edx\n");
-  // fprintf(fp, "\tpusher:\n");
-  // fprintf(fp, "\t\tpush cx\n");
-  // fprintf(fp, "\tloope pusher\n");
-  // fprintf(fp, "\tpush edx\n");
-  // fprintf(fp, "ret\n");
 }
 
 void writeend(FILE* fp) {
   fprintf(fp, "call quit\n");
-  fprintf(fp, "quit:\n");
-  fprintf(fp, "\tmov bx, 0\n");
-  fprintf(fp, "\tmov ax, 1\n");
-  fprintf(fp, "\tint 80h\n");
-
-  //Function to print integers
-  fprintf(fp, "iprint:\n");
-  fprintf(fp, "push eax\n");
-  fprintf(fp, "push ecx\n");
-  fprintf(fp, "push edx\n");
-  fprintf(fp, "push esi\n");
-  fprintf(fp, "mov ecx, 0\n");
-  fprintf(fp, "divideLoop:\n");
-  fprintf(fp, "inc ecx\n");
-  fprintf(fp, "mov edx, 0\n");
-  fprintf(fp, "mov esi, 10\n");
-  fprintf(fp, "idiv esi\n");
-  fprintf(fp, "add edx, 48\n");
-  fprintf(fp, "push edx\n");
-  fprintf(fp, "cmp eax, 0\n");
-  fprintf(fp, "jnz divideLoop\n");
-  fprintf(fp, "printLoop:\n");
-  fprintf(fp, "dec ecx\n");
-  fprintf(fp, "mov eax, esp\n");
-  fprintf(fp, "call sprint\n");
-  fprintf(fp, "pop eax\n");
-  fprintf(fp, "cmp ecx, 0\n");
-  fprintf(fp, "jnz printLoop\n");
-  fprintf(fp, "pop esi\n");
-  fprintf(fp, "push edx\n");
-  fprintf(fp, "push ecx\n");
-  fprintf(fp, "push eax\n");
-  fprintf(fp, "ret\n");
-
-  fprintf(fp, "iprintLF:\n");
-  fprintf(fp, "call iprint\n");
-  fprintf(fp, "push eax\n");
-  fprintf(fp, "push edx\n");
-  fprintf(fp, "mov edx, 1\n");
-  fprintf(fp, "mov eax, 0Ah\n");
-  fprintf(fp, "push eax\n");
-  fprintf(fp, "mov eax, esp\n");
-  fprintf(fp, "call sprint\n");
-  fprintf(fp, "pop eax\n");
-  fprintf(fp, "pop edx\n");
-  fprintf(fp, "pop eax\n");
-  fprintf(fp, "ret\n");
-
-  //Prints strings: needs length in edx
-  fprintf(fp, "sprint:\n");
-  fprintf(fp, "push edx\n");
-  fprintf(fp, "push ecx\n");
-  fprintf(fp, "push ebx\n");
-  fprintf(fp, "mov ecx, eax\n");
-  fprintf(fp, "push ebx\n");
-  fprintf(fp, "mov eax, 4\n");
-  fprintf(fp, "int 80h\n");
-  fprintf(fp, "push ebx\n");
-  fprintf(fp, "push ecx\n");
-  fprintf(fp, "push edx\n");
-
-  fprintf(fp, "sprintLF:\n");
-  fprintf(fp, "call sprint\n");
-  fprintf(fp, "push eax\n");
-  fprintf(fp, "push edx\n");
-  fprintf(fp, "mov edx, 1\n");
-  fprintf(fp, "mov eax, 0Ah\n");
-  fprintf(fp, "push eax\n");
-  fprintf(fp, "mov eax, esp\n");
-  fprintf(fp, "call sprint\n");
-  fprintf(fp, "pop eax\n");
-  fprintf(fp, "pop edx\n");
-  fprintf(fp, "pop eax\n");
-  fprintf(fp, "ret\n");
-
 }
 
 int getMatrixElement(Tree matrix, int i) {
@@ -145,9 +63,12 @@ void convertToRegister(FILE* fp, Address* addr, char reg[]) {
         stringtoggle--;
       }
       fprintf(fp, "mov %s, %s\n", reg, tempstring);
-      for(i=0; i<((String*)addr->address.entry)->size;i++) {
-        fprintf(fp, "mov [%s + %d], %c\n", reg, i, ((String*)addr->address.entry)->value[i]);
+      for(i=0; i<((String*)addr->address.entry)->size-1;i++) {
+        fprintf(fp, "mov dx, \'%c\'\n", ((String*)addr->address.entry)->value[i]);
+        fprintf(fp, "mov [%s + %d], dx\n", reg, i);
       }
+      fprintf(fp, "mov dx, 0Ah\n");
+      fprintf(fp, "mov [%s + %d], dx\n", reg, i);
       break;
     case MATRIX:
       if(!matrixtoggle) {
@@ -181,6 +102,12 @@ void stringify(FILE* fp, Address* addr) {
       convertToRegister(fp, addr, "ax");
       fprintf(fp, "call iprintLF\n");
     break;
+    case REAL:
+    break;
+    case STRING:
+      convertToRegister(fp, addr, "eax");
+      fprintf(fp, "call sprintLF");
+    break;
   }
 }
 
@@ -205,7 +132,7 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
         //Call strcopy twice
         break;
         case MATRIX:
-        //Call adder twice
+        //Call adder
         break;
       }
     break;
@@ -309,18 +236,26 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
       convertToMemory(fp, addr3, "eax");
     break;
     case OP_READ:
-      fprintf(fp, "mov edx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->size);
-      fprintf(fp, "mov ecx, ebp\n");
-      fprintf(fp, "add ecx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->offset);
+      fprintf(fp, "mov edx, %d\n", 10);
+      fprintf(fp, "mov ecx, temp1\n");
       fprintf(fp, "mov ebx, 0\n");
       fprintf(fp, "mov eax, 3\n");
       fprintf(fp, "int 80h\n");
+      switch (((struct symbolTableEntry*) addr1->address.entry)->value.identry->type->type) {
+        case INT:
+          fprintf(fp, "mov eax, ecx\n");
+          fprintf(fp, "call atoi\n");
+          convertToMemory(fp, addr1, "eax");
+        break;
+        case REAL:
+        break;
+      }
     break;
     case OP_PRINT:
       stringify(fp, addr1);
     break;
     default:
-      fprintf(fp, ";Code Generation Skipped for operator %d", code->operator);
+      fprintf(fp, ";Code Generation Skipped for operator %d\n", code->operator);
   }
 }
 
