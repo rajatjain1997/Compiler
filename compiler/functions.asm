@@ -150,6 +150,17 @@ atoi:
   pop     ebx             ; restore ebx from the value we pushed onto the stack at the start
   ret
 
+;String length in dl, source address at esi, dest address at edi
+
+strcpy:
+	push edx
+	copyLoop:
+		movsb
+		dec dl
+		cmp dl, 0
+		jnz copyLoop
+	pop edx
+	ret
 
 ;------------------------------------------
 ; void exit()

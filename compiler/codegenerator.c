@@ -37,6 +37,17 @@ int getMatrixElement(Tree matrix, int i) {
   return getToken(extractSymbol(matrix))->value.integer;
 }
 
+int fetchSize(Address* addr) {
+  switch(addr->type) {
+    case 0:
+      return ((struct symbolTableEntry*)addr->address.entry)->value.identry->size;
+    case STRING:
+      return ((String*)addr->address.entry)->size;
+    case MATRIX:
+      return ((Tree)addr->address.entry)->children->size * extractChildNumber(((Tree)addr->address.entry), 1)->children->size;
+  }
+}
+
 void convertToRegister(FILE* fp, Address* addr, char reg[]) {
   struct symbolTableEntry* tempentree;
   char tempstring[20]; int i;
@@ -106,7 +117,7 @@ void stringify(FILE* fp, Address* addr) {
     break;
     case STRING:
       convertToRegister(fp, addr, "eax");
-      fprintf(fp, "call sprintLF");
+      fprintf(fp, "call sprintLF\n");
     break;
   }
 }
@@ -129,7 +140,14 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
         case REAL:
         break;
         case STRING:
-        //Call strcopy twice
+          convertToRegister(fp, addr1, "esi");
+          convertToRegister(fp, addr3, "edi");
+          fprintf(fp, "mov dl, %d\n", fetchSize(addr1));
+          fprintf(fp, "call strcpy\n");
+          fprintf(fp, "sub edi, 1\n");
+          convertToRegister(fp, addr2, "esi");
+          fprintf(fp, "mov dl, %d\n", fetchSize(addr2));
+          fprintf(fp, "call strcpy\n");
         break;
         case MATRIX:
         //Call adder
@@ -216,12 +234,16 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
         case REAL:
         break;
         case MATRIX:
-          convertToRegister(fp, addr2, "ebx");
-        //call strcopy
+          convertToRegister(fp, addr1, "edi");
+          convertToRegister(fp, addr2, "esi");
+          fprintf(fp, "mov dl, %d\n", ((struct symbolTableEntry*)addr1->address.entry)->value.identry->size);
+          fprintf(fp, "call strcpy\n");
         break;
         case STRING:
-          convertToRegister(fp, addr2, "ebx");
-        //call strcopy once
+          convertToRegister(fp, addr1, "edi");
+          convertToRegister(fp, addr2, "esi");
+          fprintf(fp, "mov dl, %d\n", ((struct symbolTableEntry*)addr1->address.entry)->value.identry->size);
+          fprintf(fp, "call strcpy\n");
         break;
       }
     break;
