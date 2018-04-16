@@ -1,0 +1,5 @@
+_main[]
+  string a;
+  a = "abcd" + "egg";
+  print(a);
+end

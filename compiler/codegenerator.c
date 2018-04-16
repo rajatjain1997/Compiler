@@ -11,6 +11,7 @@
 #include"semantic.h"
 
 void writebase(FILE* fp) {
+  fprintf(fp, "%%include \'functions.asm\'\n");
   fprintf(fp, "section .data\n");
   fprintf(fp, "stackbase db 0\n");
   fprintf(fp, "section .bss\n");
@@ -20,19 +21,8 @@ void writebase(FILE* fp) {
   fprintf(fp, "tempmat2\tRESW\t100\n");
   fprintf(fp, "section .text\n");
   fprintf(fp, "global _start\n");
-  fprintf(fp, "\tmov esp, stackbase\n");
-  fprintf(fp, "mov ebp, esp\n");
-  fprintf(fp, "def:\n");
-  fprintf(fp, "\tpop edx\n");
-  fprintf(fp, "\tpusher:\n");
-  fprintf(fp, "\t\tpush cl\n");
-  fprintf(fp, "\tloope pusher\n");
-  fprintf(fp, "\tpush edx\n");
-  fprintf(fp, "ret\n");
-  fprintf(fp, "quit:\n");
-  fprintf(fp, "\tmov bx, 0\n");
-  fprintf(fp, "\tmov ax, 1\n");
-  fprintf(fp, "\tint 80h\n");
+  fprintf(fp, "_start:\n");
+  fprintf(fp, "mov ebp, stackbase\n");
 }
 
 void writeend(FILE* fp) {
@@ -45,6 +35,17 @@ int getMatrixElement(Tree matrix, int i) {
   matrix = extractChildNumber(matrix, row+1);
   matrix = extractChildNumber(matrix, column+1);
   return getToken(extractSymbol(matrix))->value.integer;
+}
+
+int fetchSize(Address* addr) {
+  switch(addr->type) {
+    case 0:
+      return ((struct symbolTableEntry*)addr->address.entry)->value.identry->size;
+    case STRING:
+      return ((String*)addr->address.entry)->size;
+    case MATRIX:
+      return ((Tree)addr->address.entry)->children->size * extractChildNumber(((Tree)addr->address.entry), 1)->children->size;
+  }
 }
 
 void convertToRegister(FILE* fp, Address* addr, char reg[]) {
@@ -73,22 +74,26 @@ void convertToRegister(FILE* fp, Address* addr, char reg[]) {
         stringtoggle--;
       }
       fprintf(fp, "mov %s, %s\n", reg, tempstring);
-      for(i=0; i<((String*)addr->address.entry)->size;i++) {
-        fprintf(fp, "mov [%s + %d], %c\n", reg, i, ((String*)addr->address.entry)->value[i]);
+      for(i=0; i<((String*)addr->address.entry)->size-1;i++) {
+        fprintf(fp, "mov dx, \'%c\'\n", ((String*)addr->address.entry)->value[i]);
+        fprintf(fp, "mov [%s + %d], dx\n", reg, i);
       }
+      fprintf(fp, "mov dx, 0Ah\n");
+      fprintf(fp, "mov [%s + %d], dx\n", reg, i);
       break;
     case MATRIX:
       if(!matrixtoggle) {
-        strcpy(tempstring, "temp1");
+        strcpy(tempstring, "tempmat1");
         matrixtoggle++;
       } else {
-        strcpy(tempstring, "temp2");
+        strcpy(tempstring, "tempmat2");
         matrixtoggle--;
       }
       temptree = addr->address.entry;
       fprintf(fp, "mov %s, %s\n", reg, tempstring);
       for(i=0; i<temptree->children->size*extractChildNumber(temptree, 1)->children->size; i++) {
-        fprintf(fp, "mov [%s + %i], %d\n", reg, sizeLookup(INT)*i, getMatrixElement(temptree, i));
+        fprintf(fp, "mov dx, %d\n", getMatrixElement(temptree, i));
+        fprintf(fp, "mov [%s + %i], dx\n", reg, sizeLookup(INT)*i);
       }
       break;
   }
@@ -101,6 +106,23 @@ void convertToMemory(FILE* fp, Address* addr, char reg[]) {
     fprintf(fp, "mov [ebp + %d], %s\n", tempentree->value.identry->offset, reg);
 }
 
+void stringify(FILE* fp, Address* addr) {
+  switch(((struct symbolTableEntry*) addr->address.entry)->value.identry->type->type) {
+    case INT:
+      fprintf(fp, "mov eax, 0\n");
+      convertToRegister(fp, addr, "ax");
+      fprintf(fp, "call iprintLF\n");
+    break;
+    case REAL:
+    break;
+    case STRING:
+      convertToRegister(fp, addr, "eax");
+      fprintf(fp, "call sprintLF\n");
+    break;
+  }
+}
+
+
 void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
   Address *addr1, *addr2, *addr3;
   addr1 = code->op[0];
@@ -108,7 +130,7 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
   addr3 = code->op[2];
   switch(code->operator) {
     case OP_PLUS:
-      switch(((struct symbolTableEntry*)addr1->address.entry)->value.identry->type->type) {
+      switch(((struct symbolTableEntry*)addr3->address.entry)->value.identry->type->type) {
         case INT:
           convertToRegister(fp, addr1, "ax");
           convertToRegister(fp, addr2, "bx");
@@ -118,15 +140,22 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
         case REAL:
         break;
         case STRING:
-        //Call strcopy twice
+          convertToRegister(fp, addr1, "esi");
+          convertToRegister(fp, addr3, "edi");
+          fprintf(fp, "mov dl, %d\n", fetchSize(addr1));
+          fprintf(fp, "call strcpy\n");
+          fprintf(fp, "sub edi, 1\n");
+          convertToRegister(fp, addr2, "esi");
+          fprintf(fp, "mov dl, %d\n", fetchSize(addr2));
+          fprintf(fp, "call strcpy\n");
         break;
         case MATRIX:
-        //Call adder twice
+        //Call adder
         break;
       }
     break;
     case OP_MINUS:
-      switch(((struct symbolTableEntry*)addr1->address.entry)->value.identry->type->type) {
+      switch(((struct symbolTableEntry*)addr3->address.entry)->value.identry->type->type) {
         case INT:
         convertToRegister(fp, addr1, "ax");
         convertToRegister(fp, addr2, "bx");
@@ -138,8 +167,28 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
       }
     break;
     case OP_DIV:
+      switch(((struct symbolTableEntry*)addr3->address.entry)->value.identry->type->type) {
+        case INT:
+        convertToRegister(fp, addr1, "ax");
+        convertToRegister(fp, addr2, "bx");
+        fprintf(fp, "idiv bx\n");
+        convertToMemory(fp, addr3, "ax");
+        break;
+        case REAL:
+        break;
+      }
     break;
     case OP_MUL:
+      switch(((struct symbolTableEntry*)addr3->address.entry)->value.identry->type->type) {
+        case INT:
+          convertToRegister(fp, addr1, "ax");
+          convertToRegister(fp, addr2, "bx");
+          fprintf(fp, "imul bx\n");
+          convertToMemory(fp, addr3, "ax");
+        break;
+        case REAL:
+        break;
+      }
     break;
     case OP_JLT:
       fprintf(fp, "jl %s\n", ((char*) addr1->address.entry));
@@ -177,49 +226,60 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
       fprintf(fp, "%s:\n", ((char*) addr1->address.entry));
     break;
     case OP_MOV:
-      convertToRegister(fp, addr2, "ebx");
       switch(((struct symbolTableEntry*)addr1->address.entry)->value.identry->type->type) {
         case INT:
-          convertToMemory(fp, addr1, "ebx");
+          convertToRegister(fp, addr2, "bx");
+          convertToMemory(fp, addr1, "bx");
         break;
         case REAL:
         break;
         case MATRIX:
-        //call strcopy
+          convertToRegister(fp, addr1, "edi");
+          convertToRegister(fp, addr2, "esi");
+          fprintf(fp, "mov dl, %d\n", ((struct symbolTableEntry*)addr1->address.entry)->value.identry->size);
+          fprintf(fp, "call strcpy\n");
         break;
         case STRING:
-        //call strcopy once
+          convertToRegister(fp, addr1, "edi");
+          convertToRegister(fp, addr2, "esi");
+          fprintf(fp, "mov dl, %d\n", ((struct symbolTableEntry*)addr1->address.entry)->value.identry->size);
+          fprintf(fp, "call strcpy\n");
         break;
       }
     break;
     case OP_PUSH:
-      fprintf(fp, "mov cx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->size);
-      fprintf(fp, "call def\n");
+      // fprintf(fp, "mov cx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->size);
+      // fprintf(fp, "call def\n");
     break;
     case OP_ADDRPLUS:
-      convertToRegister(fp, addr1, "eax");
+      fprintf(fp, "mov eax, 0\n");
+      convertToRegister(fp, addr1, "ax");
       convertToRegister(fp, addr2, "ebx");
-      fprintf(fp, "add eax, ebx\n");
-      convertToMemory(fp, addr3, "eax");
+      fprintf(fp, "add ebx, eax\n");
+      fprintf(fp, "mov ax, [ebx]\n");
+      convertToMemory(fp, addr3, "ax");
     break;
     case OP_READ:
-      fprintf(fp, "mov edx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->size);
-      fprintf(fp, "mov ecx, ebp\n");
-      fprintf(fp, "add ecx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->offset);
+      fprintf(fp, "mov edx, %d\n", 10);
+      fprintf(fp, "mov ecx, temp1\n");
       fprintf(fp, "mov ebx, 0\n");
       fprintf(fp, "mov eax, 3\n");
       fprintf(fp, "int 80h\n");
+      switch (((struct symbolTableEntry*) addr1->address.entry)->value.identry->type->type) {
+        case INT:
+          fprintf(fp, "mov eax, ecx\n");
+          fprintf(fp, "call atoi\n");
+          convertToMemory(fp, addr1, "eax");
+        break;
+        case REAL:
+        break;
+      }
     break;
     case OP_PRINT:
-      fprintf(fp, "mov edx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->size);
-      fprintf(fp, "mov ecx, ebp\n");
-      fprintf(fp, "add ecx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->offset);
-      fprintf(fp, "mov ebx, 1\n");
-      fprintf(fp, "mov eax, 4\n");
-      fprintf(fp, "int 80h\n");
+      stringify(fp, addr1);
     break;
     default:
-      fprintf(fp, ";Code Generation Skipped for operator %d", code->operator);
+      fprintf(fp, ";Code Generation Skipped for operator %d\n", code->operator);
   }
 }
 

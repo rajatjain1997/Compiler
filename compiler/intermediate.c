@@ -356,7 +356,7 @@ void visitSynCode(Tree tree) {
         tempAddress1 = generateTemporary(scope, type);
         insertAtEndFast(codelist,
           makeCode(OP_MUL,
-            makeAddress(NULL, sizeLookup(INT), 0, INT),
+            makeAddress(NULL, retrieveSymbol(scope, getToken(symbol))->value.identry->type->rows, 0, INT),
             makeAddress(NULL, getToken(extractSymbol(extractChildNumber(tree, 2)))->value.integer, 0, INT),
             tempAddress1));
         tempAddress2 = generateTemporary(scope, type);
@@ -365,9 +365,15 @@ void visitSynCode(Tree tree) {
             tempAddress1,
             makeAddress(NULL, getToken(extractSymbol(extractChildNumber(tree, 1)))->value.integer, 0, INT),
             tempAddress2));
+        tempAddress1 = generateTemporary(scope, type);
+        insertAtEndFast(codelist,
+          makeCode(OP_MUL,
+            tempAddress2,
+            makeAddress(NULL, sizeLookup(INT), 0, INT),
+            tempAddress1));
         insertAtEndFast(codelist,
         makeCode(OP_ADDRPLUS,
-          tempAddress2,
+          tempAddress1,
           makeAddress(retrieveSymbol(scope, getToken(symbol)), 0, 0, 0),
           tree->attr[1]));
       break;
