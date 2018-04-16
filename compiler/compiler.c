@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
 			if(!checkErrorState()) {
 				SymbolTable st = parsetree->attr[0];
 				intercode = generateIntermediateCode(parsetree);
-				printQuadruples(intercode);
+				// printQuadruples(intercode);
 				fflush(stdout);
 				if(argc==3) {
 					generateCode(argv[2], intercode, st);
