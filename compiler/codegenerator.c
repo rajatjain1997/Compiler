@@ -117,7 +117,7 @@ void stringify(FILE* fp, Address* addr) {
     break;
     case STRING:
       convertToRegister(fp, addr, "eax");
-      fprintf(fp, "call sprintLF\n");
+      fprintf(fp, "call sprint\n");
     break;
     case MATRIX:
       convertToRegister(fp, addr, "eax");
