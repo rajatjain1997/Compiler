@@ -22,7 +22,7 @@ void writebase(FILE* fp) {
   fprintf(fp, "global _start\n");
   fprintf(fp, "_start:\n");
   // fprintf(fp, "mov esp, stackbase\n");
-  // fprintf(fp, "mov ebp, esp\n");
+  fprintf(fp, "mov ebp, stackbase\n");
   // fprintf(fp, "def:\n");
   // fprintf(fp, "\tpop edx\n");
   // fprintf(fp, "\tpusher:\n");
@@ -38,6 +38,77 @@ void writeend(FILE* fp) {
   fprintf(fp, "\tmov bx, 0\n");
   fprintf(fp, "\tmov ax, 1\n");
   fprintf(fp, "\tint 80h\n");
+
+  //Function to print integers
+  fprintf(fp, "iprint:\n");
+  fprintf(fp, "push eax\n");
+  fprintf(fp, "push ecx\n");
+  fprintf(fp, "push edx\n");
+  fprintf(fp, "push esi\n");
+  fprintf(fp, "mov ecx, 0\n");
+  fprintf(fp, "divideLoop:\n");
+  fprintf(fp, "inc ecx\n");
+  fprintf(fp, "mov edx, 0\n");
+  fprintf(fp, "mov esi, 10\n");
+  fprintf(fp, "idiv esi\n");
+  fprintf(fp, "add edx, 48\n");
+  fprintf(fp, "push edx\n");
+  fprintf(fp, "cmp eax, 0\n");
+  fprintf(fp, "jnz divideLoop\n");
+  fprintf(fp, "printLoop:\n");
+  fprintf(fp, "dec ecx\n");
+  fprintf(fp, "mov eax, esp\n");
+  fprintf(fp, "call sprint\n");
+  fprintf(fp, "pop eax\n");
+  fprintf(fp, "cmp ecx, 0\n");
+  fprintf(fp, "jnz printLoop\n");
+  fprintf(fp, "pop esi\n");
+  fprintf(fp, "push edx\n");
+  fprintf(fp, "push ecx\n");
+  fprintf(fp, "push eax\n");
+  fprintf(fp, "ret\n");
+
+  fprintf(fp, "iprintLF:\n");
+  fprintf(fp, "call iprint\n");
+  fprintf(fp, "push eax\n");
+  fprintf(fp, "push edx\n");
+  fprintf(fp, "mov edx, 1\n");
+  fprintf(fp, "mov eax, 0Ah\n");
+  fprintf(fp, "push eax\n");
+  fprintf(fp, "mov eax, esp\n");
+  fprintf(fp, "call sprint\n");
+  fprintf(fp, "pop eax\n");
+  fprintf(fp, "pop edx\n");
+  fprintf(fp, "pop eax\n");
+  fprintf(fp, "ret\n");
+
+  //Prints strings: needs length in edx
+  fprintf(fp, "sprint:\n");
+  fprintf(fp, "push edx\n");
+  fprintf(fp, "push ecx\n");
+  fprintf(fp, "push ebx\n");
+  fprintf(fp, "mov ecx, eax\n");
+  fprintf(fp, "push ebx\n");
+  fprintf(fp, "mov eax, 4\n");
+  fprintf(fp, "int 80h\n");
+  fprintf(fp, "push ebx\n");
+  fprintf(fp, "push ecx\n");
+  fprintf(fp, "push edx\n");
+
+  fprintf(fp, "sprintLF:\n");
+  fprintf(fp, "call sprint\n");
+  fprintf(fp, "push eax\n");
+  fprintf(fp, "push edx\n");
+  fprintf(fp, "mov edx, 1\n");
+  fprintf(fp, "mov eax, 0Ah\n");
+  fprintf(fp, "push eax\n");
+  fprintf(fp, "mov eax, esp\n");
+  fprintf(fp, "call sprint\n");
+  fprintf(fp, "pop eax\n");
+  fprintf(fp, "pop edx\n");
+  fprintf(fp, "pop eax\n");
+  fprintf(fp, "ret\n");
+
 }
 
 int getMatrixElement(Tree matrix, int i) {
@@ -102,6 +173,17 @@ void convertToMemory(FILE* fp, Address* addr, char reg[]) {
   if(tempentree->value.identry->type->type==INT || tempentree->value.identry->type->type==REAL)
     fprintf(fp, "mov [ebp + %d], %s\n", tempentree->value.identry->offset, reg);
 }
+
+void stringify(FILE* fp, Address* addr) {
+  switch(((struct symbolTableEntry*) addr->address.entry)->value.identry->type->type) {
+    case INT:
+      fprintf(fp, "mov eax, 0\n");
+      convertToRegister(fp, addr, "ax");
+      fprintf(fp, "call iprintLF\n");
+    break;
+  }
+}
+
 
 void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
   Address *addr1, *addr2, *addr3;
@@ -207,9 +289,11 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
         case REAL:
         break;
         case MATRIX:
+          convertToRegister(fp, addr2, "ebx");
         //call strcopy
         break;
         case STRING:
+          convertToRegister(fp, addr2, "ebx");
         //call strcopy once
         break;
       }
@@ -233,12 +317,7 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
       fprintf(fp, "int 80h\n");
     break;
     case OP_PRINT:
-      fprintf(fp, "mov edx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->size);
-      fprintf(fp, "mov ecx, ebp\n");
-      fprintf(fp, "add ecx, %d\n", ((struct symbolTableEntry*) addr1->address.entry)->value.identry->offset);
-      fprintf(fp, "mov ebx, 1\n");
-      fprintf(fp, "mov eax, 4\n");
-      fprintf(fp, "int 80h\n");
+      stringify(fp, addr1);
     break;
     default:
       fprintf(fp, ";Code Generation Skipped for operator %d", code->operator);
