@@ -119,6 +119,11 @@ void stringify(FILE* fp, Address* addr) {
       convertToRegister(fp, addr, "eax");
       fprintf(fp, "call sprintLF\n");
     break;
+    case MATRIX:
+      convertToRegister(fp, addr, "eax");
+      fprintf(fp, "mov edx, %d\n", ((struct symbolTableEntry*) addr->address.entry)->value.identry->size/sizeLookup(INT));
+      fprintf(fp, "call mprintLF\n");
+    break;
   }
 }
 
@@ -150,7 +155,11 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
           fprintf(fp, "call strcpy\n");
         break;
         case MATRIX:
-        //Call adder
+          convertToRegister(fp, addr1, "esi");
+          convertToRegister(fp, addr2, "eax");
+          convertToRegister(fp, addr3, "edi");
+          fprintf(fp, "mov dl, %d\n", ((struct symbolTableEntry*) addr3->address.entry)->value.identry->size/sizeLookup(INT));
+          fprintf(fp, "call matadd\n");
         break;
       }
     break;

@@ -91,6 +91,24 @@ sprint:
     pop     edx
     ret
 
+mprintLF:
+  push eax
+  push edx
+  push ebx
+  mov ebx, eax
+  mov eax, 0
+  mprintloop:
+    mov ax, [ebx]
+    call iprintLF
+    add ebx, 2
+    dec dl
+    cmp dl, 0
+    jnz mprintloop
+  pop ebx
+  pop edx
+  pop eax
+  ret
+
 
 ;------------------------------------------
 ; void sprintLF(String message)
@@ -154,14 +172,40 @@ atoi:
 
 strcpy:
 	push edx
+  push esi
+  push edi
 	copyLoop:
 		movsb
 		dec dl
 		cmp dl, 0
 		jnz copyLoop
+  pop edi
+  pop esi
 	pop edx
 	ret
 
+;String length in dl, source address at esi & eax, dest address at edi
+
+matadd:
+  push eax
+  push edx
+  push esi
+  push edi
+  push ebx
+  mov ebx, eax
+  addLoop:
+    lodsw
+    add ax, [ebx]
+    stosw
+    add ebx, 2
+    dec dl
+    jnz addLoop
+  pop ebx
+  pop edi
+  pop esi
+  pop edx
+  pop eax
+  ret
 ;------------------------------------------
 ; void exit()
 ; Exit program and restore resources
