@@ -252,10 +252,12 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
       // fprintf(fp, "call def\n");
     break;
     case OP_ADDRPLUS:
-      convertToRegister(fp, addr1, "eax");
+      fprintf(fp, "mov eax, 0\n");
+      convertToRegister(fp, addr1, "ax");
       convertToRegister(fp, addr2, "ebx");
-      fprintf(fp, "add eax, ebx\n");
-      convertToMemory(fp, addr3, "eax");
+      fprintf(fp, "add ebx, eax\n");
+      fprintf(fp, "mov ax, [ebx]\n");
+      convertToMemory(fp, addr3, "ax");
     break;
     case OP_READ:
       fprintf(fp, "mov edx, %d\n", 10);
