@@ -51,6 +51,27 @@ void printQuadruples(List code) {
  * void visitInOrder(Tree tree, FILE* fp): Used to print each node of the parse tree in order.
  */
 
+void visitDFT(Tree tree, FILE* fp) {
+	char buf[20]; Token* token;
+	token = getToken(tree->symbol);
+	if(isTerminal(tree->symbol) && token!=NULL && tree->parent!=NULL && !isTerminal(tree->parent->symbol)) {
+		getLexeme(token, buf);
+		fprintf(fp,"%-20s|%-10d|%-10s|%-23s\n", buf, token->lineno, tokenTypeToString[token->type], nonTerminalStrings[tree->parent->symbol->symbolType]);
+	} else if(isTerminal(tree->symbol) && token!=NULL && tree->parent!=NULL && isTerminal(tree->parent->symbol)) {
+		getLexeme(token, buf);
+		fprintf(fp,"%-20s|%-10d|%-10s|%-23s\n", buf, token->lineno, tokenTypeToString[token->type], tokenTypeToString[tree->parent->symbol->symbolType]);
+	} else if (!isTerminal(tree->symbol) && tree->parent!=NULL && !isTerminal(tree->parent->symbol)) {
+		fprintf(fp, "%-20s|----------|----------|%-23s \n", nonTerminalStrings[tree->symbol->symbolType], nonTerminalStrings[tree->parent->symbol->symbolType]);
+	} else if(!isTerminal(tree->symbol) && tree->parent!=NULL && isTerminal(tree->parent->symbol)) {
+		fprintf(fp, "%-20s|----------|----------|%-23s \n", nonTerminalStrings[tree->symbol->symbolType], tokenTypeToString[tree->parent->symbol->symbolType]);
+	} else if (isTerminal(tree->symbol) && tree->parent==NULL) {
+		getLexeme(token, buf);
+		fprintf(fp, "%-20s|%-10d|%-10s|----------------------- \n", buf, token->lineno, tokenTypeToString[token->type]);
+	} else {
+		fprintf(fp, "%d (Error)\n", tree->symbol->symbolType);
+	}
+}
+
 void visitInOrder(Tree tree, FILE* fp) {
 	char buf[20]; Token* token;
 	token = getToken(tree->symbol);
@@ -81,11 +102,26 @@ void inOrderTraversal(Tree tree, FILE* fp) {
 	if(tree->children->size==0) {
 		visitInOrder(tree, fp);
 	} else {
-		visitInOrder(tree, fp);
 		inOrderTraversal(tree->children->first->data.value.tree, fp);
+		visitInOrder(tree, fp);
 		temp = tree->children->first->next;
 		while(temp!=NULL) {
 			inOrderTraversal(temp->data.value.tree, fp);
+			temp = temp->next;
+		}
+	}
+}
+
+void DFT(Tree tree, FILE* fp) {
+	Element temp;
+	if(tree->children->size==0) {
+		visitDFT(tree, fp);
+	} else {
+		visitDFT(tree, fp);
+		DFT(tree->children->first->data.value.tree, fp);
+		temp = tree->children->first->next;
+		while(temp!=NULL) {
+			DFT(temp->data.value.tree, fp);
 			temp = temp->next;
 		}
 	}
@@ -104,6 +140,15 @@ void printTree(Tree tree, FILE* fp) {
 	}
 }
 
+void printAST(Tree tree, FILE* fp) {
+	fprintf(fp, "Lexeme              |Line No.  |Token     |Parent\n");
+	fprintf(fp, "====================|==========|==========|=======================\n");
+	DFT(tree, fp);
+	if(fp!=stdout) {
+		fclose(fp);
+	}
+}
+
 /*
  * void printTokenStream(Queue tokenStream): Used to print the token stream returned by lexer.
  */
@@ -117,6 +162,38 @@ void printTokenStream(Queue tokenStream) {
 		getLexeme(temp->data.value, buf);
 		printf("%-10s|%-20s|%-10d\n", tokenTypeToString[temp->data.value->type], buf, temp->data.value->lineno);
 		temp=temp->next;
+	}
+}
+
+void printSymbolTable(SymbolTable st, int level) {
+	int i = 0; Element temp; Token* token; char buf[21], buf2[21], buf3[21]; struct idEntry* ste;
+	if(level==0) {
+		printf("Identifier Name     |Scope Name          |N. Level|Static Parent       |Type     |Width|Offset\n");
+		printf("====================|====================|========|====================|=========|=====|=======\n");
+	}
+	while(i<st->size) {
+		temp = st->symboltable[i]->first;
+		while(temp!=NULL) {
+			token = getToken(extractSymbol(temp->data.value.symboltableentry->tokentree));
+			getLexeme(token, buf);
+			if(token->type==FUNID) {
+				printSymbolTable(temp->data.value.symboltableentry->value.funentry->scope, level+1);
+			} else if(st->func==NULL){
+				ste = temp->data.value.symboltableentry->value.identry;
+				printf("%-20s|MAIN                |%-8d|N.A.                |%-9s|%-5d|%-7d\n", buf, level, tokenTypeToString[ste->type->type], ste->size, ste->offset);
+			} else if(st->parent->parent==NULL) {
+				ste = temp->data.value.symboltableentry->value.identry;
+				getLexeme(getToken(extractSymbol(st->func)), buf2);
+				printf("%-20s|%-20s|%-8d|MAIN                |%-9s|%-5d|%-7d\n", buf, buf2, level, tokenTypeToString[ste->type->type], ste->size, ste->offset);
+			} else {
+				ste = temp->data.value.symboltableentry->value.identry;
+				getLexeme(getToken(extractSymbol(st->func)), buf2);
+				getLexeme(getToken(extractSymbol(st->parent->func)), buf3);
+				printf("%-20s|%-20s|%-8d|%-20s|%-9s|%-5d|%-7d\n", buf, buf2, level, buf3,tokenTypeToString[ste->type->type], ste->size, ste->offset);
+			}
+			temp = temp->next;
+		}
+		i++;
 	}
 }
 
@@ -145,86 +222,108 @@ int main(int argc, char* argv[]) {
 	//Compiler always prints cleaned code to console.
 	strcpy(cleanDest,"1");
 	initializeError(argv[1], !testing);
-	Queue tokenstream; Tree parsetree; List intercode;
+	Queue tokenstream; Tree parsetree; List intercode; SymbolTable st;
 
 	printf("a) Lexer and Parser are implemented.\n");
 	printf("b) First and follow sets are automated.\n");
 	printf("c) All test cases run without any erraneous output. All errors specified in test case 5 are reported as required.\n");
 	printf("d) Parse tree is successfully generated\n");
 
-	while(error_testing) {
+	do {
 		tokenstream = read(argv[1]);
-		while(error_testing) {
-			printf("What would you like to do :-)?\n");
-			printf("1. Clean the provided source file\n");
-			printf("2. Print the captured token stream\n");
-			printf("3. Print all errors associated to code\n");
-			printf("4. Print parse tree\n");
-			printf("5. Exit and print errors if any\n");
-			scanf("%d", &choice);
-			switch(choice) {
-				case 1: clean(tokenstream, "1");
-						printf("\n");
-						break;
-				case 2: printTokenStream(tokenstream);
-						break;
-				default:innerLoop=1;
-						break;
-			}
-			if(innerLoop) {
-				break;
-			}
-		}
-		parsetree = parse(tokenstream, "grammar.txt");
-		if(!checkErrorState()) {
-			parsetree = createAST(parsetree);
-			typeCheck(parsetree);
-			if(!checkErrorState()) {
-				SymbolTable st = parsetree->attr[0];
-				intercode = generateIntermediateCode(parsetree);
-				// printQuadruples(intercode);
-				fflush(stdout);
-				if(argc==3) {
-					generateCode(argv[2], intercode, st);
-				}
-			}
-		}
-		while(error_testing) {
-			switch(choice) {
-				case 3:
-					if(!checkErrorState()) {
-						printf("The code is syntactically correct!\n");
-					} else {
-						printErrors();
-					}
+		printf("What would you like to do :-)?\n");
+		printf("0. Exit and print errors if any\n");
+		printf("1. Print the captured token stream\n");
+		printf("2. Print parse tree\n");
+		printf("3. Print AST in pre-order traversal\n");
+		printf("4. Print parse tree\n");
+		printf("5. Print Symbol Table\n");
+		printf("6. Print Semantic/Syntactic Errors\n");
+		printf("7. Generate Code!\n");
+		scanf("%d", &choice);
+		switch(choice) {
+			case 0: outerLoop = 1; break;
+			case 1: printTokenStream(tokenstream); break;
+			default:
+				parsetree = parse(tokenstream, "grammar.txt");
+				if(choice==2) {
+					printTree(parsetree, stdout);
 					break;
-				case 4:
-						parseTreeOut = stdout;
-						printTree(parsetree, parseTreeOut);
+				}
+				if(!checkErrorState()) {
+					parsetree = createAST(parsetree);
+					if(choice==3) {
+						printAST(parsetree, stdout);
 						break;
-				case 5: case 1: case 2: outerLoop = 1;
-						break;
-			}
-			if(outerLoop) {
-				break;
-			}
-			printf("What would you like to do :-)?\n");
-			printf("1. Clean the provided source file\n");
-			printf("2. Print the captured token stream\n");
-			printf("3. Print all errors associated to code\n");
-			printf("4. Print parse tree\n");
-			printf("5. Exit and print errors if any\n");
-			scanf("%d", &choice);
-		}
-		innerLoop = 0;
-		outerLoop = 0;
-		if(choice==5) {
+					}
+					typeCheck(parsetree);
+					if(!checkErrorState()) {
+						st = parsetree->attr[0];
+						if(choice==5) {
+							printSymbolTable(st, 0);
+							break;
+						}
+						intercode = generateIntermediateCode(parsetree);
+						if(choice==6) {
+							printErrors();
+							break;
+						}
+						if(argc==3 && choice==7) {
+							generateCode(argv[2], intercode, st);
+						}
+					}
+				}
 			break;
 		}
-	}
-	if(!cleaning) {
-		clean(tokenstream, cleanDest);
-	}
+		// if(!checkErrorState()) {
+		// 	parsetree = createAST(parsetree);
+		// 	typeCheck(parsetree);
+		// 	if(!checkErrorState()) {
+		// 		SymbolTable st = parsetree->attr[0];
+		// 		intercode = generateIntermediateCode(parsetree);
+		// 		// printQuadruples(intercode);
+		// 		fflush(stdout);
+		// 		if(argc==3) {
+		// 			generateCode(argv[2], intercode, st);
+		// 		}
+		// 	}
+		// }
+		// while(error_testing) {
+		// 	switch(choice) {
+		// 		case 3:
+		// 			if(!checkErrorState()) {
+		// 				printf("The code is syntactically correct!\n");
+		// 			} else {
+		// 				printErrors();
+		// 			}
+		// 			break;
+		// 		case 4:
+		// 				parseTreeOut = stdout;
+		// 				printTree(parsetree, parseTreeOut);
+		// 				break;
+		// 		case 5: case 1: case 2: outerLoop = 1;
+		// 				break;
+		// 	}
+		// 	if(outerLoop) {
+		// 		break;
+		// 	}
+		// 	printf("What would you like to do :-)?\n");
+		// 	printf("1. Clean the provided source file\n");
+		// 	printf("2. Print the captured token stream\n");
+		// 	printf("3. Print all errors associated to code\n");
+		// 	printf("4. Print parse tree\n");
+		// 	printf("5. Exit and print errors if any\n");
+		// 	scanf("%d", &choice);
+		// }
+		// innerLoop = 0;
+		// outerLoop = 0;
+		// if(choice==5) {
+		// 	break;
+		// }
+	} while(outerLoop!=1);
+	// if(!cleaning) {
+	// 	clean(tokenstream, cleanDest);
+	// }
 	if(checkErrorState()) {
 		printErrors();
 	}
