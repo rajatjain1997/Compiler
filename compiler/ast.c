@@ -613,16 +613,17 @@ void visitSyn(Tree tree) {
   pruneChildren(childList, prunelist);
 }
 
-Tree createAST(Tree tree) {
+int createAST(Tree tree, int treeSize) {
   Element temp;
+  treeSize++;
 	if(!isTerminal(tree->symbol)) {
     visitInh(tree);
 		temp = tree->children->first;
 		while(temp!=NULL) {
-			createAST(temp->data.value.tree);
+			treeSize = createAST(temp->data.value.tree, treeSize);
 			temp = temp->next;
 		}
     visitSyn(tree);
   }
-  return tree;
+  return treeSize;
 }

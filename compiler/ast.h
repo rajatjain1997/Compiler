@@ -1,1 +1,1 @@
-Tree createAST(Tree parsetree);
+int createAST(Tree parsetree, int treeSize);

@@ -584,18 +584,19 @@ void visitSynType(Tree tree) {
   }
 }
 
-SymbolTable typeCheck(Tree tree) {
+int typeCheck(Tree tree, int treeSize) {
   Element temp;
+  treeSize++;
   if(tree->children->size!=0) {
     visitInhType(tree);
   	temp = tree->children->first;
   	while(temp!=NULL) {
-  		typeCheck(temp->data.value.tree);
+  		treeSize = typeCheck(temp->data.value.tree, treeSize);
   		temp = temp->next;
   	}
     visitSynType(tree);
   } else {
     generateTypeAttribute(tree);
   }
-  return tree->attr[0];
+  return treeSize;
 }

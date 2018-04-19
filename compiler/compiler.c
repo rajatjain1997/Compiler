@@ -197,8 +197,23 @@ void printSymbolTable(SymbolTable st, int level) {
 	}
 }
 
+int choicemenu() {
+	int choice;
+	printf("What would you like to do :-)?\n");
+	printf("0. Exit and print errors if any\n");
+	printf("1. Print the captured token stream\n");
+	printf("2. Print parse tree\n");
+	printf("3. Print AST in pre-order traversal\n");
+	printf("4. Print parse tree to AST conversion stats\n");
+	printf("5. Print Symbol Table\n");
+	printf("6. Print Semantic/Syntactic Errors\n");
+	printf("7. Generate Code!\n");
+	scanf("%d", &choice);
+	return choice;
+}
+
 int main(int argc, char* argv[]) {
-	int testing = 1; int cleaning  = 1; int i; int choice, innerLoop = 0, outerLoop = 0;
+	int testing = 1; int cleaning  = 1; int i; int choice, ASTSize = 0, outerLoop = 0, parseSize = 0;
 	FILE* parseTreeOut;
 	char cleanDest[20];
 	if(argc<2) {
@@ -228,50 +243,58 @@ int main(int argc, char* argv[]) {
 	printf("b) First and follow sets are automated.\n");
 	printf("c) All test cases run without any erraneous output. All errors specified in test case 5 are reported as required.\n");
 	printf("d) Parse tree is successfully generated\n");
-
+	choice = choicemenu();
 	do {
-		tokenstream = read(argv[1]);
-		printf("What would you like to do :-)?\n");
-		printf("0. Exit and print errors if any\n");
-		printf("1. Print the captured token stream\n");
-		printf("2. Print parse tree\n");
-		printf("3. Print AST in pre-order traversal\n");
-		printf("4. Print parse tree\n");
-		printf("5. Print Symbol Table\n");
-		printf("6. Print Semantic/Syntactic Errors\n");
-		printf("7. Generate Code!\n");
-		scanf("%d", &choice);
 		switch(choice) {
 			case 0: outerLoop = 1; break;
-			case 1: printTokenStream(tokenstream); break;
 			default:
+				tokenstream = read(argv[1]);
+				if(choice==1) {
+					printTokenStream(tokenstream);
+					choice = choicemenu();
+				}
 				parsetree = parse(tokenstream, "grammar.txt");
 				if(choice==2) {
 					printTree(parsetree, stdout);
-					break;
+					choice = choicemenu();
 				}
 				if(!checkErrorState()) {
-					parsetree = createAST(parsetree);
+					parseSize = createAST(parsetree, 0);
 					if(choice==3) {
 						printAST(parsetree, stdout);
-						break;
+						choice = choicemenu();
 					}
-					typeCheck(parsetree);
+					ASTSize = typeCheck(parsetree, 0);
+					if(choice==4) {
+						printf("Parse Tree No. of Nodes: %d Parse Tree Size: %d\n", parseSize,(int) (parseSize*sizeof(struct tree)));
+						printf("AST No. of Nodes: %d AST Size: %d\n", ASTSize,(int) (ASTSize*sizeof(struct tree)));
+						printf("Percentage Compression: %f%%\n", ((float) parseSize - ASTSize)*100/parseSize);
+						choice = choicemenu();
+					}
+					if(choice==6) {
+						printErrors();
+						choice = choicemenu();
+					}
 					if(!checkErrorState()) {
 						st = parsetree->attr[0];
 						if(choice==5) {
 							printSymbolTable(st, 0);
-							break;
+							choice = choicemenu();
 						}
 						intercode = generateIntermediateCode(parsetree);
-						if(choice==6) {
-							printErrors();
-							break;
-						}
 						if(argc==3 && choice==7) {
 							generateCode(argv[2], intercode, st);
+							choice = choicemenu();
+						} else if(choice>7) {
+							choice = choicemenu();
 						}
+					} else if (choice==5 || choice==7){
+						printErrors();
+						choice = choicemenu();
 					}
+				} else if(choice>2) {
+					printErrors();
+					choice = choicemenu();
 				}
 			break;
 		}
@@ -320,7 +343,7 @@ int main(int argc, char* argv[]) {
 		// if(choice==5) {
 		// 	break;
 		// }
-	} while(outerLoop!=1);
+	} while(outerLoop==0);
 	// if(!cleaning) {
 	// 	clean(tokenstream, cleanDest);
 	// }
