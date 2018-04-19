@@ -220,29 +220,12 @@ int main(int argc, char* argv[]) {
 		printf("No source file specified.");
 		return 0;
 	}
-	// for(i=2; i<argc; i++) {
-	// 	testing = strcmp(argv[i], "-test");
-	// 	cleaning = strcmp(argv[i], "-clean");
-	// 	if(cleaning==0) {
-	// 		i++;
-	// 		if(i<argc) {
-	// 			strcpy(cleanDest, argv[i]);
-	// 		} else {
-	// 			strcpy(cleanDest, "1");
-	// 		}
-	// 	}
-	// }
-	//Compiler always runs in testing mode.
 	testing = 0;
-	//Compiler always prints cleaned code to console.
 	strcpy(cleanDest,"1");
 	initializeError(argv[1], !testing);
 	Queue tokenstream; Tree parsetree; List intercode; SymbolTable st;
 
-	printf("a) Lexer and Parser are implemented.\n");
-	printf("b) First and follow sets are automated.\n");
-	printf("c) All test cases run without any erraneous output. All errors specified in test case 5 are reported as required.\n");
-	printf("d) Parse tree is successfully generated\n");
+	printf("LEVEL 4: AST/Symbol Table/Type Checking/Semantic Rule Checking/Intermediate Code Generation/Code Generation work\n");
 	choice = choicemenu();
 	do {
 		switch(choice) {
@@ -298,55 +281,7 @@ int main(int argc, char* argv[]) {
 				}
 			break;
 		}
-		// if(!checkErrorState()) {
-		// 	parsetree = createAST(parsetree);
-		// 	typeCheck(parsetree);
-		// 	if(!checkErrorState()) {
-		// 		SymbolTable st = parsetree->attr[0];
-		// 		intercode = generateIntermediateCode(parsetree);
-		// 		// printQuadruples(intercode);
-		// 		fflush(stdout);
-		// 		if(argc==3) {
-		// 			generateCode(argv[2], intercode, st);
-		// 		}
-		// 	}
-		// }
-		// while(error_testing) {
-		// 	switch(choice) {
-		// 		case 3:
-		// 			if(!checkErrorState()) {
-		// 				printf("The code is syntactically correct!\n");
-		// 			} else {
-		// 				printErrors();
-		// 			}
-		// 			break;
-		// 		case 4:
-		// 				parseTreeOut = stdout;
-		// 				printTree(parsetree, parseTreeOut);
-		// 				break;
-		// 		case 5: case 1: case 2: outerLoop = 1;
-		// 				break;
-		// 	}
-		// 	if(outerLoop) {
-		// 		break;
-		// 	}
-		// 	printf("What would you like to do :-)?\n");
-		// 	printf("1. Clean the provided source file\n");
-		// 	printf("2. Print the captured token stream\n");
-		// 	printf("3. Print all errors associated to code\n");
-		// 	printf("4. Print parse tree\n");
-		// 	printf("5. Exit and print errors if any\n");
-		// 	scanf("%d", &choice);
-		// }
-		// innerLoop = 0;
-		// outerLoop = 0;
-		// if(choice==5) {
-		// 	break;
-		// }
 	} while(outerLoop==0);
-	// if(!cleaning) {
-	// 	clean(tokenstream, cleanDest);
-	// }
 	if(checkErrorState()) {
 		printErrors();
 	}
@@ -354,6 +289,5 @@ int main(int argc, char* argv[]) {
 	printf("Made By:\n");
 	printf("Rajat Jain\n");
 	printf("2015A7PS0549P\n");
-	printf("Please suggest any changes you would like to make!\n");
 	return 0;
 }

@@ -1,5 +1,5 @@
 all: compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o tree.o trie.o ast.o semantic.o symboltable.o type.o quadruple.o intermediate.o codegenerator.o
-	gcc -o stage1exe compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o ast.o semantic.o symboltable.o type.o intermediate.o quadruple.o codegenerator.o
+	gcc -o compiler compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o ast.o semantic.o symboltable.o type.o intermediate.o quadruple.o codegenerator.o
 
 stage1: compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o tree.o trie.o
 	gcc -o stage1exe compiler.o lexer.o parser.o list.o error.o grammar.o set.o symbol.o token.o trie.o tree.o
