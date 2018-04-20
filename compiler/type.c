@@ -114,8 +114,8 @@ void raiseInvalidOperatorError(Tree identifier, Type* expectedType, Type* actual
 }
 
 /**
- * void raiseTypeMismatchError(Tree identifier, Type* expectedType, Type* actualType, char strtype[]):
- * Raises an error if types mismatch for 2 identifers.
+ * void raiseParameterMismatchError(Tree identifier, Type* expectedType, Type* actualType, char strtype[]):
+ * Raises an error if types mismatch for 2 identifers in a function call.
  */
 void raiseParameterMismatchError(Tree identifier, Type* expectedType, Type* actualType, Tree call) {
   char msg[256], buf1[20], buf2[20], buf3[20];
@@ -189,6 +189,9 @@ void raiseNonZeroRetFunction(Tree tree) {
  	error(msg, e, token->lineno);
 }
 
+/**
+ * void raiseErronousIfCondn(Tree tree): Raises an error if 'If statement' has a non boolean check condition.
+ */
 void raiseErronousIfCondn(Tree tree) {
   char msg[256];
   Token* token = getToken(extractSymbol(tree));
@@ -197,6 +200,9 @@ void raiseErronousIfCondn(Tree tree) {
  	error(msg, e, token->lineno);
 }
 
+/**
+ * void raiseUnAssignedRet(Tree tree, Tree fundef): Raises an error if an output variable is left un-assigned in a function
+ */
 void raiseUnAssignedRet(Tree tree, Tree fundef) {
   char msg[256], buf[20], buf2[20];
   Token* token = getToken(extractSymbol(tree));
@@ -208,6 +214,9 @@ void raiseUnAssignedRet(Tree tree, Tree fundef) {
  	error(msg, e, token->lineno);
 }
 
+/**
+ * void raiseNonRectangularMatrix(Tree tree): Raises an error if a matrix is non-rectangular
+ */
 void raiseNonRectangularMatrix(Tree tree) {
   char msg[256], buf[20];
  	ErrorType e = ERROR;
@@ -216,6 +225,9 @@ void raiseNonRectangularMatrix(Tree tree) {
   tree->attr[1] = errorType;
 }
 
+/**
+ * void raiseLargeMatrix(Tree tree): Raises an error if a matrix is larger than 10x10.
+ */
 void raiseLargeMatrix(Tree tree) {
   char msg[256], buf[20];
  	ErrorType e = ERROR;
@@ -224,6 +236,9 @@ void raiseLargeMatrix(Tree tree) {
   tree->attr[1] = errorType;
 }
 
+/**
+ * void raiseInvalidRead(Tree tree): Raises an error if a read for a matrix or string is being performed.
+ */
 void raiseInvalidRead(Tree tree, Type* type) {
   char msg[256], buf[20];
   Token* token = getToken(extractSymbol(tree));
