@@ -371,13 +371,13 @@ void visitSynCode(Tree tree) {
         insertAtEndFast(codelist,
           makeCode(OP_MUL,
             makeAddress(NULL, retrieveSymbol(scope, getToken(symbol))->value.identry->type->rows, 0, INT),
-            makeAddress(NULL, getToken(extractSymbol(extractChildNumber(tree, 2)))->value.integer, 0, INT),
+            makeAddress(NULL, getToken(extractSymbol(extractChildNumber(tree, 2)))->value.integer-1, 0, INT),
             tempAddress1));
         tempAddress2 = generateTemporary(scope, type);
         insertAtEndFast(codelist,
           makeCode(OP_PLUS,
             tempAddress1,
-            makeAddress(NULL, getToken(extractSymbol(extractChildNumber(tree, 1)))->value.integer, 0, INT),
+            makeAddress(NULL, getToken(extractSymbol(extractChildNumber(tree, 1)))->value.integer-1, 0, INT),
             tempAddress2));
         tempAddress1 = generateTemporary(scope, type);
         insertAtEndFast(codelist,

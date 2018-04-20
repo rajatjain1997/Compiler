@@ -1,6 +1,8 @@
 _main[]
-  function [string a, string g] = _lolfun[string b, string c]
+  function [int a, int g] = _lolfun[int b, int c]
     a = b + c;
     g = a;
   end;
+  real a;
+  a = _lolfun(a, a);
 end

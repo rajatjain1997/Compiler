@@ -346,6 +346,7 @@ void generateCode(char* filename, List code, SymbolTable st) {
   while(temp!=NULL) {
     if(temp->data.value.quadruple->operator==OP_DEFINE) {
       define = 1;
+      temp = temp->next;
       while(define!=0) {
         if(temp->data.value.quadruple->operator==OP_RET) {
           define--;
@@ -354,6 +355,9 @@ void generateCode(char* filename, List code, SymbolTable st) {
         }
         temp = temp->next;
       }
+    }
+    if(temp==NULL) {
+      break;
     }
     writeCode(fp, temp->data.value.quadruple, st);
     temp = temp->next;

@@ -114,6 +114,21 @@ void raiseInvalidOperatorError(Tree identifier, Type* expectedType, Type* actual
 }
 
 /**
+ * void raiseTypeMismatchError(Tree identifier, Type* expectedType, Type* actualType, char strtype[]):
+ * Raises an error if types mismatch for 2 identifers.
+ */
+void raiseParameterMismatchError(Tree identifier, Type* expectedType, Type* actualType, Tree call) {
+  char msg[256], buf1[20], buf2[20], buf3[20];
+  Token* token = getToken(extractSymbol(identifier));
+  ErrorType e = ERROR;
+  getLexeme(token, buf1);
+  sprintf(msg, "SEMANTIC ERROR: %s has type %s but expected type is %s", buf1, typeLookup(actualType, buf2), typeLookup(expectedType, buf3));
+  error(msg, e, getToken(extractSymbol(call))->lineno);
+  identifier->attr[1] = errorType;
+  //If you later need to assign an error type for all later occurances you can do it in ASSIGNOP after this call.
+}
+
+/**
  * void raiseInsufficientLHS(Tree tree): Raises an error if there are less elements in LHS of ASSIGNOP than on the right.
  */
 void raiseInsufficientLHS(Tree tree) {
@@ -217,6 +232,9 @@ void raiseInvalidRead(Tree tree, Type* type) {
  	error(msg, e, token->lineno);
 }
 
+/**
+ * void markDefinedVars(SymbolTable st, List vars): Takes a list of vars and marks them as defined.
+ */
 void markDefinedVars(SymbolTable st, List vars) {
   Element temp = vars->first;
   while(temp->next!=NULL) {
@@ -225,6 +243,10 @@ void markDefinedVars(SymbolTable st, List vars) {
   }
 }
 
+/**
+ * int typeComparator(SymbolTable st, Tree identifier, Type* type2, Type* type1): Compares type2 and type1 and updates
+ * type2 with new information if type2 is incomplete.
+ */
 int typeComparator(SymbolTable st, Tree identifier, Type* type2, Type* type1) {
   if((type1->type==MATRIX || type1->type==STRING) && type2->rows==0 && type2->columns==0) {
     if(!updateidEntrySize(st, identifier, type1->type, type1->rows, type1->columns)) {
@@ -236,6 +258,9 @@ int typeComparator(SymbolTable st, Tree identifier, Type* type2, Type* type1) {
   return 1;
 }
 
+/**
+ * int checkStmt(Tree tree): Checks if a passed node is start of a statement.
+ */
 int checkStmt(Tree tree) {
   Symbol* sy = extractSymbol(tree->parent);
   if(
@@ -249,6 +274,9 @@ int checkStmt(Tree tree) {
   return 0;
 }
 
+/**
+ * void generateTypeAttribute(Tree tree): Generates type attributes for leaf nodes.
+ */
 void generateTypeAttribute(Tree tree) {
   nullifyAttributes(tree);
   Symbol* symbol = extractSymbol(tree);
@@ -275,6 +303,10 @@ void generateTypeAttribute(Tree tree) {
   }
 }
 
+/**
+ * void visitInhType(Tree tree): Propagates scope information among all nodes and checks for redefinitions/non-definitions
+ * pre-order
+ */
 void visitInhType(Tree tree) {
   nullifyAttributes(tree);
   Symbol* symbol = extractSymbol(tree);
@@ -369,6 +401,9 @@ void visitInhType(Tree tree) {
   }
 }
 
+/**
+ * void visitSynType(Tree tree): Implements all type checking and semantic rules post-order.
+ */
 void visitSynType(Tree tree) {
   Symbol* symbol = extractSymbol(tree);
   SymbolTable scope = (SymbolTable) tree->attr[0];
@@ -455,7 +490,7 @@ void visitSynType(Tree tree) {
           if(type1==NULL) {
 
           } else if(!typeComparator(scope, extractChildNumber(temp2->data.value.tree, 1), type2, type1)) {
-            raiseTypeMismatchError(extractChildNumber(temp2->data.value.tree, 1), type2, type1, "");
+            raiseParameterMismatchError(extractChildNumber(temp2->data.value.tree, 1), type2, type1, tree);
           }
           temp = temp->next;
           temp2 = temp2->next;
@@ -666,6 +701,9 @@ void visitSynType(Tree tree) {
   }
 }
 
+/**
+ * int typeCheck(Tree tree, int treeSize): Driver for type checker.
+ */
 int typeCheck(Tree tree, int treeSize) {
   Element temp;
   treeSize++;
