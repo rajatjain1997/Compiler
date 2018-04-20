@@ -184,7 +184,7 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
           convertToRegister(fp, addr3, "edi");
           fprintf(fp, "mov dl, %d\n", fetchSize(addr1));
           fprintf(fp, "call strcpy\n");
-          fprintf(fp, "sub edi, 1\n");
+          fprintf(fp, "add edi, %d\n", fetchSize(addr1)-1);
           convertToRegister(fp, addr2, "esi");
           fprintf(fp, "mov dl, %d\n", fetchSize(addr2));
           fprintf(fp, "call strcpy\n");
