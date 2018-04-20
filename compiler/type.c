@@ -83,6 +83,17 @@ void raiseTypeMismatchError(Tree identifier, Type* expectedType, Type* actualTyp
   //If you later need to assign an error type for all later occurances you can do it in ASSIGNOP after this call.
 }
 
+void raiseInvalidOperatorError(Tree identifier, Type* expectedType, Type* actualType) {
+  char msg[256], buf1[20], buf2[20], buf3[20];
+  Token* token = getToken(extractSymbol(identifier));
+ 	ErrorType e = ERROR;
+  getLexeme(token, buf1);
+  sprintf(msg, "SEMANTIC ERROR: %s does not work with types %s and %s", buf1, typeLookup(actualType, buf2), typeLookup(expectedType, buf3));
+ 	error(msg, e, token->lineno);
+  identifier->attr[1] = errorType;
+  //If you later need to assign an error type for all later occurances you can do it in ASSIGNOP after this call.
+}
+
 void raiseInsufficientLHS(Tree tree) {
   char msg[256];
   Token* token = getToken(extractSymbol(tree));
@@ -514,11 +525,44 @@ void visitSynType(Tree tree) {
           ) {
           tree->attr[1] = createType(STRING, 0, type1->columns + type2->columns);
         } else {
+          raiseInvalidOperatorError(tree, type2, type1);
           tree->attr[1] = errorType;
           break;
         }
         break;
-      case MINUS: case MUL:
+      case MINUS:
+        type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
+        type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
+        if(type1==NULL) {
+          raiseUntypedError(extractChildNumber(tree, 1));
+          break;
+        } else if(type2==NULL) {
+          raiseUntypedError(extractChildNumber(tree, 2));
+          break;
+        }
+        if(
+            (type1->type == INT) && type1->rows == 0 && type1->columns == 0 &&
+            (type2->type == INT) && type2->rows == 0 && type2->columns == 0
+          ) {
+          tree->attr[1] = type2;
+        } else if (
+              (type1->type == REAL) && type1->rows == 0 && type1->columns == 0 &&
+              (type2->type == REAL) && type2->rows == 0 && type2->columns == 0
+          ) {
+          tree->attr[1] = type1;
+        } else if (
+              (type1->type == MATRIX) &&
+              (type2->type == MATRIX)
+          ) {
+          if(type1->rows==type2->rows && type1->columns==type2->columns) {
+            tree->attr[1] = type1;
+          } else {
+            raiseInvalidOperatorError(tree, type2, type1);
+            tree->attr[1] = errorType;
+          }
+        }
+      break;
+      case MUL:
         type1 = (Type*) extractChildNumber(tree, 1)->attr[1];
         type2 = (Type*) extractChildNumber(tree, 2)->attr[1];
         if(type1==NULL) {
@@ -539,6 +583,7 @@ void visitSynType(Tree tree) {
           ) {
           tree->attr[1] = type1;
         } else {
+          raiseInvalidOperatorError(tree, type2, type1);
           tree->attr[1] = errorType;
           break;
         }
@@ -559,6 +604,7 @@ void visitSynType(Tree tree) {
           ) {
           tree->attr[1] = createType(REAL, 0, 0);
         } else {
+          raiseInvalidOperatorError(tree, type2, type1);
           tree->attr[1] = errorType;
           break;
         }

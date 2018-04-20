@@ -12,13 +12,12 @@
 
 void writebase(FILE* fp) {
   fprintf(fp, "%%include \'functions.asm\'\n");
-  fprintf(fp, "section .data\n");
-  fprintf(fp, "stackbase db 0\n");
   fprintf(fp, "section .bss\n");
   fprintf(fp, "temp1\tRESB\t20\n");
   fprintf(fp, "temp2\tRESB\t20\n");
   fprintf(fp, "tempmat1\tRESW\t100\n");
   fprintf(fp, "tempmat2\tRESW\t100\n");
+  fprintf(fp, "stackbase RESB 1\n");
   fprintf(fp, "section .text\n");
   fprintf(fp, "global _start\n");
   fprintf(fp, "_start:\n");
@@ -51,7 +50,8 @@ int fetchSize(Address* addr) {
 void convertToRegister(FILE* fp, Address* addr, char reg[]) {
   struct symbolTableEntry* tempentree;
   char tempstring[20]; int i;
-  int stringtoggle = 0, matrixtoggle = 0; Tree temptree;
+  static int stringtoggle = 0, matrixtoggle = 0; 
+  Tree temptree;
   switch (addr->type) {
     case 0:
       tempentree = addr->address.entry;
@@ -116,8 +116,11 @@ void stringify(FILE* fp, Address* addr) {
     case REAL:
     break;
     case STRING:
-      convertToRegister(fp, addr, "eax");
-      fprintf(fp, "call sprint\n");
+      convertToRegister(fp, addr, "ecx");
+      fprintf(fp, "mov edx, %d\n", ((struct symbolTableEntry*) addr->address.entry)->value.identry->type->columns);
+      fprintf(fp, "mov ebx, 1\n");
+      fprintf(fp, "mov eax, 4\n");
+      fprintf(fp, "int 80h\n");
     break;
     case MATRIX:
       convertToRegister(fp, addr, "eax");
@@ -172,6 +175,13 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
           convertToMemory(fp, addr3, "ax");
         break;
         case REAL:
+        break;
+        case MATRIX:
+        convertToRegister(fp, addr1, "esi");
+        convertToRegister(fp, addr2, "eax");
+        convertToRegister(fp, addr3, "edi");
+        fprintf(fp, "mov dl, %d\n", ((struct symbolTableEntry*) addr3->address.entry)->value.identry->size/sizeLookup(INT));
+        fprintf(fp, "call matsub\n");
         break;
       }
     break;

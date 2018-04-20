@@ -199,7 +199,30 @@ matadd:
     stosw
     add ebx, 2
     dec dl
+    cmp dl, 0
     jnz addLoop
+  pop ebx
+  pop edi
+  pop esi
+  pop edx
+  pop eax
+  ret
+
+matsub:
+  push eax
+  push edx
+  push esi
+  push edi
+  push ebx
+  mov ebx, eax
+  subLoop:
+    lodsw
+    sub ax, [ebx]
+    stosw
+    add ebx, 2
+    dec dl
+    cmp dl, 0
+    jnz subLoop
   pop ebx
   pop edi
   pop esi
