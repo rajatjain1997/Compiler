@@ -172,7 +172,7 @@ Token* tokenize(TokenType type, char* buf, int lineno) {
 		default:
 			token = (Token*) malloc(sizeof(Token));
 			token->type = type;
-			token->value.lexeme = (char*) malloc(strlen(buf));
+			token->value.lexeme = (char*) malloc(strlen(buf)+1);
 			strcpy(token->value.lexeme, buf);
 			token->lineno = lineno;
 			return token;

@@ -567,11 +567,12 @@ void visitSynType(Tree tree) {
           break;
         }
         if(
-            (type1->type == INT || type1->type == REAL) && type1->rows == 0 && type1->columns == 0 &&
-            (type2->type == INT || type2->type == REAL) && type2->rows == 0 && type2->columns == 0
+            ((type1->type == INT && type2->type == INT) || (type1->type == REAL && type2->type == REAL)) &&
+            type1->rows == 0 && type1->columns == 0 && type2->rows == 0 && type2->columns == 0
           ) {
           tree->attr[1] = createType(AND, 0, 0);
         } else {
+          raiseInvalidOperatorError(tree, type2, type1);
           tree->attr[1] = errorType;
         }
         break;

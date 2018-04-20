@@ -61,7 +61,7 @@ void printErrors() {
 
 void error(char* message, ErrorType type, int lineno) {
 	ErrorMessage* errmsg = (ErrorMessage*) malloc(sizeof(ErrorMessage));
-	errmsg->message = malloc(strlen(message));
+	errmsg->message = malloc(strlen(message)+1);
 	strcpy(errmsg->message, message);
 	errmsg->errorType = type;
 	errmsg->lineno = lineno;

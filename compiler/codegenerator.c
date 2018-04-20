@@ -260,13 +260,22 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
       fprintf(fp, "jne %s\n", ((char*) addr1->address.entry));
     break;
     case OP_CMP:
-      switch(((struct symbolTableEntry*)addr1->address.entry)->value.identry->type->type) {
+      switch(addr1->type) {
+        case 0:
+          switch(((struct symbolTableEntry*)addr1->address.entry)->value.identry->type->type) {
+            case INT:
+              convertToRegister(fp, addr1, "ax");
+              convertToRegister(fp, addr2, "bx");
+              fprintf(fp, "cmp ax, bx\n");
+            break;
+            case REAL:
+            break;
+          }
+        break;
         case INT:
           convertToRegister(fp, addr1, "ax");
           convertToRegister(fp, addr2, "bx");
           fprintf(fp, "cmp ax, bx\n");
-        break;
-        case REAL:
         break;
       }
     break;
