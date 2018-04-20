@@ -3,17 +3,23 @@ _main[]
 	matrix identity;
 	identity = [1,0,0;0,1,0;0,0,1] ;
 	#Also experiment your result with
-	#identity = [0,1,0;0,1,0;0,0,1] ;
+	identity = [0,1,0;0,1,0;0,0,1] ;
 	int isIdentityMat;
 	int a,b,c;
 	a =identity[1,1];
 	b = identity[2,2];
-	c = identitity[3,3];
+	c = identity[3,3];
 	isIdentityMat =0;
 	if ((a==1).and.((b==1).and.(c==1)))
-		if((identity[1,2]==0).and.(identity[1,3]==0))
-			if((identity[2,1]==0).and.(identity[2,3]==0))
-				if((identity[3,1]==0).and.(identity[3,2]==0))
+		a = identity[1,2];
+		b = identity[1,3];
+		if((a==0).and.(b==0))
+			a = identity[2,1];
+			b = identity[2,3];
+			if((a==0).and.(b==0))
+				a = identity[3,1];
+				b = identity[3,2];
+				if((a==0).and.(b==0))
 					isIdentityMat = 1;
 				endif;
 			endif;
