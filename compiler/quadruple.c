@@ -1,3 +1,8 @@
+/**
+ *	AUTHOR: Rajat Jain
+ *  ID No. 2015A7PS0549P
+ */
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -7,6 +12,9 @@
 #include"tree.h"
 #include"symboltable.h"
 
+/**
+ *Address* makeAddress(void* entry, int integer, float real, int type): Creates an address type.
+ */
 Address* makeAddress(void* entry, int integer, float real, int type) {
   Address* addr = (struct address*) malloc(sizeof(struct address));
   if(entry!=NULL) {
@@ -19,6 +27,9 @@ Address* makeAddress(void* entry, int integer, float real, int type) {
   addr->type = type;
 }
 
+/**
+ *Quadruple* makeCode(Operator op, Address* op1, Address* op2, Address* op3): Creats a quadruple
+ */
 Quadruple* makeCode(Operator op, Address* op1, Address* op2, Address* op3) {
   Quadruple* quad = (Quadruple*) malloc(sizeof(Quadruple));
   quad->operator = op;
@@ -28,6 +39,9 @@ Quadruple* makeCode(Operator op, Address* op1, Address* op2, Address* op3) {
   return quad;
 }
 
+/**
+ *Address* generateTemporary(SymbolTable st, Type* type): Generates temporary variables
+ */
 Address* generateTemporary(SymbolTable st, Type* type) {
   static char* tempstring = NULL; int number;
   if(tempstring==NULL) {
@@ -55,6 +69,9 @@ Address* generateTemporary(SymbolTable st, Type* type) {
   return makeAddress(retrieveSymbol(st, to), 0, 0, 0);
 }
 
+/**
+ *Address* generateLabel(): Generates labels
+ */
 Address* generateLabel() {
   static char* tempstring = NULL; int number;
   if(tempstring==NULL) {

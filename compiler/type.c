@@ -1,3 +1,8 @@
+/**
+ *	AUTHOR: Rajat Jain
+ *  ID No. 2015A7PS0549P
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "tree.h"
@@ -48,6 +53,9 @@
    return buf;
  }
 
+/**
+ * void raiseNotDeclaredException(Tree tree): Raises an error if an identifier or function is not declared.
+ */
 void raiseNotDeclaredException(Tree tree) {
   char msg[256], buf[20];
   Token* token = getToken(extractSymbol(tree));
@@ -58,6 +66,9 @@ void raiseNotDeclaredException(Tree tree) {
   tree->attr[1] = errorType;
 }
 
+/**
+ * void raiseReDefinedException(Tree tree): Raises an error if an identifier or function is re-declared.
+ */
 void raiseReDefinedException(Tree tree) {
   char msg[256], buf[20];
   Token* token = getToken(extractSymbol(tree));
@@ -68,6 +79,10 @@ void raiseReDefinedException(Tree tree) {
   tree->attr[1] = errorType;
 }
 
+/**
+ * void raiseTypeMismatchError(Tree identifier, Type* expectedType, Type* actualType, char strtype[]):
+ * Raises an error if types mismatch for 2 identifers.
+ */
 void raiseTypeMismatchError(Tree identifier, Type* expectedType, Type* actualType, char strtype[]) {
   char msg[256], buf1[20], buf2[20], buf3[20];
   Token* token = getToken(extractSymbol(identifier));
@@ -83,6 +98,10 @@ void raiseTypeMismatchError(Tree identifier, Type* expectedType, Type* actualTyp
   //If you later need to assign an error type for all later occurances you can do it in ASSIGNOP after this call.
 }
 
+/**
+ * void raiseInvalidOperatorError(Tree identifier, Type* expectedType, Type* actualType):
+ * Raises an error if an operator is not compatible with 2 types.
+ */
 void raiseInvalidOperatorError(Tree identifier, Type* expectedType, Type* actualType) {
   char msg[256], buf1[20], buf2[20], buf3[20];
   Token* token = getToken(extractSymbol(identifier));
@@ -94,6 +113,9 @@ void raiseInvalidOperatorError(Tree identifier, Type* expectedType, Type* actual
   //If you later need to assign an error type for all later occurances you can do it in ASSIGNOP after this call.
 }
 
+/**
+ * void raiseInsufficientLHS(Tree tree): Raises an error if there are less elements in LHS of ASSIGNOP than on the right.
+ */
 void raiseInsufficientLHS(Tree tree) {
   char msg[256];
   Token* token = getToken(extractSymbol(tree));
@@ -102,6 +124,9 @@ void raiseInsufficientLHS(Tree tree) {
  	error(msg, e, token->lineno);
 }
 
+/**
+ * void raiseInsufficientRHS(Tree tree): Raises an error if there are less elements in RHS of ASSIGNOP than on the left.
+ */
 void raiseInsufficientRHS(Tree tree) {
   char msg[256];
   Token* token = getToken(extractSymbol(tree));
@@ -110,6 +135,10 @@ void raiseInsufficientRHS(Tree tree) {
  	error(msg, e, token->lineno);
 }
 
+/**
+ * void raiseUntypedError(Tree tree): Raises an error if an untyped object is inserted in an arithmetic
+ * or boolean expression.
+ */
 void raiseUntypedError(Tree tree) {
   char msg[256], buf[20];
   Token* token = getToken(extractSymbol(tree));
@@ -120,6 +149,9 @@ void raiseUntypedError(Tree tree) {
   tree->attr[1] = errorType;
 }
 
+/**
+ * void raiseBadFunctionCall(Tree tree): Raises an error if there are wrong number of parameters ina function call.
+ */
 void raiseBadFunctionCall(Tree tree) {
   char msg[256], buf[20];
   Token* token = getToken(extractSymbol(tree));
@@ -129,6 +161,10 @@ void raiseBadFunctionCall(Tree tree) {
  	error(msg, e, token->lineno);
 }
 
+/**
+ * void raiseNonZeroRetFunction(Tree tree): Raises an error if a function that returns 1 or more values in a
+ * function statement.
+ */
 void raiseNonZeroRetFunction(Tree tree) {
   char msg[256], buf[20];
   Token* token = getToken(extractSymbol(tree));

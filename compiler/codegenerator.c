@@ -1,3 +1,8 @@
+/**
+ *	AUTHOR: Rajat Jain
+ *  ID No. 2015A7PS0549P
+ */
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -9,6 +14,10 @@
 #include"token.h"
 #include"symbol.h"
 #include"semantic.h"
+
+/**
+ * void writebase(FILE* fp): Writes the initial code-base for ASM
+ */
 
 void writebase(FILE* fp) {
   fprintf(fp, "%%include \'functions.asm\'\n");
@@ -24,9 +33,17 @@ void writebase(FILE* fp) {
   fprintf(fp, "mov ebp, stackbase\n");
 }
 
+/**
+ * void wirteend(FILE* fp): Writes the quit code-base for ASM
+ */
+
 void writeend(FILE* fp) {
   fprintf(fp, "call quit\n");
 }
+
+/**
+ * int getMatrixElement(Tree matrix, int i) : Extracts matrix element from AST
+ */
 
 int getMatrixElement(Tree matrix, int i) {
   int column = i/(matrix->children->size);
@@ -36,6 +53,9 @@ int getMatrixElement(Tree matrix, int i) {
   return getToken(extractSymbol(matrix))->value.integer;
 }
 
+/**
+ * int fetchSize(Address* addr): Fetches offset from ebp for a particular offset
+ */
 int fetchSize(Address* addr) {
   switch(addr->type) {
     case 0:
@@ -47,10 +67,13 @@ int fetchSize(Address* addr) {
   }
 }
 
+/**
+ * void convertToRegister(FILE* fp, Address* addr, char reg[]): Assigns a given address to the passed register.
+ */
 void convertToRegister(FILE* fp, Address* addr, char reg[]) {
   struct symbolTableEntry* tempentree;
   char tempstring[20]; int i;
-  static int stringtoggle = 0, matrixtoggle = 0; 
+  static int stringtoggle = 0, matrixtoggle = 0;
   Tree temptree;
   switch (addr->type) {
     case 0:
@@ -99,6 +122,9 @@ void convertToRegister(FILE* fp, Address* addr, char reg[]) {
   }
 }
 
+/**
+ * void convertToMemory(FILE* fp, Address* addr, char reg[]): Stores a given register value to passed address
+ */
 void convertToMemory(FILE* fp, Address* addr, char reg[]) {
   struct symbolTableEntry* tempentree;
   tempentree = addr->address.entry;
@@ -106,6 +132,9 @@ void convertToMemory(FILE* fp, Address* addr, char reg[]) {
     fprintf(fp, "mov [ebp + %d], %s\n", tempentree->value.identry->offset, reg);
 }
 
+/**
+ *void stringify(FILE* fp, Address* addr): Converts the passed address to a string and prints it.
+ */
 void stringify(FILE* fp, Address* addr) {
   switch(((struct symbolTableEntry*) addr->address.entry)->value.identry->type->type) {
     case INT:
@@ -130,7 +159,10 @@ void stringify(FILE* fp, Address* addr) {
   }
 }
 
-
+/**
+ *void writeCode(FILE* fp, Quadruple* code, SymbolTable st): Actually wirtes instruction templates for each instruction in intermediate
+ *code
+ */
 void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
   Address *addr1, *addr2, *addr3;
   addr1 = code->op[0];
@@ -302,6 +334,9 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
   }
 }
 
+/**
+ *void generateCode(char* filename, List code, SymbolTable st): Driver function for code generator.
+ */
 void generateCode(char* filename, List code, SymbolTable st) {
   FILE* fp = fopen(filename, "w");
   int define = 0;

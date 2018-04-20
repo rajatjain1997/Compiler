@@ -1,3 +1,8 @@
+/**
+ *	AUTHOR: Rajat Jain
+ *  ID No. 2015A7PS0549P
+ */
+
 #include<stdio.h>
 #include<stdlib.h>
 #include"tree.h"
@@ -8,6 +13,9 @@
 #include"semantic.h"
 #include"list.h"
 
+/**
+ * void generateLabelAttribute(Tree tree): Generates addresses from constants and variables at leaves of AST.
+ */
 void generateLabelAttribute(Tree tree) {
   Symbol* symbol = extractSymbol(tree);
   SymbolTable scope = (SymbolTable) tree->parent->attr[0];
@@ -31,6 +39,9 @@ void generateLabelAttribute(Tree tree) {
   }
 }
 
+/**
+ *void visitInhCode(Tree tree): Responsible for propagating labels down a boolean expression.
+ */
 void visitInhCode(Tree tree) {
   Symbol* symbol = extractSymbol(tree);
   Tree temptree; Type type1;
@@ -68,6 +79,9 @@ void visitInhCode(Tree tree) {
   }
 }
 
+/**
+ * void visitSynCode(Tree tree): Computes Intermediate Code Quadruples post-order.
+ */
 void visitSynCode(Tree tree) {
   Symbol* symbol = extractSymbol(tree);
   SymbolTable scope = (SymbolTable) tree->attr[0];
@@ -467,6 +481,9 @@ void visitSynCode(Tree tree) {
   }
 }
 
+/**
+ *List generateIntermediateCode(Tree tree): Driver function for generating intermediate code.
+ */
 List generateIntermediateCode(Tree tree) {
   Element temp;
   if(tree->children->size!=0) {

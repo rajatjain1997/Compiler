@@ -1,3 +1,8 @@
+/**
+ *	AUTHOR: Rajat Jain
+ *  ID No. 2015A7PS0549P
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "tree.h"
@@ -8,6 +13,10 @@
 #include "grammar.h"
 #include "semantic.h"
 #include "trie.h"
+
+/**
+ *void pruneChildren(List children, List prunelist): Deletes extra nodes from the parse tree
+ */
 
 void pruneChildren(List children, List prunelist) {
   if(children->size==0 || prunelist->size==0) {
@@ -59,6 +68,10 @@ void pruneChildren(List children, List prunelist) {
   children->size = 0;
 }
 
+/**
+ *void insertInList(List list, void* element): Used to insert an element at a list end
+ */
+
 void insertInList(List list, void* element) {
   if(element==NULL) {
     return;
@@ -84,6 +97,10 @@ List transformTree(Tree tree, Tree head, List children) {
   }
   return oldchildren;
 }
+
+/**
+ * void visitInh(Tree tree): Applies AST creation rules pre-order
+ */
 
 void visitInh(Tree tree) {
   static List childList;
@@ -121,6 +138,10 @@ void visitInh(Tree tree) {
       break;
   }
 }
+
+/**
+ * void visitSyn(Tree tree): Applies AST creation rules post-order
+ */
 
 void visitSyn(Tree tree) {
   static List prunelist = NULL;
@@ -612,6 +633,10 @@ void visitSyn(Tree tree) {
   }
   pruneChildren(childList, prunelist);
 }
+
+/**
+ * int createAST(Tree tree, int treeSize): Driver function for AST transformation.
+ */
 
 int createAST(Tree tree, int treeSize) {
   Element temp;

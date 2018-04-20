@@ -1,3 +1,8 @@
+/**
+ *	AUTHOR: Rajat Jain
+ *  ID No. 2015A7PS0549P
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,6 +25,9 @@ int hashingFunction(char a[]) {
   return index;
 }
 
+/**
+ * SymbolTable createSymbolTable(SymbolTable parent, Tree func): Initializes a symboltable instance.
+ */
 SymbolTable createSymbolTable(SymbolTable parent, Tree func) {
   SymbolTable h = (SymbolTable) malloc(sizeof(struct symboltable));
   h->symboltable = (List*) malloc(sizeof(List)* size);
@@ -34,6 +42,9 @@ SymbolTable createSymbolTable(SymbolTable parent, Tree func) {
   return h;
 }
 
+/**
+ * Type* createType(int t, int rows, int columns): Initializes a type instance.
+ */
 Type* createType(int t, int rows, int columns) {
   Type* type = (Type*) malloc(sizeof(Type));
   type->type = t;
@@ -42,6 +53,9 @@ Type* createType(int t, int rows, int columns) {
   return type;
 }
 
+/**
+ * int checkRecursion(SymbolTable st, Tree tokentree): Checks if a recursive definition for same function is present in the table.
+ */
 int checkRecursion(SymbolTable st, Tree tokentree) {
   SymbolTable temp = st;
   while(temp!=NULL) {
@@ -61,6 +75,9 @@ int checkRecursion(SymbolTable st, Tree tokentree) {
 // 	free(h);
 // }
 
+/**
+ * int insertSymbol(SymbolTable h,  struct symbolTableEntry* s): Inserts an entry in symbol table.
+ */
 int insertSymbol(SymbolTable h,  struct symbolTableEntry* s) {
   Data d;
   char buf1[20], buf2[20];
@@ -85,6 +102,9 @@ int insertSymbol(SymbolTable h,  struct symbolTableEntry* s) {
   }
 }
 
+/**
+ * struct symbolTableEntry* retrieveSymbol(SymbolTable h, Token* token): Retrieves an entry from symbol table.
+ */
 struct symbolTableEntry* retrieveSymbol(SymbolTable h, Token* token) {
   char buf1[20], buf2[20];
   if(token->type!=ID && token->type!=FUNID) {
@@ -110,6 +130,9 @@ struct symbolTableEntry* retrieveSymbol(SymbolTable h, Token* token) {
   return NULL;
 }
 
+/**
+ * int createidEntry(SymbolTable st, Tree tokentree, int type): Inserts a identifier in the table. Returns 0 if error!
+ */
 int createidEntry(SymbolTable st, Tree tokentree, int type) {
   if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=ID) {
     return 0;
@@ -129,6 +152,11 @@ int createidEntry(SymbolTable st, Tree tokentree, int type) {
   return insertSymbol(st, ste);
 }
 
+/**
+ * int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int columns): Updates sizes and offsets of
+ * string and matrix types after they have been defined. Returns 0 if the size can't be updated: When types mismatch or size
+ * still remains 0
+ */
 int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int columns) {
   if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=ID) {
     return 0;
@@ -153,6 +181,9 @@ int updateidEntrySize(SymbolTable st, Tree tokentree, int type, int rows, int co
   return 1;
 }
 
+/**
+ * int updateidDefined(SymbolTable st, Tree tokentree): Marks an identifier as defined in the symboltable.
+ */
 int updateidDefined(SymbolTable st, Tree tokentree) {
   if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=ID) {
     return 0;
@@ -165,6 +196,9 @@ int updateidDefined(SymbolTable st, Tree tokentree) {
   return 1;
 }
 
+/**
+ * Type* fetchType(SymbolTable st, Tree tokentree): fetches the type for an indetifier.
+ */
 Type* fetchType(SymbolTable st, Tree tokentree) {
   if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=ID) {
     return 0;
@@ -176,6 +210,9 @@ Type* fetchType(SymbolTable st, Tree tokentree) {
   return ste->value.identry->type;
 }
 
+/**
+ * Type* fetchDefined(SymbolTable st, Tree tokentree): fetches whether an indetifier is defined.
+ */
 int fetchDefined(SymbolTable st, Tree tokentree) {
   if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=ID) {
     return 0;
@@ -187,6 +224,9 @@ int fetchDefined(SymbolTable st, Tree tokentree) {
   return (int) ste->value.identry->defined;
 }
 
+/**
+ * int createfunEntry(SymbolTable st, Tree tokentree): Inserts a function in the table. Returns NULL if error!
+ */
 SymbolTable createfunEntry(SymbolTable st, Tree tokentree) {
   if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=FUNID) {
     return NULL;
@@ -201,10 +241,16 @@ SymbolTable createfunEntry(SymbolTable st, Tree tokentree) {
   return ste->value.funentry->scope;
 }
 
+/**
+ * Type* fetchType(SymbolTable st): fetches the parent for the symboltable.
+ */
 SymbolTable getParentScope(SymbolTable st) {
   return st->parent;
 }
 
+/**
+ * Type* fetchType(SymbolTable st, Tree tokentree): fetches the definition of a function.
+ */
 Tree fetchfunDefn(SymbolTable st, Tree tokentree) {
   if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=FUNID) {
     return NULL;
@@ -216,6 +262,9 @@ Tree fetchfunDefn(SymbolTable st, Tree tokentree) {
   return ste->tokentree->parent;
 }
 
+/**
+ * Type* fetchType(SymbolTable st, Tree tokentree): fetches the symboltable defining the scope for a function.
+ */
 SymbolTable fetchfunScope(SymbolTable st, Tree tokentree) {
   if(!isTerminal(extractSymbol(tokentree)) || getToken(extractSymbol(tokentree))->type!=FUNID) {
     return NULL;

@@ -1,3 +1,8 @@
+/**
+ *	AUTHOR: Rajat Jain
+ *  ID No. 2015A7PS0549P
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "tree.h"
@@ -8,6 +13,9 @@
 #include "grammar.h"
 #include "semantic.h"
 
+/**
+ *Symbol*** generateSymbolDictionary(): Generates a symbol dictionary for lookup and support for AST and typechecking
+ */
 Symbol*** generateSymbolDictionary() {
   Symbol*** dictionary = (Symbol***) malloc(sizeof(Symbol***) * 2);
   dictionary[0] = (Symbol**) malloc(sizeof(Symbol*) * MAX_GRAMMAR_SIZE);
@@ -22,6 +30,10 @@ Symbol*** generateSymbolDictionary() {
   return dictionary;
 }
 
+/**
+ *Symbol* lookupSymbolDictionary(char nonterminal[], int terminal): Looks up in the generated symbol dictionary
+ *via generateSymbolDictionary
+ */
 Symbol* lookupSymbolDictionary(char nonterminal[], int terminal) {
   static Symbol*** dictionary = NULL;
   if(dictionary==NULL) {
@@ -36,6 +48,10 @@ Symbol* lookupSymbolDictionary(char nonterminal[], int terminal) {
   return symbol;
 }
 
+/**
+ *Tree extractChild(Tree tree ,char nonterminal[], TokenType terminal, int childno): Extracts a child with same nonterminal name
+ * or token type. Also checks old name and type.
+ */
 Tree extractChild(Tree tree ,char nonterminal[], TokenType terminal, int childno) {
   Symbol* symbol = lookupSymbolDictionary(nonterminal, terminal);
   List children = tree->children;
@@ -64,7 +80,9 @@ Tree extractChild(Tree tree ,char nonterminal[], TokenType terminal, int childno
   return NULL;
 }
 
-
+/**
+ *Tree extractChildNumber(Tree tree, int childno): Extracts a child at a particular number from a tree
+ */
 Tree extractChildNumber(Tree tree, int childno) {
   if(childno==tree->children->size) {
     return tree->children->last->data.value.tree;
@@ -81,6 +99,9 @@ Tree extractChildNumber(Tree tree, int childno) {
   return NULL;
 }
 
+/**
+ *int sizeLookup(int type): Determines width of each type. Used in symbol table generation and in offset calculations.
+ */
 int sizeLookup(int type) {
   switch(type) {
     case INT: return 2;
@@ -90,6 +111,9 @@ int sizeLookup(int type) {
   }
 }
 
+/**
+ *int symbolComparatorNT(Symbol* s, char str[]): Compares symboltypes for non terminals.
+ */
 int symbolComparatorNT(Symbol* s, char str[]) {
   return s->symbolType == lookupSymbolDictionary(str, 0)->symbolType;
 }
