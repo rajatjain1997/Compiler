@@ -56,17 +56,17 @@ void visitDFT(Tree tree, FILE* fp) {
 	token = getToken(tree->symbol);
 	if(isTerminal(tree->symbol) && token!=NULL && tree->parent!=NULL && !isTerminal(tree->parent->symbol)) {
 		getLexeme(token, buf);
-		fprintf(fp,"%-20s|%-10d|%-10s|%-23s\n", buf, token->lineno, tokenTypeToString[token->type], nonTerminalStrings[tree->parent->symbol->symbolType]);
+		fprintf(fp,"|%-20s|%-10d|%-10s|%-23s|\n", buf, token->lineno, tokenTypeToString[token->type], nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if(isTerminal(tree->symbol) && token!=NULL && tree->parent!=NULL && isTerminal(tree->parent->symbol)) {
 		getLexeme(token, buf);
-		fprintf(fp,"%-20s|%-10d|%-10s|%-23s\n", buf, token->lineno, tokenTypeToString[token->type], tokenTypeToString[tree->parent->symbol->symbolType]);
+		fprintf(fp,"|%-20s|%-10d|%-10s|%-23s|\n", buf, token->lineno, tokenTypeToString[token->type], tokenTypeToString[tree->parent->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol) && tree->parent!=NULL && !isTerminal(tree->parent->symbol)) {
-		fprintf(fp, "%-20s|----------|----------|%-23s \n", nonTerminalStrings[tree->symbol->symbolType], nonTerminalStrings[tree->parent->symbol->symbolType]);
+		fprintf(fp, "|%-20s|----------|----------|%-23s|\n", nonTerminalStrings[tree->symbol->symbolType], nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if(!isTerminal(tree->symbol) && tree->parent!=NULL && isTerminal(tree->parent->symbol)) {
-		fprintf(fp, "%-20s|----------|----------|%-23s \n", nonTerminalStrings[tree->symbol->symbolType], tokenTypeToString[tree->parent->symbol->symbolType]);
+		fprintf(fp, "|%-20s|----------|----------|%-23s|\n", nonTerminalStrings[tree->symbol->symbolType], tokenTypeToString[tree->parent->symbol->symbolType]);
 	} else if (isTerminal(tree->symbol) && tree->parent==NULL) {
 		getLexeme(token, buf);
-		fprintf(fp, "%-20s|%-10d|%-10s|----------------------- \n", buf, token->lineno, tokenTypeToString[token->type]);
+		fprintf(fp, "|%-20s|%-10d|%-10s|-----------------------|\n", buf, token->lineno, tokenTypeToString[token->type]);
 	} else {
 		fprintf(fp, "%d (Error)\n", tree->symbol->symbolType);
 	}
@@ -77,17 +77,17 @@ void visitInOrder(Tree tree, FILE* fp) {
 	token = getToken(tree->symbol);
 	if(token!=NULL && token->type==NUM) {
 		getLexeme(token, buf);
-		fprintf(fp, "%-20s|%-10d|%-10s|%-10d|%-23s|YES|-----------------------\n", buf, token->lineno, tokenTypeToString[token->type], token->value.integer, nonTerminalStrings[tree->parent->symbol->symbolType]);
+		fprintf(fp, "|%-20s|%-10d|%-10s|%-10d|%-23s|YES|-----------------------|\n", buf, token->lineno, tokenTypeToString[token->type], token->value.integer, nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if(token!=NULL && token->type==RNUM) {
 		getLexeme(token, buf);
-		fprintf(fp, "%-20s|%-10d|%-10s|%-10f|%-23s|YES|-----------------------\n", buf, token->lineno, tokenTypeToString[token->type], token->value.real, nonTerminalStrings[tree->parent->symbol->symbolType]);
+		fprintf(fp, "|%-20s|%-10d|%-10s|%-10f|%-23s|YES|-----------------------|\n", buf, token->lineno, tokenTypeToString[token->type], token->value.real, nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if(isTerminal(tree->symbol) && token!=NULL && tree->parent!=NULL) {
 		getLexeme(token, buf);
-		fprintf(fp,"%-20s|%-10d|%-10s|----------|%-23s|YES|-----------------------\n", buf, token->lineno, tokenTypeToString[token->type], nonTerminalStrings[tree->parent->symbol->symbolType]);
+		fprintf(fp,"|%-20s|%-10d|%-10s|----------|%-23s|YES|-----------------------|\n", buf, token->lineno, tokenTypeToString[token->type], nonTerminalStrings[tree->parent->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol) && tree->parent!=NULL) {
-		fprintf(fp, "--------------------|----------|----------|----------|%-23s| NO|%-23s \n", nonTerminalStrings[tree->parent->symbol->symbolType], nonTerminalStrings[tree->symbol->symbolType]);
+		fprintf(fp, "|--------------------|----------|----------|----------|%-23s| NO|%-23s|\n", nonTerminalStrings[tree->parent->symbol->symbolType], nonTerminalStrings[tree->symbol->symbolType]);
 	} else if (!isTerminal(tree->symbol)) {
-		fprintf(fp, "--------------------|----------|----------|----------|-----------------------| NO|%-23s \n", nonTerminalStrings[tree->symbol->symbolType]);
+		fprintf(fp, "|--------------------|----------|----------|----------|-----------------------| NO|%-23s|\n", nonTerminalStrings[tree->symbol->symbolType]);
 	} else {
 		fprintf(fp, "%d (Error)\n", tree->symbol->symbolType);
 	}
@@ -132,18 +132,22 @@ void DFT(Tree tree, FILE* fp) {
  */
 
 void printTree(Tree tree, FILE* fp) {
-	fprintf(fp, "Lexeme              |Line No.  |Token     |Value     |Parent Nonterminal     |Y/N|Nonterminal\n");
-	fprintf(fp, "====================|==========|==========|==========|=======================|===|=======================\n");
+	fprintf(fp, "|====================|==========|==========|==========|=======================|===|=======================|\n");
+	fprintf(fp, "|Lexeme              |Line No.  |Token     |Value     |Parent Nonterminal     |Y/N|Nonterminal            |\n");
+	fprintf(fp, "|====================|==========|==========|==========|=======================|===|=======================|\n");
 	inOrderTraversal(tree, fp);
+	fprintf(fp, "|====================|==========|==========|==========|=======================|===|=======================|\n");
 	if(fp!=stdout) {
 		fclose(fp);
 	}
 }
 
 void printAST(Tree tree, FILE* fp) {
-	fprintf(fp, "Lexeme              |Line No.  |Token     |Parent\n");
-	fprintf(fp, "====================|==========|==========|=======================\n");
+	fprintf(fp, "|====================|==========|==========|=======================|\n");
+	fprintf(fp, "|Lexeme              |Line No.  |Token     |Parent                 |\n");
+	fprintf(fp, "|====================|==========|==========|=======================|\n");
 	DFT(tree, fp);
+	fprintf(fp, "|====================|==========|==========|=======================|\n");
 	if(fp!=stdout) {
 		fclose(fp);
 	}
@@ -155,21 +159,24 @@ void printAST(Tree tree, FILE* fp) {
 
 void printTokenStream(Queue tokenStream) {
 	char buf[20];
-	printf("Token Type|Lexeme              |Line no.\n");
-	printf("==========|====================|==========\n");
+	printf("|==========|====================|==========|\n");
+	printf("|Token Type|Lexeme              |Line no.  |\n");
+	printf("|==========|====================|==========|\n");
 	QueueElement temp = tokenStream->first;
 	while(temp!=NULL) {
 		getLexeme(temp->data.value, buf);
-		printf("%-10s|%-20s|%-10d\n", tokenTypeToString[temp->data.value->type], buf, temp->data.value->lineno);
+		printf("|%-10s|%-20s|%-10d|\n", tokenTypeToString[temp->data.value->type], buf, temp->data.value->lineno);
 		temp=temp->next;
 	}
+	printf("|==========|====================|==========|\n");
 }
 
 void printSymbolTable(SymbolTable st, int level) {
 	int i = 0; Element temp; Token* token; char buf[21], buf2[21], buf3[21]; struct idEntry* ste;
 	if(level==0) {
-		printf("Identifier Name     |Scope Name          |N. Level|Static Parent       |Type     |Width|Offset\n");
-		printf("====================|====================|========|====================|=========|=====|=======\n");
+		printf("|====================|====================|========|====================|=========|=====|=======|\n");
+		printf("|Identifier Name     |Scope Name          |N. Level|Static Parent       |Type     |Width|Offset |\n");
+		printf("|====================|====================|========|====================|=========|=====|=======|\n");
 	}
 	while(i<st->size) {
 		temp = st->symboltable[i]->first;
@@ -180,20 +187,23 @@ void printSymbolTable(SymbolTable st, int level) {
 				printSymbolTable(temp->data.value.symboltableentry->value.funentry->scope, level+1);
 			} else if(st->func==NULL){
 				ste = temp->data.value.symboltableentry->value.identry;
-				printf("%-20s|MAIN                |%-8d|N.A.                |%-9s|%-5d|%-7d\n", buf, level, tokenTypeToString[ste->type->type], ste->size, ste->offset);
+				printf("|%-20s|MAIN                |%-8d|N.A.                |%-9s|%-5d|%-7d|\n", buf, level, tokenTypeToString[ste->type->type], ste->size, ste->offset);
 			} else if(st->parent->parent==NULL) {
 				ste = temp->data.value.symboltableentry->value.identry;
 				getLexeme(getToken(extractSymbol(st->func)), buf2);
-				printf("%-20s|%-20s|%-8d|MAIN                |%-9s|%-5d|%-7d\n", buf, buf2, level, tokenTypeToString[ste->type->type], ste->size, ste->offset);
+				printf("|%-20s|%-20s|%-8d|MAIN                |%-9s|%-5d|%-7d|\n", buf, buf2, level, tokenTypeToString[ste->type->type], ste->size, ste->offset);
 			} else {
 				ste = temp->data.value.symboltableentry->value.identry;
 				getLexeme(getToken(extractSymbol(st->func)), buf2);
 				getLexeme(getToken(extractSymbol(st->parent->func)), buf3);
-				printf("%-20s|%-20s|%-8d|%-20s|%-9s|%-5d|%-7d\n", buf, buf2, level, buf3,tokenTypeToString[ste->type->type], ste->size, ste->offset);
+				printf("|%-20s|%-20s|%-8d|%-20s|%-9s|%-5d|%-7d|\n", buf, buf2, level, buf3,tokenTypeToString[ste->type->type], ste->size, ste->offset);
 			}
 			temp = temp->next;
 		}
 		i++;
+	}
+	if(level==0) {
+		printf("|====================|====================|========|====================|=========|=====|=======|\n");
 	}
 }
 
