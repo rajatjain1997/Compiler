@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
 							choice = choicemenu();
 						}
 						intercode = generateIntermediateCode(parsetree);
-						printQuadruples(intercode);
+						// printQuadruples(intercode);
 						if(argc==3 && choice==7) {
 							generateCode(argv[2], intercode, st);
 							choice = choicemenu();

@@ -13,4 +13,6 @@ _main[]
   endif;
   m3 = m1 + m2;
   print(m3);
+  a = m3[1,1];
+  print(a);
 end
