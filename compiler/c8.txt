@@ -1,0 +1,7 @@
+_main[]
+  int a; matrix m; int b;
+  m = [1, 2, 3;4, 5, 6];
+  b = 10;
+  a = c + d - 2 + m2[2,3];
+  print(a);
+end

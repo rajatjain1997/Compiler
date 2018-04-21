@@ -610,7 +610,7 @@ void visitSynType(Tree tree) {
               (type1->type == STRING) &&
               (type2->type == STRING)
           ) {
-          tree->attr[1] = createType(STRING, 0, type1->columns + type2->columns);
+          tree->attr[1] = createType(STRING, 0, type1->columns + type2->columns - 1);
         } else {
           raiseInvalidOperatorError(tree, type2, type1);
           tree->attr[1] = errorType;

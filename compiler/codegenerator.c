@@ -19,14 +19,14 @@
  * void writebase(FILE* fp): Writes the initial code-base for ASM
  */
 
-void writebase(FILE* fp) {
+void writebase(FILE* fp, SymbolTable st) {
   fprintf(fp, "%%include \'functions.asm\'\n");
   fprintf(fp, "section .bss\n");
   fprintf(fp, "temp1\tRESB\t20\n");
   fprintf(fp, "temp2\tRESB\t20\n");
   fprintf(fp, "tempmat1\tRESW\t100\n");
   fprintf(fp, "tempmat2\tRESW\t100\n");
-  fprintf(fp, "stackbase RESB 1\n");
+  fprintf(fp, "stackbase RESB %d\n", 2*st->lastoffset);
   fprintf(fp, "section .text\n");
   fprintf(fp, "global _start\n");
   fprintf(fp, "_start:\n");
@@ -145,11 +145,19 @@ void stringify(FILE* fp, Address* addr) {
     case REAL:
     break;
     case STRING:
+      // fprintf(fp, "push eax\n");
+      // fprintf(fp, "push ebx\n");
+      // fprintf(fp, "push ecx\n");
+      // fprintf(fp, "push edx\n");
       convertToRegister(fp, addr, "ecx");
       fprintf(fp, "mov edx, %d\n", ((struct symbolTableEntry*) addr->address.entry)->value.identry->type->columns);
       fprintf(fp, "mov ebx, 1\n");
       fprintf(fp, "mov eax, 4\n");
       fprintf(fp, "int 80h\n");
+      // fprintf(fp, "pop edx\n");
+      // fprintf(fp, "pop ecx\n");
+      // fprintf(fp, "pop ebx\n");
+      // fprintf(fp, "pop eax\n");
     break;
     case MATRIX:
       convertToRegister(fp, addr, "eax");
@@ -349,7 +357,7 @@ void writeCode(FILE* fp, Quadruple* code, SymbolTable st) {
 void generateCode(char* filename, List code, SymbolTable st) {
   FILE* fp = fopen(filename, "w");
   int define = 0;
-  writebase(fp);
+  writebase(fp, st);
   Element temp;
   temp = code->first;
   while(temp!=NULL) {
