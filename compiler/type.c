@@ -122,7 +122,7 @@ void raiseParameterMismatchError(Tree identifier, Type* expectedType, Type* actu
   Token* token = getToken(extractSymbol(identifier));
   ErrorType e = ERROR;
   getLexeme(token, buf1);
-  sprintf(msg, "SEMANTIC ERROR: %s has type %s but expected type is %s", buf1, typeLookup(actualType, buf2), typeLookup(expectedType, buf3));
+  sprintf(msg, "SEMANTIC ERROR: %s is passed type %s but a %s type should be passed", buf1, typeLookup(actualType, buf2), typeLookup(expectedType, buf3));
   error(msg, e, getToken(extractSymbol(call))->lineno);
   identifier->attr[1] = errorType;
   //If you later need to assign an error type for all later occurances you can do it in ASSIGNOP after this call.

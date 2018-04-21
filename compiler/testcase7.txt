@@ -3,6 +3,6 @@ _main[]
 	a = 5;
 	a = a + b;
 	print(a);
-end;
+end
 # semantic errors
 # line 4: variable b is not declared

@@ -17,7 +17,7 @@ _main[]
 	end;
 	z = ((a -g) *(h+u))+((13-a)*(u+g));
 	g = ((a -g) *(h+u))-((10+a)*(u+g));
-	if(g+2)
+	if(g<2)
 		x = 5;
 	else
 		x = 10;
@@ -27,7 +27,7 @@ _main[]
 	else
 		x = 20;
 	endif;
-end;
+end
 
 #Semantic errors
 #line 7: type mismatch errors

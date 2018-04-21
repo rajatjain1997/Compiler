@@ -10,7 +10,7 @@ _main[]
 	ccSubmission = _concatenate(str1, blankSTR);
 	ccSubmission = _concatenate(ccSubmission, str2);
 	string ccSubmission;
-end;
+end
 #Semantic errors
 #line 3 : The variable str1 is declared more than once
 #line 5 : Variable blankSTR is not declared
